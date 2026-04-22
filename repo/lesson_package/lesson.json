@@ -1,0 +1,91 @@
+{
+  "chapter_id": "ch11_hw_sw_codesign",
+  "chapter_title": "Hardware/Software Co-Design and Design Flow",
+  "version": "0.1",
+  "author": "[your name]",
+  "summary": "Students experience hardware/software partitioning firsthand by watching software fail under load and then succeed when the same task is handed to a dedicated peripheral. The lesson teaches co-design by having students do it, not by lecturing about it.",
+  "estimated_duration_minutes": 120,
+  "required_hardware": [
+    "ESP32 DevKit (any variant with accessible GPIOs)",
+    "Breadboard and jumper wires",
+    "1x standard LED (step 1)",
+    "16x WS2812 addressable LED strip (steps 2-5)",
+    "330 Ω resistor",
+    "470 Ω resistor (WS2812 data line)",
+    "1000 µF electrolytic capacitor (WS2812 power rail)",
+    "Pushbutton + 10 kΩ pull-down resistor",
+    "Oscilloscope (2 channels, 20 MHz or better)"
+  ],
+  "steps": [
+
+    {
+      "step_id": "step1_baseline",
+      "step_number": 1,
+      "title": "A blink that almost works",
+      "estimated_minutes": 12,
+
+      "opening_line": "Today you'll make an LED blink. Then you'll make it fail. Then you'll understand why chips have the peripherals they do.",
+
+      "content_blocks": [
+        {
+          "type": "prose",
+          "text": "You've blinked LEDs before. This one is no different — except you're going to measure it carefully, and you're going to find that it isn't quite what you expected."
+        },
+        {
+          "type": "task",
+          "heading": "Build it",
+          "text": "Wire one LED to GPIO 18 through a 330 Ω current-limiting resistor to ground. Connect your oscilloscope probe to GPIO 18 with the ground clip on the ESP32's GND rail."
+        },
+        {
+          "type": "reference",
+          "heading": "Wiring diagram",
+          "asset": "assets/step1_wiring.png"
+        },
+        {
+          "type": "task",
+          "heading": "Flash it",
+          "text": "Open step1_baseline.ino (in hardware/starter_code/step1_baseline/) and flash it to your ESP32. The LED will begin blinking once per second."
+        },
+        {
+          "type": "task",
+          "heading": "Measure it",
+          "text": "On your scope, set the timebase to 200 ms/div and trigger on the rising edge of GPIO 18. Read the frequency from the scope's measurement panel. Record the value you see in the field below, to four decimal places."
+        }
+      ],
+
+      "interactive_moment": {
+        "type": "numeric_entry",
+        "prompt": "What frequency did your scope report?",
+        "field_label": "Measured frequency (Hz)",
+        "placeholder": "e.g. 0.9987",
+        "expected_range": [0.95, 1.05],
+        "out_of_range_feedback": "That's outside the range we'd expect for this code. Double-check your probe connection and scope trigger, then remeasure.",
+        "on_valid_entry": "Your measurement is logged. Nobody in this class will report exactly 1.0000 Hz — and that's the point."
+      },
+
+      "short_answer_prompt": {
+        "question_id": "q1_why_not_exact",
+        "prompt": "Your scope reading isn't exactly 1.0000 Hz. In 2–3 sentences, explain why. What is the ESP32 actually doing, and why can't the software produce a perfect 1 Hz signal?",
+        "word_limit": 80,
+        "grading_ref": "grading.json#q1_why_not_exact"
+      },
+
+      "reveal": {
+        "heading": "The short answer",
+        "text": "Your ESP32 is running a loop: turn LED on, wait 500 ms, turn LED off, wait 500 ms. But 'wait 500 ms' in software isn't perfectly precise. The CPU also services background interrupts — the RTOS tick, the USB peripheral, the WiFi radio if it's powered on. Each one steals a handful of microseconds. Over many cycles, those microseconds accumulate and your frequency drifts off by a fraction of a percent. The CPU isn't broken. It's just doing exactly what it's designed to do: running code, one instruction at a time, while interruptions happen. Hold onto that idea — it's about to matter a lot more."
+      },
+
+      "transition_to_next_step": "Right now, a ~0.3% frequency error is probably invisible to you. In the next step, we'll turn up the difficulty until software's imperfection becomes impossible to miss."
+    },
+
+    { "step_id": "step2_overload", "step_number": 2, "title": "Software under pressure", "status": "to_be_built" },
+    { "step_id": "step3_diagnose",  "step_number": 3, "title": "Why did it fail?",       "status": "to_be_built" },
+    { "step_id": "step4_rescue",    "step_number": 4, "title": "The accelerator",        "status": "to_be_built" },
+    { "step_id": "step5_partition", "step_number": 5, "title": "The partition decision", "status": "to_be_built" }
+  ],
+
+  "assets": [
+    "assets/step1_wiring.png",
+    "hardware/starter_code/step1_baseline/step1_baseline.ino"
+  ]
+}

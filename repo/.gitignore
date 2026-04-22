@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+.pytest_cache/
+
+# Arduino / ESP32 build artifacts
+*.elf
+*.bin
+*.hex
+*.map
+build/
+.pio/
+.pioenvs/
+.piolibdeps/
+platformio.ini.bak
+
+# IDE / editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# OS
+.Trashes
+ehthumbs.db
+Desktop.ini
+
+# Logs and temporary files
+*.log
+*.tmp
+scratch/
+draft/
+
+# Scope capture intermediates (keep final PNGs in testing_evidence/)
+*.raw
+*.wfm
+*.isf

@@ -1,0 +1,92 @@
+{
+  "chapter_id": "ch11_hw_sw_codesign",
+  "version": "0.1",
+  "scoring_model": "keyword_weighted",
+  "default_max_points_per_question": 10,
+
+  "questions": [
+
+    {
+      "question_id": "q1_why_not_exact",
+      "step_ref": "step1_baseline",
+      "prompt": "Your scope reading isn't exactly 1.0000 Hz. In 2-3 sentences, explain why. What is the ESP32 actually doing, and why can't the software produce a perfect 1 Hz signal?",
+      "max_points": 10,
+
+      "scoring": {
+        "method": "keyword_weighted",
+
+        "required_concepts": [
+          {
+            "concept": "software_timing_imprecision",
+            "weight": 4,
+            "keywords_any": [
+              "delay",
+              "imprecise",
+              "not exact",
+              "approximation",
+              "approximate",
+              "clock drift",
+              "software timing",
+              "crystal"
+            ],
+            "explanation_for_grader": "Student must acknowledge that software-based timing isn't perfectly precise. Any mention of delay() being an approximation, clock imperfection, or software timing drift earns these points."
+          },
+          {
+            "concept": "cpu_does_other_work",
+            "weight": 4,
+            "keywords_any": [
+              "interrupt",
+              "ISR",
+              "background",
+              "other task",
+              "RTOS",
+              "tick",
+              "context switch",
+              "WiFi",
+              "USB",
+              "overhead",
+              "busy"
+            ],
+            "explanation_for_grader": "Student must recognize that the CPU does things other than running the blink loop — interrupts, background tasks, system overhead. This is the core insight of the step."
+          },
+          {
+            "concept": "accumulating_error",
+            "weight": 2,
+            "keywords_any": [
+              "accumulate",
+              "accumulates",
+              "add up",
+              "adds up",
+              "compound",
+              "compounds",
+              "each cycle",
+              "every cycle",
+              "over many cycles"
+            ],
+            "explanation_for_grader": "Credit for recognizing that small per-cycle errors compound into a measurable deviation. This is a bonus insight — not every student will include it, and that's fine."
+          }
+        ],
+
+        "automatic_disqualifiers": [
+          {
+            "pattern_any": ["the hardware is broken", "ESP32 is defective", "wiring is wrong"],
+            "feedback": "The hardware is working correctly. The question is about why correct software produces slightly-imperfect output."
+          }
+        ],
+
+        "length_penalty": {
+          "under_word_count": 10,
+          "penalty": 3,
+          "feedback": "Your answer is too short — the question asks for 2-3 sentences."
+        }
+      },
+
+      "exemplar_full_credit_answer": "The ESP32's delay(500) isn't a perfect 500 ms — it's what the software approximates using the RTOS tick. While the blink loop runs, the CPU also handles background interrupts (the RTOS scheduler tick, USB traffic, system tasks). Each one steals a few microseconds from the delay, and over many cycles those small errors accumulate into a measurable frequency offset.",
+
+      "exemplar_partial_credit_answer": "The delay function isn't perfectly precise so the timing drifts a little.",
+
+      "grader_notes": "This is a low-stakes opening question designed to get students to commit to a mental model, not to test deep knowledge. Full credit should be achievable by any student who engages genuinely with the question, even if their explanation is informal. The point isn't to trip them up — it's to anchor them before Steps 2-3, where the same concepts will be expanded."
+    }
+
+  ]
+}
