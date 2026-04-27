@@ -36,7 +36,7 @@ typedef uint8_t AesRoundKey[176];  // 11 round keys x 16 bytes
 // ── Default config ──────────────────────────────────────────────────────────
 #define DEFAULT_SSID      "deez"
 #define DEFAULT_PASS      "nutz"
-#define DEFAULT_MQTT_HOST "192.168.8.1"
+#define DEFAULT_MQTT_HOST "192.168.8.228"
 #define DEFAULT_MQTT_PORT 1883
 #define HEARTBEAT_MS      10000UL
 #define BENCH_PUBLISH_MS  10000UL
