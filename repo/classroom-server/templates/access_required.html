@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Access Required</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d1117;color:#e6edf3;font-family:system-ui,sans-serif;
+  display:flex;align-items:center;justify-content:center;min-height:100vh}
+.card{background:#161b22;border:1px solid #30363d;border-radius:12px;
+  padding:32px;max-width:460px;text-align:center}
+h2{margin-bottom:10px;font-size:1.2rem}
+p{color:#8b949e;font-size:13px;line-height:1.6;margin-bottom:8px}
+code{background:#1c2330;padding:2px 6px;border-radius:4px;font-family:monospace;font-size:12px}
+</style>
+</head>
+<body>
+<div class="card">
+  <div style="font-size:2rem;margin-bottom:12px">🔑</div>
+  <h2>Access Required</h2>
+  <p>Open the <strong>Serial Monitor</strong> on your ESP32 at 115200 baud.</p>
+  <p>Your student URL will appear after the device connects to Wi-Fi and MQTT.</p>
+  <p>It looks like:<br>
+  <code>http://{{ server_ip or '...' }}/{{ class_id }}/lesson/ch09?slot=3&amp;token=abc123</code></p>
+  <p style="margin-top:16px">If your device is already running, type <code>status</code> in the Serial Monitor to reprint the URL.</p>
+</div>
+</body>
+</html>

@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{ lesson.title }} — {{ class_id | upper }}</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0d1117;--card:#161b22;--card2:#1c2330;--border:#30363d;--text:#e6edf3;
+  --green:#3fb950;--yellow:#d29922;--red:#f85149;--blue:#388bfd;--muted:#8b949e;
+  --accent:#58a6ff;--purple:#a371f7;}
+body{background:var(--bg);color:var(--text);font-family:system-ui,sans-serif;min-height:100vh;display:grid;grid-template-rows:48px 1fr}
+/* Nav */
+nav{background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;padding:0 14px;position:sticky;top:0;z-index:20}
+.brand{font-size:14px;font-weight:700;color:var(--accent)}
+.pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700}
+.pill-b{background:#0d2149;color:var(--blue);border:1px solid #1f4d99}
+.pill-g{background:#0d4429;color:var(--green);border:1px solid #1a7f37}
+.pill-y{background:#2d2000;color:var(--yellow);border:1px solid #664400}
+.pill-r{background:#3d0a0a;color:var(--red);border:1px solid #8b1a1a}
+/* Broadcast banner */
+.bcast-banner{background:#1a2a00;border-bottom:1px solid var(--green);padding:10px 16px;font-weight:600;color:var(--green);display:none}
+/* Layout */
+.lesson-layout{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 48px)}
+/* Sidebar */
+.step-nav{background:var(--card);border-right:1px solid var(--border);padding:12px;position:sticky;top:48px;height:calc(100vh - 48px);overflow-y:auto;display:flex;flex-direction:column;gap:4px}
+.step-nav-item{padding:8px 10px;border-radius:6px;font-size:12px;border:1px solid transparent;transition:all .2s;cursor:pointer;line-height:1.4}
+.step-nav-item.active{background:#0d1c35;border-color:var(--accent);color:var(--accent)}
+.step-nav-item.done{border-color:var(--green);color:var(--green)}
+.step-nav-item.unlocked{color:var(--text)}
+.step-nav-item.locked{color:var(--muted);cursor:default;opacity:.5}
+.nav-section{font-size:10px;font-weight:700;color:var(--purple)}
+/* Device panel */
+.device-panel{margin-top:auto;background:var(--card2);border:1px solid var(--border);border-radius:7px;padding:9px;font-size:11px}
+.device-panel .head{font-weight:600;margin-bottom:5px;display:flex;justify-content:space-between}
+.kv{display:flex;justify-content:space-between;margin-top:3px;font-size:10px}
+.kv span:first-child{color:var(--muted)}
+/* Content area */
+.content-area{padding:24px;max-width:860px}
+.section-chip{display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:700;background:var(--purple);color:#fff;margin-bottom:8px}
+.content-block{margin-bottom:18px}
+.key-idea{background:#0d2149;border-left:4px solid var(--accent);padding:13px 15px;border-radius:0 8px 8px 0;font-size:14px;line-height:1.65}
+.callout{padding:12px 15px;border-radius:8px;font-size:13px;line-height:1.6}
+.callout-warning{background:#2d2000;border-left:4px solid var(--yellow)}
+.callout-info{background:#0d2149;border-left:4px solid var(--blue)}
+.callout-success{background:#0d4429;border-left:4px solid var(--green)}
+.bullet-list{list-style:none;padding:0}
+.bullet-list li{padding:5px 0 5px 18px;position:relative;font-size:13px;line-height:1.55;border-bottom:1px solid var(--border)}
+.bullet-list li:last-child{border-bottom:none}
+.bullet-list li::before{content:"›";position:absolute;left:3px;color:var(--accent);font-weight:700}
+.comp-table{width:100%;border-collapse:collapse;font-size:12px}
+.comp-table th{background:var(--card2);padding:8px;text-align:left;border:1px solid var(--border);color:var(--muted);font-size:11px;text-transform:uppercase}
+.comp-table td{padding:8px;border:1px solid var(--border)}
+.comp-table tr:nth-child(even) td{background:var(--card2)}
+/* Question */
+.question-box{background:var(--card2);border:1px solid var(--accent);border-radius:10px;padding:18px;margin-top:20px}
+.mc-choice{display:flex;align-items:flex-start;gap:10px;padding:9px 12px;margin:5px 0;border:1px solid var(--border);border-radius:7px;cursor:pointer;transition:all .2s;font-size:13px}
+.mc-choice:hover{border-color:var(--accent);background:#0d1c35}
+.mc-choice.selected{border-color:var(--accent);background:#0d1c35}
+.mc-choice.correct{border-color:var(--green);background:#0d4429}
+.mc-choice.wrong{border-color:var(--red);background:#3d0a0a}
+.mc-letter{width:24px;height:24px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.tf-btn{flex:1;padding:11px;border:1px solid var(--border);border-radius:7px;cursor:pointer;font-size:14px;font-weight:600;transition:all .2s;background:transparent;color:var(--text)}
+.tf-btn:hover{border-color:var(--accent)}.tf-btn.selected{border-color:var(--accent);background:#0d1c35}
+.tf-btn.correct{border-color:var(--green);background:#0d4429;color:var(--green)}
+.tf-btn.wrong{border-color:var(--red);background:#3d0a0a;color:var(--red)}
+.feedback-box{margin-top:12px;padding:11px 14px;border-radius:7px;font-size:13px;line-height:1.6}
+.fb-correct{background:#0d4429;border:1px solid var(--green)}.fb-wrong{background:#3d0a0a;border:1px solid var(--red)}
+.btn{display:inline-flex;align-items:center;padding:8px 16px;border-radius:6px;border:none;cursor:pointer;font-size:13px;font-weight:600;transition:opacity .15s}
+.btn:hover{opacity:.82}
+.btn-primary{background:var(--accent);color:#000}.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text)}
+/* Simple short-answer mode (chapters without steps) */
+.plain-form .question{background:var(--card2);border-radius:8px;padding:12px;margin-bottom:10px}
+.plain-form label{font-size:13px;color:#ccc;display:block;margin-bottom:5px}
+.plain-form textarea{width:100%;background:#0d1117;color:var(--text);border:1px solid var(--border);border-radius:5px;padding:7px;font-size:13px;resize:vertical;min-height:68px}
+.plain-form textarea:focus{outline:1px solid var(--accent)}
+#result{margin-top:14px;padding:10px 14px;border-radius:7px;background:var(--card2);display:none}
+#result.pass{border-left:3px solid var(--green)}#result.fail{border-left:3px solid var(--red)}
+#result .pct{font-size:1.3rem;font-weight:700}
+/* Reference code */
+.ref-section{margin-top:2rem;border-top:1px solid var(--border);padding-top:1.1rem}
+.ref-section>h2{font-size:11px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.7rem}
+.ref-card{background:var(--card2);border:1px solid var(--border);border-radius:7px;margin-bottom:.8rem;overflow:hidden}
+.ref-header{display:flex;align-items:flex-start;justify-content:space-between;padding:.6rem .85rem;background:var(--card);cursor:pointer;border-bottom:1px solid transparent}
+.ref-header.open{border-bottom-color:var(--border)}
+.ref-meta{flex:1}.ref-label{font-size:13px;font-weight:600;color:#c8d0f0}
+.ref-desc{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.4}
+.ref-actions{display:flex;gap:5px;flex-shrink:0;margin-left:10px;padding-top:1px}
+.ref-btn{font-size:11px;padding:3px 8px;border-radius:4px;border:none;cursor:pointer;text-decoration:none;display:inline-block;line-height:1.6}
+.ref-btn-toggle{background:#252a3e;color:#9ba8cc}.ref-btn-download{background:#0d1f3c;color:var(--accent);border:1px solid #1e3a6a}
+.ref-btn:hover{filter:brightness(1.2)}
+.ref-body{display:none;overflow-x:auto;max-height:480px;overflow-y:auto}
+.ref-body.open{display:block}
+.ref-body pre{margin:0;padding:.8rem .95rem;font-family:'Consolas','Fira Mono','Courier New',monospace;font-size:12px;line-height:1.6;color:#c8d0f0;white-space:pre}
+.tok-kw{color:#79aaff;font-weight:600}.tok-str{color:#98d982}.tok-cmt{color:#4a5880;font-style:italic}.tok-pp{color:#e5a86a}.tok-num{color:#d08080}
+@media(max-width:700px){.lesson-layout{grid-template-columns:1fr}.step-nav{display:none}}
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">{{ class_id | upper }}</span>
+  <span style="font-size:13px;color:var(--muted)">{{ lesson.title }}</span>
+  <div style="margin-left:auto;display:flex;gap:6px;align-items:center">
+    {% if class_id == 'cecs301' %}
+    <a href="/cecs301/textbook/{{ lesson.chapter }}" target="_blank"
+       style="font-size:11px;padding:3px 10px;border-radius:10px;background:#0d2149;color:#58a6ff;border:1px solid #1f4d99;text-decoration:none;font-weight:700">Textbook</a>
+    {% endif %}
+    <span class="pill pill-b">Seat {{ slot }}</span>
+    <span class="pill" id="wifi-pill" style="background:var(--card2)">Connecting…</span>
+    <span class="pill" id="fsm-pill" style="background:var(--card2);display:none"></span>
+  </div>
+</nav>
+
+<div class="bcast-banner" id="bcast-banner"></div>
+
+{% if lesson.steps %}
+<!-- ── STEP-GATED LESSON ─────────────────────────────────────────────────── -->
+<div class="lesson-layout">
+
+  <div class="step-nav">
+    <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:4px">Sections</div>
+    <div id="step-nav-list"></div>
+    <div class="device-panel" id="device-panel" style="display:none">
+      <div class="head"><span>Your device</span><span id="dp-online" style="color:var(--muted)">●</span></div>
+      <div id="dp-sensor-rows">
+        <div class="kv"><span>Temp</span><span id="dp-temp">--</span></div>
+        <div class="kv"><span>Humidity</span><span id="dp-hum">--</span></div>
+      </div>
+      <div id="dp-bench-rows" style="display:none">
+        <div class="kv"><span>SW AES</span><span id="dp-sw">--</span></div>
+        <div class="kv"><span>HW AES</span><span id="dp-hw">--</span></div>
+        <div class="kv"><span>Speedup</span><span id="dp-speedup" style="color:var(--green);font-weight:700">--</span></div>
+      </div>
+      <div class="kv"><span>FSM</span><span id="dp-fsm">--</span></div>
+      <div class="kv"><span>RSSI</span><span id="dp-rssi">--</span></div>
+    </div>
+    <div id="link-device-box" style="margin-top:8px;display:none">
+      <div style="font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;margin-bottom:4px">ESP32 Sync</div>
+      <div id="link-status" style="font-size:9px;color:var(--muted);line-height:1.4">
+        Run <code style="color:var(--accent)">student_connect.bat</code><br>
+        to auto-link your ESP32.
+      </div>
+    </div>
+  </div>
+
+  <div class="content-area" id="content-area">
+    <!-- Server-rendered first step (JS will replace this when it runs) -->
+    {% if lesson.steps and lesson.steps[0] %}
+    {% set s0 = lesson.steps[0] %}
+    <div class="section-chip">{{ s0.section or '' }}</div>
+    <h2 style="font-size:1.3rem;margin-bottom:.2rem">{{ s0.title or '' }}</h2>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:18px">{{ s0.subtitle or '' }}</p>
+    {% for b in s0.content_blocks or [] %}
+      {% if b.type == 'key_idea' %}
+      <div class="content-block"><div class="key-idea">{{ b.text | safe }}</div></div>
+      {% elif b.type == 'callout' %}
+      <div class="content-block"><div class="callout callout-{{ b.style or 'info' }}">{{ b.text | safe }}</div></div>
+      {% elif b.type == 'bullet_list' %}
+      <div class="content-block">{% if b.heading %}<h4 style="font-size:13px;margin-bottom:7px">{{ b.heading }}</h4>{% endif %}<ul class="bullet-list">{% for item in b["items"] or [] %}<li>{{ item | safe }}</li>{% endfor %}</ul></div>
+      {% elif b.type == 'comparison_table' %}
+      <div class="content-block">{% if b.heading %}<h4 style="font-size:13px;margin-bottom:7px">{{ b.heading }}</h4>{% endif %}<div style="overflow-x:auto"><table class="comp-table"><thead><tr>{% for c in b["columns"] or [] %}<th>{{ c }}</th>{% endfor %}</tr></thead><tbody>{% for r in b["rows"] or [] %}<tr>{% for c in r %}<td>{{ c }}</td>{% endfor %}</tr>{% endfor %}</tbody></table></div></div>
+      {% endif %}
+    {% endfor %}
+    {% if s0.question %}
+    <div class="question-box">
+      <h4 style="margin-bottom:12px;font-size:14px">📝 {{ s0.question.text }}</h4>
+      <div style="color:var(--muted);font-size:12px" id="noscript-note">Loading interactive controls…</div>
+    </div>
+    {% endif %}
+    {% else %}
+    <div style="color:var(--muted);font-size:14px">Loading lesson…</div>
+    {% endif %}
+  </div>
+</div>
+
+{% else %}
+<!-- ── PLAIN SHORT-ANSWER LESSON ─────────────────────────────────────────── -->
+<div style="max-width:760px;margin:0 auto;padding:1.5rem 1rem">
+  <h1 style="font-size:1.3rem;margin-bottom:.2rem">{{ lesson.title }}</h1>
+  <p style="font-size:13px;color:var(--muted);margin-bottom:1.4rem">{{ class_id | upper }} — {{ lesson.chapter }}</p>
+
+  {% if lesson.learning_objectives %}
+  <div style="background:var(--card2);border-left:3px solid var(--accent);padding:.7rem 1rem;border-radius:6px;margin-bottom:1.4rem">
+    <div style="font-size:12px;color:var(--accent);margin-bottom:.3rem">Learning objectives</div>
+    <ul style="list-style:none;padding:0">
+      {% for obj in lesson.learning_objectives %}
+      <li style="font-size:12px;color:#bbb;margin-left:.8rem;margin-top:.2rem">› {{ obj }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  <form id="lesson-form" class="plain-form">
+    {% for q in lesson.questions %}
+    <div class="question {% if q.type == 'hw_result' %}hw-result{% endif %}">
+      <label>{{ loop.index }}. {{ q.text | replace('{value}', q.value | default('')) }}</label>
+      {% if q.type == 'hw_result' %}
+      <textarea name="{{ q.id }}" placeholder="Filled automatically by your device…" readonly></textarea>
+      {% else %}
+      <textarea name="{{ q.id }}" placeholder="Your answer…"></textarea>
+      {% endif %}
+    </div>
+    {% endfor %}
+    <button type="submit" class="btn btn-primary" style="margin-top:.5rem">Submit</button>
+  </form>
+  <div id="result"></div>
+
+  {% if lesson.reference_code %}
+  <div class="ref-section">
+    <h2>Reference Code</h2>
+    {% for ref in lesson.reference_code %}
+    <div class="ref-card" data-chapter="{{ lesson.chapter }}" data-filename="{{ ref.filename }}">
+      <div class="ref-header" onclick="toggleRef(this)">
+        <div class="ref-meta">
+          <div class="ref-label">{{ ref.filename }}</div>
+          {% if ref.description %}<div class="ref-desc">{{ ref.description }}</div>{% endif %}
+        </div>
+        <div class="ref-actions" onclick="event.stopPropagation()">
+          <button class="ref-btn ref-btn-toggle" onclick="toggleRef(this.closest('.ref-card').querySelector('.ref-header'))">Show</button>
+          <a class="ref-btn ref-btn-download" href="/{{ class_id }}/lesson/{{ lesson.chapter }}/reference/{{ ref.filename }}?download=1">⬇</a>
+        </div>
+      </div>
+      <div class="ref-body"><pre><code>Loading…</code></pre></div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+
+<script>
+const CLASS_ID     = {{ class_id | tojson }};
+const CHAPTER      = {{ lesson.chapter | tojson }};
+const SLOT         = {{ slot }};
+const TOKEN        = {{ token | tojson }};
+const HAS_STEPS    = {{ 'true' if lesson.steps else 'false' }};
+const STEPS        = {{ (lesson.steps or []) | tojson }};
+const LESSON_TITLE = {{ lesson.title | tojson }};
+const STUDENT_NAME = {{ (student_name or '') | tojson }};
+
+// ── SSE – poll server state ──────────────────────────────────────────────────
+let unlockedSteps  = [0];
+let activeStep     = 0;
+let submittedSteps = {};
+let currentStep    = 0;
+let prevUnlockedCount = 1;   // tracks when NEW steps get unlocked
+
+const LS_KEY = `draft_${CLASS_ID}_${CHAPTER}_${SLOT}`;
+
+function saveDraft(i, v){ try{const d=JSON.parse(localStorage.getItem(LS_KEY)||'{}');d[i]=v;localStorage.setItem(LS_KEY,JSON.stringify(d));}catch(e){} }
+function loadDraft(i){ try{return JSON.parse(localStorage.getItem(LS_KEY)||'{}')[i]??'';}catch(e){return '';} }
+function clearDraft(i){ try{const d=JSON.parse(localStorage.getItem(LS_KEY)||'{}');delete d[i];localStorage.setItem(LS_KEY,JSON.stringify(d));}catch(e){} }
+
+async function pollState(){
+  try{
+    const r = await fetch(`/${CLASS_ID}/api/state?slot=${SLOT}`);
+    const d = await r.json();
+    const lesson = d.lesson || {};
+    unlockedSteps = lesson.unlocked_steps || [0];
+    activeStep    = lesson.active_step    ?? 0;
+    const bcast   = lesson.broadcast || '';
+    const bb = document.getElementById('bcast-banner');
+    if(bcast){ bb.style.display='block'; bb.textContent='📢 '+bcast; }
+    else { bb.style.display='none'; }
+    // Device status
+    const dev = (d.devices||{})[String(SLOT)];
+    updateDevicePanel(dev);
+    if(HAS_STEPS){
+      renderNav();
+      // Auto-advance ONLY when the instructor unlocks a new step
+      if(unlockedSteps.length > prevUnlockedCount){
+        prevUnlockedCount = unlockedSteps.length;
+        currentStep = activeStep;
+        renderContent(currentStep);
+      }
+      prevUnlockedCount = unlockedSteps.length;
+    }
+  }catch(e){}
+}
+
+function updateDevicePanel(dev){
+  if(!dev) return;
+  // Cache for hw_result display
+  _lastDeviceData = Object.assign(_lastDeviceData, dev);
+  const panel = document.getElementById('device-panel');
+  if(panel) panel.style.display = 'block';
+  const online  = dev.online;
+  const pill    = document.getElementById('wifi-pill');
+  const onlineDot = document.getElementById('dp-online');
+  if(pill){ pill.textContent = online ? 'Online' : 'Offline'; pill.className = 'pill '+(online?'pill-g':'pill-r'); }
+  if(onlineDot){ onlineDot.style.color = online ? 'var(--green)' : 'var(--red)'; }
+  const set = (id, val) => { const el=document.getElementById(id); if(el&&val!=null) el.textContent=val; };
+
+  // Switch between bench rows and sensor rows
+  const hasBench = _lastDeviceData.sw_us != null;
+  const sensorEl = document.getElementById('dp-sensor-rows');
+  const benchEl  = document.getElementById('dp-bench-rows');
+  if(hasBench){
+    if(sensorEl) sensorEl.style.display = 'none';
+    if(benchEl)  benchEl.style.display  = 'block';
+    set('dp-sw',      _lastDeviceData.sw_us.toLocaleString()+' µs');
+    set('dp-hw',      _lastDeviceData.hw_us != null ? _lastDeviceData.hw_us.toLocaleString()+' µs' : '--');
+    set('dp-speedup', _lastDeviceData.speedup != null ? _lastDeviceData.speedup.toFixed(1)+'×' : '--');
+  } else {
+    if(sensorEl) sensorEl.style.display = 'block';
+    if(benchEl)  benchEl.style.display  = 'none';
+    set('dp-temp',  dev.temp_c       != null ? dev.temp_c.toFixed(1)+'°C' : '--');
+    set('dp-hum',   dev.humidity_pct != null ? dev.humidity_pct.toFixed(1)+'%' : '--');
+  }
+  set('dp-fsm',   dev.fsm_state || '--');
+  set('dp-rssi',  dev.rssi ? dev.rssi+' dBm' : '--');
+
+  // FSM pill in nav
+  const fsmPill = document.getElementById('fsm-pill');
+  if(fsmPill && dev.fsm_state){
+    fsmPill.style.display = 'inline-block';
+    fsmPill.textContent   = dev.fsm_state;
+    fsmPill.style.background = dev.fsm_state==='SENSOR_FAULT'?'var(--red)':
+                               dev.fsm_state==='NORMAL'      ?'var(--green)':
+                               dev.fsm_state.includes('ALERT')?'var(--yellow)':'var(--card2)';
+    fsmPill.style.color   = '#000';
+  }
+  // Re-render current step if it's an hw_result type (live update)
+  if(HAS_STEPS && dev.sw_us != null){
+    const s = STEPS[currentStep];
+    if(s && s.question && s.question.type === 'hw_result'){
+      renderContent(currentStep);
+    }
+  }
+  // Show link-device box for ESP32 classes when no device data yet
+  const linkBox = document.getElementById('link-device-box');
+  if(linkBox){
+    const isEspClass = CLASS_ID !== 'cecs301';
+    if(isEspClass && !hasBench) linkBox.style.display = 'block';
+    if(hasBench){
+      linkBox.style.display = 'none';
+      // Update status to show synced
+      const ls = document.getElementById('link-status');
+      if(ls){ ls.innerHTML = '<span style="color:var(--green)">✓ ESP32 synced</span>'; }
+    }
+  }
+}
+
+// ── Step navigation ──────────────────────────────────────────────────────────
+function renderNav(){
+  if(!HAS_STEPS) return;
+  const el = document.getElementById('step-nav-list');
+  el.innerHTML = STEPS.map((s,i) => {
+    const unlocked = unlockedSteps.includes(i);
+    const done     = submittedSteps[i] != null;
+    const active   = i === currentStep;
+    const cls = active?'step-nav-item active':done?'step-nav-item done':unlocked?'step-nav-item unlocked':'step-nav-item locked';
+    const icon = done?'✓ ':active?'▶ ':'';
+    const canClick = unlocked || done;
+    return `<div class="${cls}" ${canClick?`onclick="goStep(${i})"`:''}>
+      <div class="nav-section">${s.section||''}</div>
+      <div style="font-size:11px">${icon}${(s.title||'Step '+i).replace(s.section?' — ':'','')||''}</div>
+    </div>`;
+  }).join('');
+}
+
+function goStep(i){
+  if(!unlockedSteps.includes(i) && submittedSteps[i]==null) return;
+  currentStep = i;
+  renderNav();
+  renderContent(i);
+}
+
+function renderContent(i){
+  const s = STEPS[i];
+  if(!s){ document.getElementById('content-area').innerHTML='<div style="color:var(--muted);padding:20px">Waiting for instructor to unlock this section…</div>'; return; }
+
+  let html = `<div class="section-chip">${s.section||''}</div>
+    <h2 style="font-size:1.3rem;margin-bottom:.2rem">${s.title||''}</h2>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:18px">${s.subtitle||''}</p>`;
+
+  (s.content_blocks||[]).forEach(b => { html += renderBlock(b); });
+
+  if(s.question){
+    html += renderQuestion(i, s.question, submittedSteps[i]);
+  }
+
+  document.getElementById('content-area').innerHTML = html;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function renderBlock(b){
+  switch(b.type){
+    case 'key_idea':
+      return `<div class="content-block"><div class="key-idea">${b.text}</div></div>`;
+    case 'callout':
+      return `<div class="content-block"><div class="callout callout-${b.style||'info'}">${b.text}</div></div>`;
+    case 'bullet_list':
+      return `<div class="content-block">${b.heading?`<h4 style="font-size:13px;margin-bottom:7px">${b.heading}</h4>`:''}<ul class="bullet-list">${(b.items||[]).map(i=>`<li>${i}</li>`).join('')}</ul></div>`;
+    case 'comparison_table':
+      const cols=(b.columns||[]).map(c=>`<th>${c}</th>`).join('');
+      const rows=(b.rows||[]).map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('');
+      return `<div class="content-block">${b.heading?`<h4 style="font-size:13px;margin-bottom:7px">${b.heading}</h4>`:''}<div style="overflow-x:auto"><table class="comp-table"><thead><tr>${cols}</tr></thead><tbody>${rows}</tbody></table></div></div>`;
+    default:
+      return `<div class="content-block" style="font-size:13px">${b.text||''}</div>`;
+  }
+}
+
+function renderQuestion(stepIdx, q, submitted){
+  let html = `<div class="question-box"><h4 style="margin-bottom:12px;font-size:14px">${q.type==='hw_result'?'📡':'📝'} ${q.text}</h4>`;
+  const letters = ['A','B','C','D','E'];
+
+  if(q.type === 'mc'){
+    (q.choices||[]).forEach((c,i) => {
+      let cls = 'mc-choice';
+      if(submitted != null){
+        if(i === q.correct) cls += ' correct';
+        else if(String(submitted) === String(i)) cls += ' wrong';
+      } else if(String(loadDraft(stepIdx)) === String(i)){
+        cls += ' selected';
+      }
+      html += `<div class="${cls}" id="mc-${stepIdx}-${i}" ${submitted==null?`onclick="selectMC(${stepIdx},${i},this)"`:''}>
+        <div class="mc-letter">${letters[i]}</div><span>${c}</span></div>`;
+    });
+  } else if(q.type === 'tf'){
+    ['True','False'].forEach(v => {
+      let cls = 'tf-btn';
+      const draft = loadDraft(stepIdx);
+      if(submitted != null){
+        if(v === String(q.correct)) cls += ' correct';
+        else if(v === submitted) cls += ' wrong';
+      } else if(draft === v) cls += ' selected';
+      html += `<div style="display:flex;gap:8px;margin:5px 0">
+        <button class="${cls}" id="tf-${stepIdx}-${v}" ${submitted==null?`onclick="selectTF(${stepIdx},'${v}',this)"`:''}>
+          ${v}</button></div>`;
+    });
+  } else if(q.type === 'hw_result'){
+    // Live device telemetry display — auto-populated from SSE device data
+    const dev = _lastDeviceData || {};
+    const hasBench = dev.sw_us != null;
+    html += `<div id="hw-result-${stepIdx}" style="background:var(--card);border:1px solid var(--border);border-radius:7px;padding:14px;margin:8px 0;font-family:monospace;font-size:13px;line-height:1.8">`;
+    if(hasBench){
+      html += `<div style="color:var(--green);font-weight:700;margin-bottom:6px">✓ Benchmark data received from your ESP32</div>`;
+      html += `<div>SW AES: <strong>${dev.sw_us?.toLocaleString()} µs/block</strong></div>`;
+      html += `<div>HW AES: <strong>${dev.hw_us?.toLocaleString()} µs/block</strong></div>`;
+      html += `<div>Speedup: <strong style="color:var(--green)">${dev.speedup?.toFixed(1)}×</strong></div>`;
+      if(dev.blocks) html += `<div>Blocks: ${dev.blocks?.toLocaleString()}</div>`;
+    } else {
+      html += `<div style="color:var(--yellow)">⏳ Waiting for benchmark data from your ESP32...</div>`;
+      html += `<div style="color:var(--muted);font-size:11px;margin-top:4px">Make sure your device is powered on and connected to the classroom Wi-Fi.</div>`;
+    }
+    html += `</div>`;
+    // q_lab1 is auto-submitted by firmware via MQTT — no submit button needed
+    if(submitted != null){
+      html += `<div class="feedback-box fb-correct"><strong>✓ Auto-submitted by firmware</strong></div>`;
+    } else if(hasBench){
+      html += `<div style="font-size:11px;color:var(--muted);margin-top:6px">This answer is auto-submitted by your ESP32 firmware via MQTT. No action needed.</div>`;
+    }
+  } else if(q.type === 'free_response'){
+    // Text area for typed answers (replaces Serial Monitor input)
+    if(submitted != null){
+      html += `<div style="background:var(--card);border:1px solid var(--border);border-radius:7px;padding:12px;margin:8px 0;font-size:13px;line-height:1.6;color:var(--muted)"><strong>Your answer:</strong><br>${submitted}</div>`;
+    } else {
+      const draft = loadDraft(stepIdx) || '';
+      html += `<textarea id="fr-${stepIdx}" style="width:100%;min-height:100px;padding:10px;font-family:inherit;font-size:13px;background:#0d1117;color:var(--text);border:1px solid var(--border);border-radius:7px;resize:vertical;line-height:1.6" placeholder="${q.placeholder||'Type your answer here...'}">${draft}</textarea>`;
+      html += `<div style="font-size:11px;color:var(--muted);margin-top:4px">`;
+      if(q.hint) html += q.hint;
+      html += `</div>`;
+    }
+  }
+
+  // Submit button (mc, tf, free_response — but not hw_result)
+  if(submitted == null && q.type !== 'hw_result'){
+    html += `<button class="btn btn-primary" style="margin-top:12px;width:100%" onclick="submitStep(${stepIdx})">Submit Answer</button>`;
+  }
+  if(submitted != null && q.explanation){
+    const correct = submitted === String(q.correct) || submitted === q.correct;
+    html += `<div class="feedback-box ${correct?'fb-correct':'fb-wrong'}">
+      <strong>${correct?'✓ Correct!':'✗ Incorrect'}</strong><br>${q.explanation}</div>`;
+  }
+  // For free_response, show feedback differently (keyword-scored, not exact match)
+  if(submitted != null && q.type === 'free_response' && !q.explanation){
+    const fb = submittedFeedback[stepIdx];
+    if(fb){
+      const cls = fb.pts > 0 ? 'fb-correct' : 'fb-wrong';
+      html += `<div class="feedback-box ${cls}"><strong>${fb.pts > 0 ? '✓ Submitted' : '✗ Submitted'} — ${fb.pts} pts</strong>${fb.feedback ? '<br>'+fb.feedback : ''}</div>`;
+    }
+  }
+  html += '</div>';
+  return html;
+}
+
+// Track last known device data and free_response feedback
+let _lastDeviceData = {};
+let submittedFeedback = {};
+
+function selectMC(stepIdx, i, el){
+  document.querySelectorAll(`[id^="mc-${stepIdx}-"]`).forEach(e=>e.classList.remove('selected'));
+  el.classList.add('selected');
+  saveDraft(stepIdx, String(i));
+}
+function selectTF(stepIdx, v, el){
+  document.querySelectorAll(`[id^="tf-${stepIdx}-"]`).forEach(e=>e.classList.remove('selected'));
+  el.classList.add('selected');
+  saveDraft(stepIdx, v);
+}
+
+async function submitStep(stepIdx){
+  const q = STEPS[stepIdx]?.question || {};
+  let draft;
+  if(q.type === 'free_response'){
+    const ta = document.getElementById('fr-'+stepIdx);
+    draft = ta ? ta.value.trim() : '';
+    if(!draft){ alert('Please type your answer first.'); return; }
+    saveDraft(stepIdx, draft);
+  } else {
+    draft = loadDraft(stepIdx);
+    if(draft===''||draft==null){ alert('Please select an answer first.'); return; }
+  }
+  // Use custom q_id if defined on the step question, otherwise default to q{stepIdx+1}
+  const qId = q.q_id || `q${stepIdx+1}`;
+  try{
+    const r = await fetch(`/${CLASS_ID}/submit/${CHAPTER}`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        slot:SLOT, token:TOKEN, student_id:STUDENT_NAME||`slot_${SLOT}`,
+        step:stepIdx, answers:{[qId]: draft}, chapter:CHAPTER
+      })
+    });
+    const d = await r.json();
+    if(d.ok){
+      submittedSteps[stepIdx] = draft;
+      submittedFeedback[stepIdx] = {pts: d.pts, feedback: d.feedback};
+      clearDraft(stepIdx);
+      renderContent(stepIdx);
+      renderNav();
+    } else { alert(d.error||'Submission error'); }
+  }catch(e){ alert('Network error'); }
+}
+
+// ── Device auto-sync ─────────────────────────────────────────────────────────
+// When student arrives via student_client.py URL (with correct slot+token),
+// the device data syncs automatically via SSE — no manual linking needed.
+// The link-device-box shows a helpful note about using student_connect.bat.
+
+// ── Plain short-answer form (no steps) ──────────────────────────────────────
+const form = document.getElementById('lesson-form');
+if(form){
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const answers = {};
+    new FormData(form).forEach((v,k) => answers[k]=v);
+    const res  = await fetch(`/${CLASS_ID}/submit/${CHAPTER}`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({slot:SLOT, token:TOKEN, student_id:STUDENT_NAME||`slot_${SLOT}`, answers})
+    });
+    const data = await res.json();
+    const pct  = Math.round(100 * data.score.total / data.score.max);
+    const el   = document.getElementById('result');
+    el.className = pct >= 70 ? 'pass' : 'fail';
+    el.style.display = 'block';
+    el.innerHTML = `<div class="pct">${data.score.total} / ${data.score.max} (${pct}%)</div>
+      ${data.bonus?'<div style="color:var(--yellow);font-size:12px;margin-top:4px">★ Attendance bonus earned</div>':''}`;
+  });
+}
+
+// ── Reference code loader ────────────────────────────────────────────────────
+function tokenise(src){
+  return src.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/(\/\*[\s\S]*?\*\/)/g,'<span class="tok-cmt">$1</span>')
+    .replace(/(\/\/[^\n]*)/g,'<span class="tok-cmt">$1</span>')
+    .replace(/(<span[^>]*>[\s\S]*?<\/span>)|^(#[^\n]*)/gm,(m,s,pp)=>s?m:`<span class="tok-pp">${pp}</span>`)
+    .replace(/(<span[^>]*>[\s\S]*?<\/span>)|("(?:\\.|[^"\\])*")/g,(m,s,str)=>s?m:`<span class="tok-str">${str}</span>`)
+    .replace(/(<span[^>]*>[\s\S]*?<\/span>)|\b(void|int|float|bool|char|uint8_t|uint16_t|uint32_t|int64_t|volatile|const|static|return|if|else|for|while|true|false|NULL|inline|struct|typedef|break|continue|define|include)\b/g,(m,s,kw)=>s?m:`<span class="tok-kw">${kw}</span>`)
+    .replace(/(<span[^>]*>[\s\S]*?<\/span>)|\b(0x[0-9a-fA-F]+|\d+\.?\d*[fFuUlL]*)\b/g,(m,s,n)=>s?m:`<span class="tok-num">${n}</span>`);
+}
+async function loadRef(card){
+  const pre = card.querySelector('pre');
+  if(pre.dataset.loaded) return;
+  try{
+    const r = await fetch(`/${CLASS_ID}/lesson/${card.dataset.chapter}/reference/${card.dataset.filename}`);
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const text = await r.text();
+    pre.innerHTML = `<code>${tokenise(text)}</code>`;
+    pre.dataset.loaded='1';
+  }catch(err){ pre.innerHTML=`<code style="color:var(--red)">Error: ${err.message}</code>`; }
+}
+function toggleRef(header){
+  const card=header.closest('.ref-card'), body=card.querySelector('.ref-body'), btn=card.querySelector('.ref-btn-toggle');
+  const open=body.classList.toggle('open');
+  header.classList.toggle('open',open);
+  btn.textContent=open?'Hide':'Show';
+  if(open) loadRef(card);
+}
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+// Lightweight heartbeat — keeps this student's last_seen fresh on the server
+// regardless of SSE status. Cheap GET, no JSON parsing needed.
+function heartbeat(){ fetch(`/${CLASS_ID}/api/state?slot=${SLOT}`).catch(()=>{}); }
+setInterval(heartbeat, 45000);  // every 45s — well within the 120s offline timeout
+
+if(HAS_STEPS){
+  // Render content IMMEDIATELY from the STEPS data already in the page
+  try {
+    renderNav();
+    currentStep = unlockedSteps[0] ?? 0;
+    renderContent(currentStep);
+  } catch(initErr) {
+    // If renderContent fails, show the error so we can debug
+    const ca = document.getElementById('content-area');
+    if(ca) ca.innerHTML = '<div style="color:var(--red);padding:20px">Init error: '+initErr.message+'<br><pre>'+initErr.stack+'</pre></div>';
+  }
+
+  // Show link-device box for ESP32 classes
+  if(CLASS_ID !== 'cecs301'){
+    const lb = document.getElementById('link-device-box');
+    if(lb) lb.style.display = 'block';
+    const dp = document.getElementById('device-panel');
+    if(dp) dp.style.display = 'block';
+  }
+
+  // Set up SSE and polling for live updates
+  let _sseActive = false;
+  pollState();
+  setInterval(()=>{ if(!_sseActive) pollState(); }, 20000);
+  try {
+    const _es = new EventSource(`/${CLASS_ID}/stream`);
+    _es.onopen = ()=>{ _sseActive=true; };
+    _es.onerror = ()=>{ _sseActive=false; };
+    _es.onmessage = e => {
+      try {
+        const ev = JSON.parse(e.data);
+        _sseActive = true;
+        if(ev.type==='step_unlocked'||ev.type==='step_changed'){
+          unlockedSteps = ev.unlocked_steps || unlockedSteps;
+          if(ev.step != null) {
+            const newStep = ev.step;
+            if(unlockedSteps.length > prevUnlockedCount){
+              prevUnlockedCount = unlockedSteps.length;
+              currentStep = newStep;
+              renderContent(currentStep);
+            }
+            prevUnlockedCount = unlockedSteps.length;
+          }
+          renderNav();
+        } else if(ev.type==='broadcast'){
+          const bb = document.getElementById('bcast-banner');
+          if(ev.message){bb.style.display='block';bb.textContent='\ud83d\udce2 '+ev.message;}
+          else bb.style.display='none';
+        } else if(ev.type==='device_status'||ev.type==='sensor'||ev.type==='bench'){
+          if(String(ev.slot)===String(SLOT)) updateDevicePanel(ev);
+        } else if(ev.type==='snapshot'){
+          if(ev.devices && ev.devices[String(SLOT)]) updateDevicePanel(ev.devices[String(SLOT)]);
+        }
+      }catch(ex){}
+    };
+  }catch(ex){}
+}
+
+// Fallback: if content-area still shows "Loading" after 3 seconds, force render
+setTimeout(()=>{
+  const ca = document.getElementById('content-area');
+  if(ca && ca.textContent.trim() === 'Loading lesson…'){
+    try { renderContent(0); } catch(e) {
+      ca.innerHTML = '<div style="color:var(--red);padding:20px">Failed to render: '+e.message+'</div>';
+    }
+  }
+}, 3000);
+</script>
+</body>
+</html>

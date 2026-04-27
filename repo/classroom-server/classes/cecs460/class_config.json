@@ -1,0 +1,14 @@
+{
+  "id": "cecs460",
+  "name": "CECS 460 \u2013 System-on-Chip Design",
+  "hardware": [
+    "Waveshare ESP32-C6"
+  ],
+  "slot_count": 30,
+  "score_pass_pct": 70,
+  "score_bonus_pct": 90,
+  "active_lesson": "ch11",
+  "instructor_pin": "4600",
+  "lesson_id": "c460_ch12",
+  "mqtt_prefix": "C460"
+}

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Session Expired</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d1117;color:#e6edf3;font-family:system-ui,sans-serif;
+  display:flex;align-items:center;justify-content:center;min-height:100vh}
+.card{background:#161b22;border:1px solid #30363d;border-radius:12px;
+  padding:32px;max-width:460px;text-align:center}
+h2{color:#f85149;margin-bottom:10px;font-size:1.2rem}
+p{color:#8b949e;font-size:13px;line-height:1.6;margin-bottom:8px}
+a.btn{display:inline-block;margin-top:16px;padding:11px 28px;
+  background:#58a6ff;color:#fff;border-radius:6px;font-size:.95rem;
+  text-decoration:none;font-weight:600;transition:background .2s}
+a.btn:hover{background:#79c0ff}
+</style>
+</head>
+<body>
+<div class="card">
+  <div style="font-size:2rem;margin-bottom:12px">🔄</div>
+  <h2>Session Expired</h2>
+  <p>Your seat assignment has been reset since your last visit.</p>
+  <p>This happens when the instructor restarts the server or clears seat assignments between sessions.</p>
+  <a class="btn" href="/{{ class_id }}/login">Log In Again</a>
+  <p style="margin-top:16px;font-size:11px;color:#555">You'll get a fresh seat and return to the lesson.</p>
+</div>
+</body>
+</html>

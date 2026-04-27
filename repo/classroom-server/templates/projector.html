@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>{{ class_name }} – Projector</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#080b14;--card:#10152a;--card2:#181e35;--text:#e8ecff;--muted:#5a6490;
+  --blue:#4b6bfb;--green:#22c55e;--amber:#f59e0b;--red:#ef4444;--purple:#a371f7;--border:#1e2440}
+body{background:var(--bg);color:var(--text);font-family:system-ui,sans-serif;
+  display:grid;grid-template-rows:36px 1fr;height:100vh;overflow:hidden}
+
+/* ── Top info bar ──────────────────────────────────────────────────────────── */
+.info-bar{background:var(--card);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 16px;font-size:12px;gap:6px;white-space:nowrap;overflow:hidden}
+.info-bar .brand{font-weight:700;color:var(--blue);margin-right:6px}
+.info-bar .sep{color:var(--border);margin:0 4px}
+.info-bar .lbl{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.5px}
+.info-bar .val{font-weight:700}
+.info-bar .wifi-val{color:var(--green)}
+.info-bar .url-val{color:var(--blue)}
+.info-bar .pill{display:inline-block;padding:1px 8px;border-radius:8px;font-size:10px;font-weight:700;
+  background:var(--purple);color:#fff;margin:0 4px}
+.info-bar .right{margin-left:auto;display:flex;gap:10px;align-items:center;color:var(--muted);font-size:11px}
+.info-bar .stat{font-weight:700}
+.info-bar .stat-g{color:var(--green)}
+.info-bar .stat-b{color:var(--blue)}
+
+/* ── Main layout: seat panel left + content right ──────────────────────────── */
+.main-layout{display:grid;grid-template-columns:190px 1fr;overflow:hidden;height:100%}
+
+/* ── Seat panel ──────────────────────────────────────────────────────────────*/
+.seat-panel{display:flex;flex-direction:column;border-right:1px solid var(--border);overflow:hidden;background:var(--bg)}
+.seat-panel-head{
+  padding:7px 10px;background:var(--card2);border-bottom:1px solid var(--border);
+  font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;
+  display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.seat-panel-head .seat-count-val{color:var(--green);font-size:11px}
+.seat-scroll{flex:1;overflow-y:auto;padding:8px 7px}
+.seat-scroll::-webkit-scrollbar{width:4px}
+.seat-scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.seat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;align-content:start}
+
+/* Individual seat tile */
+.stile{
+  background:var(--card);border:1.5px solid var(--border);border-radius:7px;
+  padding:5px 4px 4px;text-align:center;transition:border-color .4s,background .4s,box-shadow .4s;
+  cursor:default;min-height:54px;display:flex;flex-direction:column;align-items:center;justify-content:space-between}
+.stile.on{border-color:var(--green)}
+.stile.off{opacity:.38}
+.stile.arrived{
+  animation:seat-arrive .6s ease-out;
+  border-color:var(--blue)!important}
+@keyframes seat-arrive{
+  0%{transform:scale(.85);opacity:.3}
+  60%{transform:scale(1.08)}
+  100%{transform:scale(1);opacity:1}}
+.stile.flash{
+  background:#12301a;border-color:var(--green)!important;
+  box-shadow:0 0 8px rgba(34,197,94,.45);
+  animation:seat-flash .8s ease-out}
+@keyframes seat-flash{
+  0%{background:#1a4d25}
+  100%{background:var(--card)}}
+.stile .snum{font-size:1rem;font-weight:700;color:var(--blue);line-height:1}
+.stile .sname{
+  font-size:8px;color:var(--amber);white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis;max-width:52px;margin-top:2px;line-height:1.2}
+.stile .sdot-row{margin-top:2px}
+.sdot{width:5px;height:5px;border-radius:50%;display:inline-block}
+.sdot-green{background:var(--green)}
+.sdot-grey{background:var(--muted)}
+.stile .sprogress{height:3px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:3px;width:100%}
+.stile .sprogress-fill{height:100%;border-radius:2px;background:var(--green);transition:width .6s}
+.stile .sscore{font-size:7.5px;color:var(--muted);margin-top:2px}
+.stile.perfect .snum{color:var(--amber)}
+.stile.perfect{border-color:var(--amber)!important;box-shadow:0 0 6px rgba(245,158,11,.3)}
+
+/* Empty-state message */
+.seat-empty{color:var(--muted);font-size:11px;text-align:center;padding:24px 8px;line-height:1.6}
+
+/* ── Content area (right side) ───────────────────────────────────────────────*/
+.content-area{display:flex;flex-direction:column;overflow:hidden}
+
+/* Slide area */
+.slide{display:flex;flex-direction:column;padding:32px 48px 20px;overflow:hidden;flex:1}
+.slide-section{font-size:1rem;font-weight:700;color:var(--purple);text-transform:uppercase;letter-spacing:2px;margin-bottom:4px}
+.slide-title{font-size:2.1rem;font-weight:700;color:var(--text);line-height:1.25;margin-bottom:6px}
+.slide-subtitle{font-size:1.05rem;color:var(--muted);margin-bottom:22px}
+.slide-body{flex:1;display:flex;flex-direction:column;justify-content:flex-start;overflow:hidden}
+.points{list-style:none;padding:0;display:flex;flex-direction:column;gap:2px}
+.points li{display:flex;align-items:flex-start;gap:14px;padding:9px 0;
+  border-bottom:1px solid rgba(255,255,255,.04);font-size:1.2rem;line-height:1.55}
+.points li:last-child{border-bottom:none}
+.point-marker{color:var(--blue);font-weight:700;font-size:1.35rem;flex-shrink:0;margin-top:1px}
+.points li strong{color:var(--text)}
+.points li em{color:var(--amber)}
+.points li code{background:#16204a;padding:2px 7px;border-radius:4px;font-size:1rem;color:var(--green);font-family:monospace}
+.slide-table{width:100%;border-collapse:collapse;font-size:.95rem;margin-top:4px}
+.slide-table th{background:var(--card2);padding:8px 12px;text-align:left;border:1px solid var(--border);
+  color:var(--muted);font-size:.78rem;text-transform:uppercase;letter-spacing:.5px}
+.slide-table td{padding:8px 12px;border:1px solid var(--border);line-height:1.4}
+.slide-table tr:nth-child(even) td{background:rgba(255,255,255,.02)}
+.slide-table-heading{font-size:.88rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.slide-empty{color:var(--muted);font-size:1.2rem;text-align:center;padding:80px;opacity:.5}
+
+/* Broadcast overlay */
+.bcast-box{position:fixed;top:40px;left:50%;transform:translateX(-50%);
+  background:#1a2a00;border:2px solid var(--green);border-radius:8px;
+  padding:10px 24px;font-weight:700;color:var(--green);font-size:1.1rem;
+  display:none;z-index:10;box-shadow:0 4px 20px rgba(0,0,0,.5)}
+
+/* Question-push mode */
+.q-banner{background:var(--card);border-bottom:1px solid var(--border);padding:10px 24px;flex-shrink:0}
+.q-banner .q-label{font-size:.75rem;font-weight:700;color:var(--purple);text-transform:uppercase;letter-spacing:1px}
+.q-banner .q-text{font-size:1rem;color:var(--text);margin-top:2px;line-height:1.4;
+  overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.tile-area{flex:1;overflow-y:auto;padding:14px 20px}
+.tile-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+.ptile{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 12px;transition:border-color .3s}
+.ptile.on{border-color:var(--green)}
+.ptile.off{opacity:.45}
+.ptile .slot-num{font-size:1.5rem;font-weight:700;color:var(--blue)}
+.ptile .name{color:var(--amber);font-size:.73rem;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ptile .kv{display:flex;justify-content:space-between;margin-top:3px;font-size:.68rem}
+.ptile .kv span:first-child{color:var(--muted)}
+.ptile .badge-dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:3px}
+.ptile .dot-green{background:var(--green)}.ptile .dot-red{background:var(--red)}
+.ptile .progress-bar{height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:6px}
+.ptile .progress-fill{height:100%;border-radius:3px;background:var(--green);transition:width .5s}
+</style>
+</head>
+<body>
+
+<!-- ── Top info bar ─────────────────────────────────────────────────────────── -->
+<div class="info-bar">
+  <span class="brand">{{ class_name }}</span>
+  <span class="pill" id="step-pill">{{ active_lesson }}</span>
+  <span class="sep">|</span>
+  <span class="lbl">Wi-Fi:</span><span class="val wifi-val">CECS</span>
+  <span class="lbl" style="margin-left:4px">Pass:</span><span class="val wifi-val">CECS-Classroom</span>
+  <span class="sep">|</span>
+  <span class="lbl">Login:</span><span class="val url-val" id="login-url-text">http://&lt;ip&gt;:5000/{{ class_id }}/login</span>
+  {% if not browser_only %}
+  <span class="sep">|</span>
+  <span class="lbl">ESP32:</span><span class="val" style="color:var(--amber)">student_connect.bat</span>
+  {% endif %}
+  <div class="right">
+    <span><span class="stat stat-b" id="cnt-sub">0</span> submitted</span>
+    <span><span class="stat stat-g" id="cnt-avg">&mdash;</span> avg</span>
+    <span id="tile-count"></span>
+    <span id="clock"></span>
+  </div>
+</div>
+
+<div class="bcast-box" id="bcast-box"></div>
+
+<!-- ── Main layout ─────────────────────────────────────────────────────────── -->
+<div class="main-layout">
+
+  <!-- LEFT: live seat panel -->
+  <div class="seat-panel">
+    <div class="seat-panel-head">
+      Seats
+      <span class="seat-count-val" id="seat-count">–</span>
+    </div>
+    <div class="seat-scroll">
+      <div class="seat-grid" id="seat-grid">
+        <div class="seat-empty" style="grid-column:1/-1">Waiting for students…</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: content area -->
+  <div class="content-area">
+
+    <!-- Question-push mode -->
+    <div id="question-mode" style="display:none;flex-direction:column;overflow:hidden;flex:1">
+      <div class="q-banner" id="q-banner">
+        <div class="q-label" id="q-banner-label">Waiting…</div>
+        <div class="q-text" id="q-banner-text"></div>
+      </div>
+      <div class="tile-area" id="tile-area">
+        <div class="tile-grid" id="tile-grid"></div>
+      </div>
+    </div>
+
+    <!-- Step-gated / slide mode -->
+    <div class="slide" id="slide-area">
+      <div class="slide-empty">Waiting for instructor to start&hellip;</div>
+    </div>
+
+  </div><!-- /content-area -->
+</div><!-- /main-layout -->
+
+<script>
+const CLASS_ID   = {{ class_id | tojson }};
+const SLOT_COUNT = {{ slot_count }};
+const STEPS      = {{ steps | tojson }};
+const QUESTIONS  = {{ questions | tojson }};
+const IS_QUESTION_MODE = (!STEPS.length && QUESTIONS.length > 0);
+let submissions  = [];
+let devices      = {};
+let lessonState  = {active_step:0,unlocked_steps:[0],response_counts:{},broadcast:''};
+let prevStep     = -1;
+
+// ── Submission accumulation ───────────────────────────────────────────────────
+function apply(s){
+  if(s.step!=null) submissions=submissions.filter(x=>!(x.slot===s.slot&&x.step===s.step));
+  else submissions=submissions.filter(x=>x.slot!==s.slot);
+  submissions.push(s);
+  renderStats();
+}
+
+// ── Shared score builder ──────────────────────────────────────────────────────
+function buildSlotScores(){
+  const slotScores={};
+  submissions.forEach(sub=>{
+    const sk=String(sub.slot);
+    if(!slotScores[sk]) slotScores[sk]={total:0,steps:{}};
+    if(sub.step!=null){
+      slotScores[sk].steps[String(sub.step)]={pts:sub.pts||0};
+      slotScores[sk].total=Object.values(slotScores[sk].steps).reduce((a,v)=>a+(v.pts||0),0);
+    } else {
+      slotScores[sk].total=sub.score?sub.score.total:(sub.pct||0);
+    }
+  });
+  return slotScores;
+}
+
+// ── Seat panel (always-visible left column) ───────────────────────────────────
+function renderSeatPanel(){
+  const devList=Object.values(devices).sort((a,b)=>a.slot-b.slot);
+  if(!devList.length){
+    document.getElementById('seat-grid').innerHTML=
+      '<div class="seat-empty" style="grid-column:1/-1">Waiting for students\u2026</div>';
+    document.getElementById('seat-count').textContent='\u2013';
+    return;
+  }
+
+  const slotScores=buildSlotScores();
+  const totalQ=STEPS.length||QUESTIONS.length||0;
+  let online=0;
+
+  document.getElementById('seat-grid').innerHTML=devList.map(dev=>{
+    if(dev.online) online++;
+    const sc=slotScores[String(dev.slot)];
+    const qCount=sc?Object.keys(sc.steps).length:0;
+    const pts=sc?sc.total:0;
+
+    // Progress fraction for the mini bar
+    let pct=0;
+    if(totalQ) pct=Math.min(100,Math.round(qCount/totalQ*100));
+    else if(sc) pct=Math.min(100,pts);
+
+    const perfect=(totalQ&&qCount>=totalQ);
+
+    // Show first name only (space-limited tile)
+    const fullName=dev.student_id||'';
+    const shortName=fullName.split(' ')[0];
+
+    const cls=[
+      'stile',
+      dev.online?'on':'off',
+      perfect?'perfect':''
+    ].filter(Boolean).join(' ');
+
+    return `<div class="${cls}" id="stile-${dev.slot}" title="${fullName||'Seat '+dev.slot}">
+      <div class="snum">${dev.slot}</div>
+      ${shortName?`<div class="sname">${shortName}</div>`:''}
+      <div class="sdot-row"><span class="sdot ${dev.online?'sdot-green':'sdot-grey'}"></span></div>
+      ${totalQ
+        ? `<div class="sprogress"><div class="sprogress-fill" style="width:${pct}%"></div></div>`
+        : (sc?`<div class="sscore">${pts}pt</div>`:'')}
+    </div>`;
+  }).join('');
+
+  document.getElementById('seat-count').textContent=`${online}/${devList.length}`;
+}
+
+// Flash a seat tile briefly when a student submits
+function flashSeat(slot){
+  const el=document.getElementById(`stile-${slot}`);
+  if(!el) return;
+  el.classList.remove('flash');
+  // Force reflow so re-adding the class triggers the animation again
+  void el.offsetWidth;
+  el.classList.add('flash');
+  setTimeout(()=>el.classList.remove('flash'),1600);
+}
+
+// Animate a newly-appeared seat tile
+function arriveSeat(slot){
+  const el=document.getElementById(`stile-${slot}`);
+  if(!el) return;
+  el.classList.add('arrived');
+  setTimeout(()=>el.classList.remove('arrived'),700);
+}
+
+// ── Slide rendering ───────────────────────────────────────────────────────────
+function extractPoints(s){
+  const pts=[];
+  (s.content_blocks||[]).forEach(b=>{
+    switch(b.type){
+      case 'key_idea': pts.push(b.text); break;
+      case 'bullet_list': (b.items||[]).forEach(item=>pts.push(item)); break;
+      case 'callout': pts.push(b.text); break;
+      case 'comparison_table': pts.push({_table:b}); break;
+    }
+  });
+  return pts;
+}
+
+function renderSlide(stepIdx){
+  const s=STEPS[stepIdx];
+  const area=document.getElementById('slide-area');
+  if(!s){
+    area.innerHTML='<div class="slide-empty">Waiting for instructor to advance\u2026</div>';
+    return;
+  }
+  const points=extractPoints(s);
+  let html='';
+  html+=`<div class="slide-section">${s.section||''}</div>`;
+  html+=`<div class="slide-title">${s.title||''}</div>`;
+  if(s.subtitle) html+=`<div class="slide-subtitle">${s.subtitle}</div>`;
+  html+='<div class="slide-body">';
+  const tables=points.filter(p=>p&&p._table);
+  const bullets=points.filter(p=>p&&!p._table);
+  if(bullets.length){
+    html+='<ul class="points">';
+    bullets.forEach(p=>{html+=`<li><span class="point-marker">\u203A</span><span>${p}</span></li>`;});
+    html+='</ul>';
+  }
+  tables.forEach(t=>{
+    const b=t._table;
+    if(b.heading) html+=`<div class="slide-table-heading" style="margin-top:16px">${b.heading}</div>`;
+    html+='<div style="overflow-x:auto"><table class="slide-table"><thead><tr>';
+    (b.columns||[]).forEach(c=>{html+=`<th>${c}</th>`;});
+    html+='</tr></thead><tbody>';
+    (b.rows||[]).forEach(r=>{html+='<tr>';r.forEach(c=>{html+=`<td>${c}</td>`;});html+='</tr>';});
+    html+='</tbody></table></div>';
+  });
+  html+='</div>';
+  area.innerHTML=html;
+}
+
+// ── Question banner ───────────────────────────────────────────────────────────
+function renderQuestionBanner(stepIdx){
+  if(stepIdx<0||stepIdx>=QUESTIONS.length){
+    document.getElementById('q-banner-label').textContent='Waiting for instructor to unlock a question\u2026';
+    document.getElementById('q-banner-text').textContent='';
+    return;
+  }
+  const q=QUESTIONS[stepIdx];
+  document.getElementById('q-banner-label').textContent=`Question ${stepIdx+1} of ${QUESTIONS.length} \u00b7 ${q.id||''}`;
+  document.getElementById('q-banner-text').textContent=q.text||'';
+}
+
+// ── Question-push tile grid (right panel) ────────────────────────────────────
+function renderTiles(){
+  const devList=Object.values(devices).sort((a,b)=>a.slot-b.slot);
+  let online=0;
+  const totalQ=QUESTIONS.length;
+  const slotScores=buildSlotScores();
+
+  document.getElementById('tile-grid').innerHTML=devList.map(dev=>{
+    if(dev.online) online++;
+    const sc=slotScores[String(dev.slot)];
+    const qCount=sc?Object.keys(sc.steps).length:0;
+    const pct=totalQ?Math.round(qCount/totalQ*100):0;
+    return `<div class="ptile ${dev.online?'on':'off'}">
+      <div style="display:flex;justify-content:space-between;align-items:start">
+        <span class="slot-num">#${dev.slot}</span>
+        <span style="font-size:.7rem"><span class="badge-dot ${dev.online?'dot-green':'dot-red'}"></span>${dev.online?'Online':'Offline'}</span>
+      </div>
+      ${dev.student_id?`<div class="name">${dev.student_id}</div>`:''}
+      <div class="kv"><span>Answered</span><span style="font-weight:700">${qCount} / ${totalQ}</span></div>
+      <div class="kv"><span>Score</span><span style="color:var(--green);font-weight:700">${sc?sc.total:0} pts</span></div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+    </div>`;
+  }).join('');
+
+  const n=Object.keys(slotScores).length;
+  const avg=n?Math.round(Object.values(slotScores).reduce((a,s)=>a+s.total,0)/n):null;
+  document.getElementById('cnt-sub').textContent=n;
+  document.getElementById('cnt-avg').textContent=avg!==null?avg+' pts':'\u2014';
+  document.getElementById('tile-count').textContent=`${online}/${devList.length}`;
+}
+
+// ── Stats (step-gated mode) ───────────────────────────────────────────────────
+function renderStats(){
+  renderSeatPanel();
+  if(IS_QUESTION_MODE){ renderTiles(); return; }
+  const slotScores=buildSlotScores();
+  const slots=Object.values(slotScores);
+  const n=slots.length;
+  const avg=n?Math.round(slots.reduce((a,s)=>a+s.total,0)/n):null;
+  document.getElementById('cnt-sub').textContent=n;
+  document.getElementById('cnt-avg').textContent=avg!==null?avg+' pts':'\u2014';
+  const devList=Object.values(devices);
+  const online=devList.filter(d=>d.online).length;
+  document.getElementById('tile-count').textContent=`${online}/${devList.length}`;
+}
+
+function render(){
+  const step=IS_QUESTION_MODE
+    ?(lessonState.active_step??-1)
+    :(lessonState.active_step??0);
+  if(step!==prevStep){
+    prevStep=step;
+    if(IS_QUESTION_MODE){
+      document.getElementById('step-pill').textContent=
+        step>=0&&step<QUESTIONS.length
+          ?`Q${step+1} \u00b7 ${QUESTIONS[step].id||''}`
+          :'{{ active_lesson }}';
+      renderQuestionBanner(step);
+    } else {
+      document.getElementById('step-pill').textContent=(STEPS[step]?.section||'Step '+step);
+      renderSlide(step);
+    }
+  }
+  renderStats();
+}
+
+// ── SSE ───────────────────────────────────────────────────────────────────────
+let sseAlive=false;
+const es=new EventSource(`/${CLASS_ID}/stream`);
+es.onopen=()=>{sseAlive=true;};
+es.onerror=()=>{sseAlive=false;};
+es.onmessage=e=>{
+  const ev=JSON.parse(e.data);
+  if(ev.type==='snapshot'){
+    submissions=[];devices=ev.devices||{};
+    ev.submissions.forEach(s=>apply(s));
+    render();
+  } else if(ev.type==='submission'){
+    apply(ev);
+    flashSeat(ev.slot);
+    if(ev.step!=null&&ev.correct!=null){
+      const rc=lessonState.response_counts=lessonState.response_counts||{};
+      const sk=String(ev.step);
+      if(!rc[sk])rc[sk]={responded:0,correct:0,wrong:0};
+      rc[sk].responded++;
+      if(ev.correct)rc[sk].correct++;else rc[sk].wrong++;
+    }
+    renderStats();
+  } else if(ev.type==='device_assigned'||ev.type==='device_status'||ev.type==='sensor'||ev.type==='bench'){
+    const ss=String(ev.slot);
+    const isNew=!devices[ss];
+    devices[ss]=Object.assign(devices[ss]||{slot:ev.slot},ev);
+    renderStats();
+    if(isNew) setTimeout(()=>arriveSeat(ev.slot),30);
+  } else if(ev.type==='step_unlocked'||ev.type==='step_changed'){
+    lessonState.active_step=ev.step;
+    lessonState.unlocked_steps=ev.unlocked_steps||lessonState.unlocked_steps;
+    render();
+  } else if(ev.type==='question_pushed'){
+    lessonState.active_step=ev.index;
+    if(ev.unlocked_steps) lessonState.unlocked_steps=ev.unlocked_steps;
+    render();
+  } else if(ev.type==='broadcast'){
+    lessonState.broadcast=ev.message||'';
+    const b=document.getElementById('bcast-box');
+    if(ev.message){b.style.display='block';b.textContent='\ud83d\udce2 '+ev.message;}
+    else b.style.display='none';
+  } else if(ev.type==='session_cleared'||ev.type==='devices_reset'){
+    submissions=[];devices={};prevStep=-1;render();
+  } else if(ev.type==='lesson_changed'){
+    location.reload();
+  }
+};
+
+// ── Polling fallback ──────────────────────────────────────────────────────────
+async function pollState(){
+  try{
+    const r=await fetch(`/${CLASS_ID}/api/state`);
+    const d=await r.json();
+    lessonState=Object.assign(lessonState,d.lesson||{});
+    if(d.devices){devices=d.devices;}
+    render();
+  }catch(e){}
+}
+pollState();
+setInterval(()=>{if(!sseAlive)pollState();},30000);
+setInterval(()=>document.getElementById('clock').textContent=new Date().toLocaleTimeString(),1000);
+
+document.getElementById('login-url-text').textContent=
+  `http://${location.hostname}:${location.port}/${CLASS_ID}/login`;
+
+if(IS_QUESTION_MODE){
+  document.getElementById('slide-area').style.display='none';
+  document.getElementById('question-mode').style.display='flex';
+  renderQuestionBanner(-1);
+  renderTiles();
+} else {
+  renderSlide(0);
+}
+renderSeatPanel();
+</script>
+</body>
+</html>

@@ -4,7 +4,10 @@
       "Bash(mkdir -p \"C:/CSULB/SystemOnChip_460/CECS460_Final_Project/cecs460-ch11-module/repo/docs/professor_reference\")",
       "Bash(cp \"C:/CSULB/SystemOnChip_460/Dans_Files/ClassroomFusion-4-22-26-1/complete-build/classroom-server/classes/cecs460/lessons/ch11/lesson.json\" \"C:/CSULB/SystemOnChip_460/CECS460_Final_Project/cecs460-ch11-module/repo/docs/professor_reference/lesson.json\")",
       "Bash(cp \"C:/CSULB/SystemOnChip_460/Dans_Files/ClassroomFusion-4-22-26-1/complete-build/classroom-server/classes/cecs460/lessons/ch11/grading.json\" \"C:/CSULB/SystemOnChip_460/CECS460_Final_Project/cecs460-ch11-module/repo/docs/professor_reference/grading.json\")",
-      "Bash(cp \"C:/CSULB/SystemOnChip_460/Dans_Files/ClassroomFusion-4-22-26-1/complete-build/classroom-server/classes/cecs460/lessons/ch11/LAB11_TEXTBOOK_SECTION.md\" \"C:/CSULB/SystemOnChip_460/CECS460_Final_Project/cecs460-ch11-module/repo/docs/professor_reference/LAB11_TEXTBOOK_SECTION.md\")"
+      "Bash(cp \"C:/CSULB/SystemOnChip_460/Dans_Files/ClassroomFusion-4-22-26-1/complete-build/classroom-server/classes/cecs460/lessons/ch11/LAB11_TEXTBOOK_SECTION.md\" \"C:/CSULB/SystemOnChip_460/CECS460_Final_Project/cecs460-ch11-module/repo/docs/professor_reference/LAB11_TEXTBOOK_SECTION.md\")",
+      "Bash(robocopy C:\\\\CSULB\\\\SystemOnChip_460\\\\Dans_Files\\\\ClassroomFusion-4-22-26-1\\\\complete-build\\\\classroom-server *)",
+      "PowerShell($src = \"C:\\\\CSULB\\\\SystemOnChip_460\\\\Dans_Files\\\\ClassroomFusion-4-22-26-1\\\\complete-build\\\\classroom-server\")",
+      "PowerShell($dst = \"C:\\\\CSULB\\\\SystemOnChip_460\\\\CECS460_Final_Project\\\\cecs460-ch11-module\\\\repo\\\\classroom-server\")"
     ]
   }
 }

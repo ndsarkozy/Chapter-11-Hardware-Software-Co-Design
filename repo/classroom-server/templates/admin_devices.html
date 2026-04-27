@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ class_name }} — Device Mappings</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0d1117;--card:#161b22;--card2:#1c2330;--border:#30363d;--text:#e6edf3;
+  --muted:#8b949e;--accent:#58a6ff;--green:#3fb950;--red:#f85149;--yellow:#d29922}
+body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--text);padding:20px;max-width:1000px;margin:0 auto}
+h1{font-size:1.3rem;margin-bottom:4px}
+.sub{font-size:.82rem;color:var(--muted);margin-bottom:20px}
+.back{font-size:.8rem;color:var(--accent);text-decoration:none;display:inline-block;margin-bottom:12px}
+.back:hover{text-decoration:underline}
+
+/* PIN gate */
+.pin-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:28px;max-width:340px;margin:60px auto}
+.pin-card input{width:100%;padding:11px;font-size:1.1rem;text-align:center;letter-spacing:6px;
+  background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);outline:none;font-family:inherit}
+.pin-card button{width:100%;margin-top:12px;padding:10px;background:var(--accent);color:#fff;border:none;
+  border-radius:6px;font-size:.9rem;cursor:pointer;font-weight:600}
+
+/* Stats bar */
+.stats{display:flex;gap:16px;margin-bottom:16px;flex-wrap:wrap}
+.stat-box{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:10px 14px}
+.stat-lbl{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.stat-val{font-size:1.2rem;font-weight:700;color:var(--accent);margin-top:2px}
+.stat-val.warn{color:var(--yellow)}
+.stat-val.ok{color:var(--green)}
+
+/* Table */
+table{width:100%;border-collapse:collapse;font-size:.82rem}
+th{background:var(--card);color:var(--muted);text-align:left;padding:8px 10px;border:1px solid var(--border);
+  font-size:.72rem;text-transform:uppercase;letter-spacing:.5px;position:sticky;top:0}
+td{padding:8px 10px;border:1px solid var(--border);vertical-align:middle}
+tr:nth-child(even) td{background:var(--card2)}
+tr.suspect td{background:#2d2000}
+tr.zeros td{background:#3d0a0a}
+
+.mac{font-family:'Consolas','Fira Mono',monospace;font-size:.8rem;letter-spacing:.5px}
+.badge{display:inline-block;padding:1px 6px;border-radius:8px;font-size:.68rem;font-weight:700}
+.badge-online{background:#0d4429;color:var(--green);border:1px solid #1a7f37}
+.badge-offline{background:var(--card2);color:var(--muted);border:1px solid var(--border)}
+.badge-warn{background:#2d2000;color:var(--yellow);border:1px solid #664400}
+.badge-bad{background:#3d0a0a;color:var(--red);border:1px solid #8b1a1a}
+
+.del-btn{padding:4px 10px;font-size:.72rem;background:transparent;color:var(--red);
+  border:1px solid var(--red);border-radius:4px;cursor:pointer;font-weight:600;transition:all .2s}
+.del-btn:hover{background:var(--red);color:#fff}
+
+.toolbar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.toolbar button{padding:6px 14px;font-size:.78rem;background:var(--card);color:var(--text);
+  border:1px solid var(--border);border-radius:6px;cursor:pointer;font-weight:600;transition:all .2s}
+.toolbar button:hover{border-color:var(--accent)}
+.toolbar button.danger{color:var(--red);border-color:var(--red)}
+.toolbar button.danger:hover{background:var(--red);color:#fff}
+
+.empty{color:var(--muted);text-align:center;padding:40px}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--green);color:#000;padding:10px 18px;
+  border-radius:6px;font-size:.85rem;font-weight:600;display:none;z-index:100}
+</style>
+</head>
+<body>
+
+<a class="back" href="/{{ class_id }}/instructor">&larr; Back to Instructor Dashboard</a>
+<h1>Device Mappings — {{ class_name }}</h1>
+<p class="sub">View, inspect, and clean up slot assignments. Suspicious MACs are highlighted.</p>
+
+{% if need_pin %}
+<div class="pin-card">
+  <div style="font-size:.9rem;margin-bottom:12px;color:var(--muted)">Enter instructor PIN</div>
+  <input type="password" id="pin-input" maxlength="8" autofocus
+    onkeydown="if(event.key==='Enter')unlockAdmin()">
+  <button onclick="unlockAdmin()">Enter</button>
+</div>
+<script>
+function unlockAdmin(){
+  const pin = document.getElementById('pin-input').value;
+  location.href = '/{{ class_id }}/admin/devices?pin=' + encodeURIComponent(pin);
+}
+</script>
+{% else %}
+
+<div class="stats" id="stats"></div>
+
+<div class="toolbar">
+  <button onclick="loadMappings()">Refresh</button>
+  <button class="danger" onclick="deleteAllSuspect()">Delete all flagged</button>
+</div>
+
+<div style="overflow-x:auto">
+<table>
+<thead>
+<tr>
+  <th>Slot</th>
+  <th>MAC Address</th>
+  <th>Device ID</th>
+  <th>Status</th>
+  <th>Flags</th>
+  <th>Telemetry</th>
+  <th></th>
+</tr>
+</thead>
+<tbody id="tbody">
+  <tr><td colspan="7" class="empty">Loading…</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const CLASS_ID = {{ class_id | tojson }};
+const PIN = new URLSearchParams(location.search).get('pin') || '';
+let mappings = [];
+
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.style.display='block';
+  setTimeout(()=>t.style.display='none',2500);
+}
+
+function formatMAC(mac){
+  if(!mac || mac.length < 12) return mac;
+  return mac.match(/.{2}/g).join(':');
+}
+
+function flagMAC(m){
+  const mac = m.mac || '';
+  const flags = [];
+  if(mac.replace(/0/g,'') === '') flags.push({label:'ALL ZEROS', cls:'badge-bad'});
+  else if(m.suspect) flags.push({label:'SUSPECT', cls:'badge-warn'});
+  // Check for duplicate device_ids (different MACs, same device)
+  const dupes = mappings.filter(x => x.device_id === m.device_id && x.mac !== m.mac);
+  if(dupes.length > 0) flags.push({label:'DUP ID', cls:'badge-warn'});
+  return flags;
+}
+
+function renderStats(){
+  const total = mappings.length;
+  const online = mappings.filter(m=>m.online).length;
+  const suspect = mappings.filter(m=>m.suspect).length;
+  const zeros = mappings.filter(m=>(m.mac||'').replace(/0/g,'')==='').length;
+  document.getElementById('stats').innerHTML = `
+    <div class="stat-box"><div class="stat-lbl">Total slots</div><div class="stat-val">${total}</div></div>
+    <div class="stat-box"><div class="stat-lbl">Online</div><div class="stat-val ok">${online}</div></div>
+    <div class="stat-box"><div class="stat-lbl">Suspect</div><div class="stat-val ${suspect?'warn':''}">${suspect}</div></div>
+    <div class="stat-box"><div class="stat-lbl">All-zeros</div><div class="stat-val ${zeros?'warn':''}">${zeros}</div></div>
+  `;
+}
+
+function renderTable(){
+  const tbody = document.getElementById('tbody');
+  if(!mappings.length){
+    tbody.innerHTML = '<tr><td colspan="7" class="empty">No device mappings found.</td></tr>';
+    return;
+  }
+  const sorted = [...mappings].sort((a,b)=>a.slot-b.slot);
+  tbody.innerHTML = sorted.map(m => {
+    const flags = flagMAC(m);
+    const isZeros = (m.mac||'').replace(/0/g,'') === '';
+    const rowCls = isZeros ? 'zeros' : m.suspect ? 'suspect' : '';
+    const telemetry = m.sw_us != null
+      ? `SW:${m.sw_us}µs HW:${m.hw_us}µs ${m.speedup?.toFixed(1)}×`
+      : '<span style="color:var(--muted)">--</span>';
+    return `<tr class="${rowCls}">
+      <td style="font-size:1.1rem;font-weight:700;color:var(--accent)">${m.slot}</td>
+      <td><span class="mac">${formatMAC(m.mac)}</span></td>
+      <td>${m.device_id||'--'}${m.student_id?'<br><span style="color:var(--yellow);font-size:.72rem">'+m.student_id+'</span>':''}</td>
+      <td><span class="badge ${m.online?'badge-online':'badge-offline'}">${m.online?'Online':'Offline'}</span></td>
+      <td>${flags.map(f=>`<span class="badge ${f.cls}">${f.label}</span>`).join(' ')||'<span style="color:var(--muted)">OK</span>'}</td>
+      <td style="font-family:monospace;font-size:.75rem">${telemetry}</td>
+      <td><button class="del-btn" onclick="deleteEntry('${m.mac}',${m.slot})">Delete</button></td>
+    </tr>`;
+  }).join('');
+}
+
+async function loadMappings(){
+  try{
+    const r = await fetch(`/${CLASS_ID}/admin/devices/api?pin=${encodeURIComponent(PIN)}`);
+    const d = await r.json();
+    if(d.error){ alert(d.error); return; }
+    mappings = d.mappings || [];
+    renderStats();
+    renderTable();
+  }catch(e){ alert('Failed to load mappings'); }
+}
+
+async function deleteEntry(mac, slot){
+  if(!confirm(`Delete slot ${slot} (MAC: ${formatMAC(mac)})?`)) return;
+  try{
+    const r = await fetch(`/${CLASS_ID}/admin/devices/delete`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({mac, pin:PIN})
+    });
+    const d = await r.json();
+    if(d.ok){
+      toast(`Deleted slot ${slot}`);
+      loadMappings();
+    } else { alert(d.error||'Delete failed'); }
+  }catch(e){ alert('Network error'); }
+}
+
+async function deleteAllSuspect(){
+  const suspects = mappings.filter(m=>m.suspect);
+  if(!suspects.length){ toast('No flagged entries to delete'); return; }
+  if(!confirm(`Delete ${suspects.length} flagged entries?`)) return;
+  for(const m of suspects){
+    try{
+      await fetch(`/${CLASS_ID}/admin/devices/delete`, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({mac:m.mac, pin:PIN})
+      });
+    }catch(e){}
+  }
+  toast(`Deleted ${suspects.length} entries`);
+  loadMappings();
+}
+
+loadMappings();
+</script>
+{% endif %}
+</body>
+</html>
