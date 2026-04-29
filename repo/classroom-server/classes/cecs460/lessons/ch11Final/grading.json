@@ -64,6 +64,65 @@
       "points": 5,
       "type": "mc",
       "correct": 1
+    },
+    {
+      "id": "q_predict",
+      "step": "11.predict",
+      "points": 20,
+      "type": "free_response",
+      "keywords": [
+        "LEDC",
+        "clock divider",
+        "peripheral",
+        "silicon",
+        "zero CPU",
+        "no CPU",
+        "interrupt",
+        "ISR",
+        "timer",
+        "hardware timer",
+        "busy-wait",
+        "busy wait",
+        "delay",
+        "loop",
+        "delayMicroseconds",
+        "partitioning",
+        "offload",
+        "co-design",
+        "most accurate",
+        "least accurate",
+        "ranking"
+      ],
+      "keyword_mode": "any",
+      "rubric": "Full credit (20 pts): (1) Correct ranking: LEDC most accurate, ISR second, SW least accurate. (2) LEDC explanation references clock divider or dedicated peripheral with zero CPU involvement after setup. (3) ISR explanation references hardware timer firing on schedule regardless of loop() — CPU only involved briefly per interrupt. (4) SW explanation references busy-wait / delayMicroseconds being stretched when CPU is occupied. Deduct 5 pts if ranking is correct but mechanism explanations are vague ('hardware is better'). Deduct 10 pts if ranking is wrong. Award 0 if answer only says 'hardware is faster' with no mechanism."
+    },
+    {
+      "id": "q_measure",
+      "step": "11.measure",
+      "points": 20,
+      "type": "free_response",
+      "keywords": [
+        "LED1",
+        "LED2",
+        "LED3",
+        "slower",
+        "different",
+        "count",
+        "blink",
+        "visible",
+        "visually",
+        "CPU",
+        "software",
+        "timer",
+        "LEDC",
+        "locked",
+        "accurate",
+        "inaccurate",
+        "frequency",
+        "load"
+      ],
+      "keyword_mode": "any",
+      "rubric": "Full credit (20 pts): (1) Describes a VISUAL observation — not just quoting Serial numbers. Accept any description of LED1 blinking noticeably slower than LED2/LED3 at BRUTAL load. (2) Connects the visual observation to the underlying mechanism: LED1 slower because software delay was stretched by CPU load; LED2 and LED3 maintained their rate because the hardware timer and LEDC peripheral are independent of CPU load. Deduct 8 pts if answer only quotes Serial numbers without describing what they saw with their eyes. Deduct 8 pts if mechanism explanation is missing. Award 0 if answer does not reference any visual observation."
     }
   ]
 }

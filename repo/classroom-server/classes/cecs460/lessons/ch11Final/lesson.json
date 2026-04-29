@@ -56,6 +56,75 @@
       }
     },
     {
+      "section": "11.predict",
+      "title": "Three LEDs, One Frequency — Predict the Winner",
+      "subtitle": "Before you flash the code — reason from first principles",
+      "content_blocks": [
+        {
+          "type": "key_idea",
+          "text": "You are about to test three different ways to blink an LED at the same target frequency on the same ESP32. <strong>LED1 (GPIO 18)</strong> uses <code>delayMicroseconds()</code> busy-wait inside <code>loop()</code> — the CPU counts microseconds the entire time. <strong>LED2 (GPIO 19)</strong> uses a hardware timer ISR — the timer peripheral fires at the programmed interval and the CPU briefly handles an interrupt each half-period. <strong>LED3 (GPIO 21)</strong> uses the LEDC peripheral — the CPU configures a clock divider once in <code>setup()</code>, then the peripheral drives the pin autonomously with <strong>zero CPU involvement</strong> after that. All three are configured for the same target frequency. The question: which one survives a heavy CPU workload best?"
+        },
+        {
+          "type": "comparison_table",
+          "heading": "Three timing methods — resources used",
+          "columns": ["LED", "GPIO", "Timing Method", "CPU involvement after setup"],
+          "rows": [
+            ["LED1", "18", "Software busy-wait (delayMicroseconds in loop)", "100% — CPU is counting the entire delay"],
+            ["LED2", "19", "Hardware timer ISR", "Brief — CPU handles a short interrupt each half-period"],
+            ["LED3", "21", "LEDC peripheral (clock divider)", "Zero — silicon clock divider drives pin autonomously"]
+          ]
+        },
+        {
+          "type": "callout",
+          "style": "info",
+          "text": "This is the prediction step. Flash nothing yet. Reason from what you know about how each method works. The sketch results come in the next step."
+        }
+      ],
+      "question": {
+        "type": "free_response",
+        "text": "All three LEDs are told to blink at 5 Hz. The ESP32 is given a heavy CPU workload simultaneously. Rank the three LEDs from MOST accurate to LEAST accurate under load, and explain WHY each one behaves the way it does. Reference the specific hardware resource each method uses for timekeeping.",
+        "placeholder": "Example start: LED3 (LEDC) will be most accurate because...",
+        "hint": "Think about which resource each method relies on to keep time. What happens to that resource when the CPU is busy?"
+      }
+    },
+    {
+      "section": "11.measure",
+      "title": "Flash, Observe, and Load-Test",
+      "subtitle": "Put real numbers on the failure — and the fix",
+      "content_blocks": [
+        {
+          "type": "key_idea",
+          "text": "Wire up three LEDs and flash <code>04_visual_demo.ino</code> to your ESP32 DOIT DevKit V1. Each LED needs its own 220Ω current-limiting resistor in series between the GPIO pin and the LED anode; LED cathodes go to GND. Once flashed, open the Serial Monitor at <strong>115200 baud</strong>. You will see one line per second showing the measured frequency and error percentage for LED1 and LED2, the status of LED3, and the current load level."
+        },
+        {
+          "type": "comparison_table",
+          "heading": "Wiring",
+          "columns": ["GPIO", "Method", "Resistor", "Notes"],
+          "rows": [
+            ["18", "Software busy-wait (LED1)", "220Ω", "Cathode to GND, anode through resistor to GPIO 18"],
+            ["19", "Hardware timer ISR (LED2)", "220Ω", "Cathode to GND, anode through resistor to GPIO 19"],
+            ["21", "LEDC peripheral (LED3)", "220Ω", "Cathode to GND, anode through resistor to GPIO 21"]
+          ]
+        },
+        {
+          "type": "callout",
+          "style": "warning",
+          "text": "Record one Serial Monitor reading at EACH load level. Type <code>l</code> to cycle: NONE → LIGHT → HEAVY → BRUTAL. At BRUTAL load and 5 Hz, watch the LEDs visually — you should be able to count the blink difference."
+        },
+        {
+          "type": "callout",
+          "style": "info",
+          "text": "Serial Monitor commands: <code>l</code> = cycle load (NONE → LIGHT → HEAVY → BRUTAL), <code>+</code> = double frequency, <code>-</code> = halve frequency, <code>r</code> = reset to 5 Hz with no load."
+        }
+      ],
+      "question": {
+        "type": "free_response",
+        "text": "At BRUTAL load, describe what you observed VISUALLY (not just Serial output numbers). Which LEDs were visibly different from each other? What does that visual difference tell you about where the timing job was executing for each LED?",
+        "placeholder": "At BRUTAL load I observed...",
+        "hint": "Focus on what your eyes told you, not the Serial numbers. Could you count a difference in blink rate? What does a slower blink on LED1 mean about what the CPU was doing?"
+      }
+    },
+    {
       "section": "11.1",
       "title": "11.1 — Requirements and Specification",
       "subtitle": "Good co-design starts before anyone writes Verilog or C",
@@ -132,7 +201,7 @@
           "No — the ESP32 hardware AES engine only supports AES-256"
         ],
         "correct": 1,
-        "explanation": "280 µs / 500,000 µs = 0.056% CPU utilization. The software path is not a bottleneck at this call rate. The start-in-software rule says you only move to hardware when a specific operation demonstrably dominates CPU time or energy — 0.056% does not qualify. If the packet rate increased to one every ~3–5 ms (approaching 5–10% CPU), offloading would become worth evaluating."
+        "explanation": "280 µs / 500,000 µs = 0.056% CPU utilization. That's not a bottleneck at this call rate. The start-in-software rule says you only move to hardware when a specific operation demonstrably dominates CPU time or energy — 0.056% does not qualify. If the packet rate increased to one every ~3–5 ms (approaching 5–10% CPU), offloading would become worth evaluating."
       }
     },
     {
