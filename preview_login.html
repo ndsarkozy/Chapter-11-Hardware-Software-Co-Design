@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CECS 460 — Student Login (Preview)</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0d1117;--card:#161b22;--border:#30363d;--text:#e6edf3;
+  --muted:#8b949e;--accent:#58a6ff;--green:#3fb950;--red:#f85149;--amber:#d29922}
+body{
+  font-family:system-ui,-apple-system,sans-serif;
+  background:var(--bg);color:var(--text);
+  min-height:100vh;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;padding:20px;
+}
+.brand{font-size:11px;font-weight:700;color:var(--accent);letter-spacing:1.5px;
+  text-transform:uppercase;margin-bottom:4px}
+h1{font-size:1.3rem;font-weight:600;margin-bottom:4px}
+.subtitle{color:var(--muted);font-size:.82rem;margin-bottom:28px}
+.card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:8px;padding:28px 24px;width:100%;max-width:380px;
+}
+label{display:block;font-size:.78rem;color:var(--muted);margin-bottom:6px}
+input[type=text]{
+  width:100%;padding:11px 14px;font-size:.95rem;
+  background:#0d1117;border:1px solid var(--border);
+  border-radius:6px;color:var(--text);font-family:inherit;
+  outline:none;transition:border-color .2s;
+}
+input:focus{border-color:var(--accent)}
+button{
+  width:100%;margin-top:16px;padding:11px;
+  background:var(--accent);color:#fff;border:none;
+  border-radius:6px;font-size:.95rem;font-family:inherit;
+  cursor:pointer;font-weight:600;transition:background .2s;
+}
+button:hover{background:#79c0ff}
+.hint{margin-top:20px;font-size:.72rem;color:var(--muted);text-align:center;line-height:1.5}
+.or-divider{margin:18px 0 14px;text-align:center;color:var(--muted);font-size:.75rem;
+  display:flex;align-items:center;gap:10px}
+.or-divider::before,.or-divider::after{content:'';flex:1;height:1px;background:var(--border)}
+.esp-hint{background:#1a1f2e;border:1px solid var(--border);border-radius:6px;
+  padding:14px 16px;margin-top:14px;font-size:.78rem;color:var(--muted);line-height:1.6}
+.esp-hint strong{color:var(--amber)}
+
+/* preview badge */
+.preview-badge{
+  position:fixed;top:12px;right:12px;
+  background:#2d2000;border:1px solid var(--amber);
+  color:var(--amber);font-size:11px;font-weight:700;
+  padding:4px 10px;border-radius:6px;letter-spacing:.5px;
+}
+</style>
+</head>
+<body>
+  <div class="preview-badge">STATIC PREVIEW</div>
+
+  <div class="brand">Interactive Classroom</div>
+  <h1>CECS 460 – System-on-Chip Design</h1>
+  <p class="subtitle">Enter your name to join the session</p>
+
+  <div class="card">
+    <form onsubmit="return false">
+      <label for="name">Full Name (as it appears on your roster)</label>
+      <input type="text" id="name" name="name" placeholder="Jane Doe"
+             autocomplete="off" autofocus>
+      <button type="submit">Join Session</button>
+    </form>
+
+    <div class="or-divider">or if you have an ESP32</div>
+    <div class="esp-hint">
+      <strong>Recommended:</strong> Download and run the
+      <a href="#" style="color:var(--accent)">Student Connector</a>
+      (<a href="#" style="color:var(--accent)">student_client.py</a>).
+      It reads your seat assignment from the ESP32 and opens the lesson
+      page automatically — no login needed. Your browser and ESP32 will
+      share the same seat.<br><br>
+      <code style="font-size:.72rem;color:var(--muted)">python student_client.py --server 127.0.0.1:5000</code>
+    </div>
+  </div>
+
+  <div class="hint">
+    If you refresh or reconnect with the same name, you get the same seat.
+  </div>
+</body>
+</html>

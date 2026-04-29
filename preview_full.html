@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CECS 460 — Ch11 Preview</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0d1117;--card:#161b22;--card2:#1c2330;--border:#30363d;--text:#e6edf3;
+  --green:#3fb950;--yellow:#d29922;--red:#f85149;--blue:#388bfd;--muted:#8b949e;
+  --accent:#58a6ff;--purple:#a371f7;}
+body{background:var(--bg);color:var(--text);font-family:system-ui,sans-serif;min-height:100vh}
+
+/* ── LOGIN PAGE ── */
+#login-page{
+  min-height:100vh;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;padding:20px;
+}
+.brand-sm{font-size:11px;font-weight:700;color:var(--accent);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px}
+.login-title{font-size:1.3rem;font-weight:600;margin-bottom:4px}
+.login-sub{color:var(--muted);font-size:.82rem;margin-bottom:28px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:28px 24px;width:100%;max-width:380px}
+.card label{display:block;font-size:.78rem;color:var(--muted);margin-bottom:6px}
+.card input{width:100%;padding:11px 14px;font-size:.95rem;background:#0d1117;border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:inherit;outline:none;transition:border-color .2s}
+.card input:focus{border-color:var(--accent)}
+.card button{width:100%;margin-top:16px;padding:11px;background:var(--accent);color:#000;border:none;border-radius:6px;font-size:.95rem;font-family:inherit;cursor:pointer;font-weight:700;transition:background .2s}
+.card button:hover{background:#79c0ff}
+.login-hint{margin-top:20px;font-size:.72rem;color:var(--muted);text-align:center;line-height:1.5}
+.or-div{margin:18px 0 14px;text-align:center;color:var(--muted);font-size:.75rem;display:flex;align-items:center;gap:10px}
+.or-div::before,.or-div::after{content:'';flex:1;height:1px;background:var(--border)}
+.esp-note{background:#1a1f2e;border:1px solid var(--border);border-radius:6px;padding:14px 16px;font-size:.78rem;color:var(--muted);line-height:1.6}
+.esp-note strong{color:var(--yellow)}
+.error-msg{color:var(--red);font-size:.8rem;margin-top:8px;display:none}
+
+/* ── LESSON PAGE ── */
+#lesson-page{display:none;grid-template-rows:48px 1fr;min-height:100vh}
+nav{background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;padding:0 14px;position:sticky;top:0;z-index:20;height:48px}
+.brand{font-size:14px;font-weight:700;color:var(--accent)}
+.pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700}
+.pill-b{background:#0d2149;color:var(--blue);border:1px solid #1f4d99}
+.pill-g{background:#0d4429;color:var(--green);border:1px solid #1a7f37}
+.lesson-layout{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 48px)}
+.step-nav{background:var(--card);border-right:1px solid var(--border);padding:12px;position:sticky;top:48px;height:calc(100vh - 48px);overflow-y:auto;display:flex;flex-direction:column;gap:4px}
+.step-nav-item{padding:8px 10px;border-radius:6px;font-size:12px;border:1px solid transparent;transition:all .2s;cursor:pointer;line-height:1.4}
+.step-nav-item.active{background:#0d1c35;border-color:var(--accent);color:var(--accent)}
+.step-nav-item.done{border-color:var(--green);color:var(--green)}
+.step-nav-item.unlocked{color:var(--text)}
+.step-nav-item.locked{color:var(--muted);cursor:default;opacity:.5}
+.nav-section{font-size:10px;font-weight:700;color:var(--purple)}
+.content-area{padding:24px;max-width:860px}
+.section-chip{display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:700;background:var(--purple);color:#fff;margin-bottom:8px}
+.content-block{margin-bottom:18px}
+.key-idea{background:#0d2149;border-left:4px solid var(--accent);padding:13px 15px;border-radius:0 8px 8px 0;font-size:14px;line-height:1.65}
+.callout{padding:12px 15px;border-radius:8px;font-size:13px;line-height:1.6}
+.callout-warning{background:#2d2000;border-left:4px solid var(--yellow)}
+.callout-info{background:#0d2149;border-left:4px solid var(--blue)}
+.comp-table{width:100%;border-collapse:collapse;font-size:12px}
+.comp-table th{background:var(--card2);padding:8px;text-align:left;border:1px solid var(--border);color:var(--muted);font-size:11px;text-transform:uppercase}
+.comp-table td{padding:8px;border:1px solid var(--border)}
+.comp-table tr:nth-child(even) td{background:var(--card2)}
+.question-box{background:var(--card2);border:1px solid var(--accent);border-radius:10px;padding:18px;margin-top:20px}
+.mc-choice{display:flex;align-items:flex-start;gap:10px;padding:9px 12px;margin:5px 0;border:1px solid var(--border);border-radius:7px;cursor:pointer;transition:all .2s;font-size:13px}
+.mc-choice:hover{border-color:var(--accent);background:#0d1c35}
+.mc-choice.selected{border-color:var(--accent);background:#0d1c35}
+.mc-choice.correct{border-color:var(--green);background:#0d4429;cursor:default}
+.mc-choice.wrong{border-color:var(--red);background:#3d0a0a;cursor:default}
+.mc-letter{width:24px;height:24px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;min-width:24px}
+.feedback-box{margin-top:12px;padding:11px 14px;border-radius:7px;font-size:13px;line-height:1.6}
+.fb-correct{background:#0d4429;border:1px solid var(--green)}
+.fb-wrong{background:#3d0a0a;border:1px solid var(--red)}
+.btn{display:inline-flex;align-items:center;padding:8px 16px;border-radius:6px;border:none;cursor:pointer;font-size:13px;font-weight:600;transition:opacity .15s}
+.btn:hover{opacity:.82}
+.btn-primary{background:var(--accent);color:#000}
+.preview-badge{position:fixed;top:12px;right:12px;background:#2d2000;border:1px solid var(--yellow);color:var(--yellow);font-size:11px;font-weight:700;padding:4px 10px;border-radius:6px;z-index:999}
+@media(max-width:700px){.lesson-layout{grid-template-columns:1fr}.step-nav{display:none}}
+</style>
+</head>
+<body>
+
+<div class="preview-badge">STATIC PREVIEW</div>
+
+<!-- ══════════════════════════════════════════════════════════ LOGIN PAGE -->
+<div id="login-page">
+  <div class="brand-sm">Interactive Classroom</div>
+  <div class="login-title">CECS 460 – System-on-Chip Design</div>
+  <p class="login-sub">Enter your name to join the session</p>
+  <div class="card">
+    <label for="student-name">Full Name (as it appears on your roster)</label>
+    <input type="text" id="student-name" placeholder="Jane Doe" autocomplete="off" autofocus>
+    <div class="error-msg" id="login-error">Please enter your name to continue.</div>
+    <button onclick="doLogin()">Join Session</button>
+    <div class="or-div">or if you have an ESP32</div>
+    <div class="esp-note">
+      <strong>Recommended:</strong> Download and run the
+      <span style="color:var(--accent)">Student Connector</span>
+      (student_client.py). It reads your seat assignment from the ESP32
+      and opens the lesson page automatically — no login needed.<br><br>
+      <code style="font-size:.72rem;color:var(--muted)">python student_client.py --server 127.0.0.1:5000</code>
+    </div>
+  </div>
+  <div class="login-hint">If you refresh or reconnect with the same name, you get the same seat.</div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ LESSON PAGE -->
+<div id="lesson-page">
+  <nav>
+    <span class="brand">CECS460</span>
+    <span style="font-size:13px;color:var(--muted)">Chapter 11 — Hardware/Software Co-Design</span>
+    <div style="margin-left:auto;display:flex;gap:6px;align-items:center">
+      <span class="pill pill-b">Seat 7</span>
+      <span class="pill pill-g" id="name-pill">...</span>
+    </div>
+  </nav>
+  <div class="lesson-layout">
+    <div class="step-nav" id="step-nav"></div>
+    <div class="content-area" id="content-area"></div>
+  </div>
+</div>
+
+<script>
+const STEPS = [
+  {
+    section:"11.0", title:"Chapter 11 — Introduction", subtitle:"Hardware, software, and the negotiation between them",
+    content_blocks:[
+      {type:"key_idea", text:"If the rest of this course has been about <strong>what's inside a SoC</strong>, this chapter is about <strong>how you actually design one</strong> — or, more realistically, how you design a product <em>on top of</em> an existing SoC like the ESP32. Every serious embedded project is a negotiation between <strong>hardware</strong> (logic, accelerators, peripherals, power domains) and <strong>software</strong> (CPUs, RTOS tasks, firmware frameworks)."},
+      {type:"callout", style:"info", text:"You've already made hardware/software co-design decisions in labs without calling them that: using the ESP32's AES engine instead of hand-coded AES in C; offloading sampling to timers, DMA, and I²S instead of busy-waiting in loops; letting the ULP co-processor wake the main cores only when needed. This chapter pulls those instincts into a structured flow."},
+      {type:"comparison_table", heading:"The co-design flow — five stages", columns:["Stage","What you do"],
+        rows:[["1. Requirements","Define measurable targets before writing any code or RTL"],["2. Partitioning","Decide which functions run in software vs. hardware/accelerators"],["3. Modeling","Estimate performance and energy; catch big mistakes cheaply"],["4. Implementation","Write RTL and firmware; define hardware/software interfaces"],["5. Integration","Bring pieces together; debug mismatches; run CI on both sides"]]}
+    ],
+    question:{type:"mc", text:"Which of the following best describes hardware/software co-design?",
+      choices:["Writing firmware that runs on a CPU without any custom hardware","Designing hardware blocks in isolation from the software that will use them","A structured process for deciding which functions run in hardware vs. software based on requirements, measurements, and constraints","Porting an existing C library to run on an FPGA"],
+      correct:2, explanation:"Co-design means hardware and software are designed together, not in isolation. The process starts with requirements, uses measurements to guide partitioning decisions, and keeps hardware/firmware teams aligned throughout."}
+  },
+  {
+    section:"11.1", title:"11.1 — Requirements and Specification", subtitle:"Good co-design starts before anyone writes Verilog or C",
+    content_blocks:[
+      {type:"key_idea", text:"Requirements drive everything. Consider a battery-powered ESP32 smart sensor node: its requirements fall into <strong>functional</strong> (take a reading every 60 s, transmit securely), <strong>non-functional</strong> (≥1 year battery life, &lt;500 ms wake-to-send latency), and <strong>security</strong> (no plain-text radio packets). From a co-design perspective these drive everything: energy and latency requirements push you toward hardware radio blocks, hardware crypto, and deep sleep; cost constraints push you toward reusing existing IP."},
+      {type:"comparison_table", heading:"Concrete vs. vague requirements", columns:["Vague (unacceptable)","Concrete (acceptable)"],
+        rows:[["\"Low power\"","\"Active current ≤ 45 mA at 3.3 V\""],["\"Fast response\"","\"End-to-end latency ≤ 200 ms from sensor to cloud\""],["\"Easy to update\"","\"OTA firmware update completes within 90 s over Wi-Fi\""],["\"Secure\"","\"AES-128 encryption on every transmitted packet, key rotated every 24 h\""]]},
+      {type:"callout", style:"info", text:"A good specification is <strong>concrete</strong> (measurable targets with units and thresholds), <strong>stable enough</strong> to avoid constant churn, and <strong>shared</strong> — hardware, firmware, and test all work from the same document."}
+    ],
+    question:{type:"mc", text:"A product manager writes: \"The device should have good battery life.\" Why is this requirement unacceptable for co-design?",
+      choices:["It does not specify the battery chemistry or cell count","It cannot be measured, tested, or used to make a hardware/software partitioning decision","Battery life is a manufacturing concern, not a design concern","It should be phrased as a non-functional requirement instead"],
+      correct:1, explanation:"\"Good battery life\" has no units, no threshold, and no test condition. Without a concrete target the team cannot determine whether a ULP wakeup circuit in hardware is necessary or whether firmware-only deep sleep is sufficient. The vague requirement makes partitioning decisions guesswork."}
+  },
+  {
+    section:"11.2", title:"11.2 — Hardware/Software Partitioning", subtitle:"Deciding where each function lives",
+    content_blocks:[
+      {type:"key_idea", text:"<strong>Start in software unless you have a strong reason not to.</strong> Software is easier to change and patch, easier to debug (printfs, breakpoints, logging), and reusable across products. You only move to hardware when <em>measurement</em> shows that a specific operation dominates CPU time or energy. The questions then become: Can the CPU handle it? Are there existing accelerators (AES engine, DSP, I²S+DMA, ULP core)? Is the volume high enough to justify custom hardware?"},
+      {type:"comparison_table", heading:"ESP32 smart sensor — partitioning example", columns:["Function","Lives in","Reason"],
+        rows:[["Radio MAC/PHY","Hardware","Wi-Fi/BLE/Thread in dedicated radio blocks"],["AES/SHA crypto","Hardware","Crypto engines reduce CPU time and energy per packet"],["Deep sleep wakeup","Hardware (ULP + RTC)","ULP samples while main CPU is off"],["Matter stack / app logic","Software (FreeRTOS)","Complex, frequently updated, benefits from OTA patches"],["Power management","Software (FreeRTOS)","Policy changes without a respin"],["UI (button + LED)","Software (FreeRTOS)","Simple I/O; easily changed to accommodate UX feedback"]]},
+      {type:"callout", style:"warning", text:"<strong>Over-optimistic accelerator trap:</strong> Moving a function to hardware does not automatically make it faster end-to-end. If the time to move data <em>into</em> the accelerator (buffer copies, interrupt setup, DMA descriptors) exceeds the compute savings, you gain nothing. Always measure the <em>full path</em>, not just the compute kernel."}
+    ],
+    question:{type:"mc", text:"A firmware profiler shows software AES-128 consumes 280 µs per call. The device encrypts one packet every 500 ms. Should this be moved to hardware?",
+      choices:["Yes — any function over 100 µs should always be in hardware","No — 280 µs is only 0.056% of a 500 ms interval, so CPU headroom is not a problem","Yes — hardware AES is always more energy-efficient regardless of call frequency","No — the ESP32 hardware AES engine only supports AES-256"],
+      correct:1, explanation:"280 µs / 500,000 µs = 0.056% CPU utilization. The software path is not a bottleneck. Start-in-software says only move to hardware when an operation demonstrably dominates CPU time or energy — 0.056% does not qualify."}
+  },
+  {
+    section:"11.2b", title:"11.2 — The Business Dimension: Tape-Out", subtitle:"Why hardware decisions are permanent",
+    content_blocks:[
+      {type:"key_idea", text:"<strong>Tape-out</strong> is when a chip design is sent to a foundry to generate photomasks and begin wafer fabrication. Any bug in the RTL is replicated across every die. Fixing it requires a <strong>respin</strong>: new masks, new wafer runs, months of delay, and millions of dollars. This is the <em>point of no return</em>. Software is fundamentally different — a firmware patch requires engineering effort but no new masks, and can often be pushed over-the-air in days."},
+      {type:"comparison_table", heading:"Cost to fix a bug: hardware vs. firmware", columns:["Fix type","Mechanism","Schedule impact","Cost"],
+        rows:[["Firmware patch","Push OTA update to all devices","Days to weeks","Engineering time only"],["Hardware workaround","Firmware avoids broken block","Weeks","Engineering time + perf penalty"],["Respin (metal fix)","New mask layers, limited RTL change","3–6 months","$500K–$2M at 28 nm"],["Full respin","New mask set, all layers","6–18 months","$2M–$10M+ at advanced nodes"]]},
+      {type:"callout", style:"info", text:"Functionality that is <strong>likely to change</strong> (protocols, UI, business logic) belongs in software if performance allows. Functions that must be <strong>extremely fast, energy-efficient, or security-critical</strong> (crypto engines, safety shutdown logic) are good hardware candidates — but only after very careful specification."}
+    ],
+    question:{type:"mc", text:"After tape-out, engineers find a hardware timer bug causing 0.08% timing error — within firmware tolerance. A respin costs $3M and 8 months. What is the correct decision?",
+      choices:["Always respin — hardware bugs must be fixed in hardware","Ship with a firmware workaround; the cost and schedule of a respin far outweigh a correctable 0.08% error","Cancel the product — hardware bugs at this stage are unrecoverable","Release a post-launch software patch and notify customers"],
+      correct:1, explanation:"0.08% timing error is negligible and firmware can absorb it. Spending $3M and 8 months on a respin is economically irrational. This illustrates the tape-out asymmetry: firmware workarounds ship in weeks at near-zero cost, while hardware fixes are catastrophically expensive."}
+  },
+  {
+    section:"11.2c", title:"11.2 — Common Co-Design Pitfalls", subtitle:"Traps that catch student projects and real SoC teams alike",
+    content_blocks:[
+      {type:"key_idea", text:"Good co-design is as much about <strong>communication and process</strong> as it is about clever architectures. The same pitfalls appear in student projects and billion-dollar SoC programs."},
+      {type:"comparison_table", heading:"Common co-design pitfalls", columns:["Pitfall","What happens","How to avoid it"],
+        rows:[["Vague or changing requirements","\"We'll figure it out later\" leads to conflicting assumptions","Lock a concrete spec before any RTL or firmware is written"],["Mismatched interface assumptions","Different expectations for reset behavior, timing, or data formats","Write a shared register map both teams sign off on"],["Over-optimistic accelerators","Data-movement overhead kills the speedup","Benchmark the full path (DMA setup + compute + readback)"],["Not enough debug hooks","No status registers or trace; bugs become impossible to localize","Design observability in from day one"],["Version skew","HW and FW teams using different versions of a spec","Single source-of-truth document in version control"]]}
+    ],
+    question:{type:"mc", text:"An AES accelerator uses a 128-bit input buffer at offset 0x10. The hardware team changed it to 0x14 in a last-minute RTL update without telling firmware. What pitfall is this?",
+      choices:["Over-optimistic accelerator trap — benchmark it first","Version skew / interface mismatch — a shared, version-controlled register map would have caught the divergence","Vague requirements — a more concrete spec would have locked the address","Missing debug hooks — a loopback mode would have revealed the wrong offset"],
+      correct:1, explanation:"This is a classic interface mismatch caused by version skew. The fix: a single source-of-truth register map in version control, from which both RTL parameters and firmware header files are automatically generated. Any change forces a deliberate update in both codebases."}
+  },
+  {
+    section:"11.3", title:"11.3 — Modeling and Simulation", subtitle:"Sanity-check decisions before committing to RTL or complex firmware",
+    content_blocks:[
+      {type:"key_idea", text:"Once you tentatively partition hardware and software, you want to catch big mistakes <em>cheaply</em> before committing. Industry uses SystemC/MATLAB, TLMs, and co-simulation frameworks. For this course, modeling can be much simpler: write pseudocode or a C prototype, estimate operations per sample, run it on the ESP32, and measure timing and energy. Even this simple setup can catch big architectural mistakes early."},
+      {type:"comparison_table", heading:"Course-level vs. industry-level modeling", columns:["Approach","Tools","What it catches","What it misses"],
+        rows:[["CECS 460 (board measurement)","ESP32 + timer API + current probe","CPU bottlenecks, energy per operation, rough latency","Bus contention, cache effects, multi-block interactions"],["SystemC / TLM","SystemC simulator, custom models","Architectural performance, bus bandwidth","Detailed timing, power gating, silicon-specific behavior"],["Full co-simulation","ISS + RTL simulator","Firmware-hardware protocol bugs, DMA races","Slow; can't run full OS workloads; expensive licenses"]]},
+      {type:"callout", style:"info", text:"Try ideas in a model or prototype first, then commit to expensive implementation steps. <strong>Cheap experiments early save expensive respins late.</strong>"}
+    ],
+    question:{type:"mc", text:"You time a software SHA-256 hash at 320 µs per block on the ESP32. Packets arrive every 10 ms. Which conclusion is most justified?",
+      choices:["Hardware SHA acceleration is mandatory — 320 µs is always too slow","320 µs / 10,000 µs = 3.2% CPU — software is acceptable now, but hardware becomes worth evaluating if packet rate doubles or triples","The firmware is broken — SHA-256 should take under 10 µs on any modern MCU","SystemC co-simulation is needed before any partitioning decision can be made"],
+      correct:1, explanation:"320 µs / 10,000 µs = 3.2% CPU utilization. Not a bottleneck at the current rate. If the packet rate doubled to one every 5 ms, CPU load would hit ~6.4%, approaching the range where hardware SHA starts making economic sense. Simple board measurement gives exactly this data-driven insight."}
+  },
+  {
+    section:"11.4", title:"11.4 — Implementation and Integration", subtitle:"RTL, firmware, interfaces, and debug tools working together",
+    content_blocks:[
+      {type:"key_idea", text:"After partitioning and modeling, teams implement their pieces and bring them together. <strong>Hardware designers</strong> write RTL in Verilog/VHDL, synthesize to gate-level netlists, run timing/power/area analysis, and define the hardware/software interface: memory-mapped registers, interrupt behavior, and reset behavior. <strong>Firmware developers</strong> write C/C++ on ESP-IDF or Arduino-ESP32 with FreeRTOS, creating tasks for networking, sensing, UI, and power management."},
+      {type:"comparison_table", heading:"Hardware/software interface elements", columns:["Element","What it defines","Who owns it"],
+        rows:[["Memory-mapped registers","Addresses, bit fields, R/W/RO/WO semantics, reset values","Hardware (shared spec)"],["Interrupts","Trigger conditions, priority, enable/mask bits, clear procedure","Hardware (shared spec)"],["DMA descriptors","Buffer addresses, sizes, linked-list format, completion signals","Hardware (shared spec)"],["Reset behavior","Which registers reset to what value","Hardware (shared spec)"],["Driver code","C structs, inline accessors, HAL functions","Firmware"]]},
+      {type:"callout", style:"warning", text:"CI can build and test both RTL and firmware regularly, catching regressions when someone 'fixes' a block in a way that breaks assumptions elsewhere. Logic analyzers, JTAG, and on-chip trace are essential for debugging mismatches between intended register behavior and what hardware actually does."}
+    ],
+    question:{type:"mc", text:"You write a driver that clears an interrupt by reading STATUS, OR-ing in bit 3, then writing it back. Why is this risky?",
+      choices:["Writing to a status register is always forbidden in memory-mapped I/O","A read-modify-write can accidentally clear other pending interrupt bits set between the read and the write","The DMA controller does not support bit-field writes","The interrupt should be cleared in the ISR, not in the driver"],
+      correct:1, explanation:"This is the classic read-modify-write hazard on write-1-to-clear (W1C) status registers. If another interrupt flag is set between the READ and the WRITE, your OR'd write silently clears it. The correct pattern: write the constant value with only bit 3 set — no read required (e.g., STATUS = (1 << 3))."}
+  },
+  {
+    section:"11.5", title:"11.5 — Tools and Design Environments", subtitle:"Firmware frameworks, hardware tools, and the abstraction trade-off",
+    content_blocks:[
+      {type:"key_idea", text:"Modern co-design leans heavily on tools. <strong>Firmware frameworks</strong> like PlatformIO and Zephyr provide BSPs, build systems, drivers, networking stacks, and RTOS integration — making it faster to bring up prototypes. <strong>Hardware tools</strong> enable RTL editing, synthesis, simulation, and place-and-route. These tools trade <em>convenience for control</em>: you get productivity and community support, but may lose visibility into low-level details and pay in code size or latency."},
+      {type:"comparison_table", heading:"Firmware framework comparison", columns:["Framework","Abstraction","What it automates","What you give up"],
+        rows:[["Arduino-ESP32","High","Peripheral setup, common libraries, easy upload","Fine-grained interrupt config, register-level control"],["ESP-IDF + FreeRTOS","Medium","RTOS tasks, Wi-Fi/BLE stack, NVS, OTA, power management","Some register-level visibility; framework overhead in tight loops"],["Bare-metal (no framework)","Low","Nothing — you write everything","Portability, community support, driver maintenance"],["Zephyr RTOS","Medium-high","Cross-platform BSPs, device tree, networking, power","ESP32-specific hardware features may be partially exposed"]]},
+      {type:"callout", style:"info", text:"For CECS 460, frameworks are great for getting systems working quickly — but it is still useful to occasionally look under the hood. Knowing when to drop to bare metal (e.g., when a framework's HAL overhead exceeds a tight timing budget) is a core co-design skill."}
+    ],
+    question:{type:"mc", text:"You need an ADC sampling routine that must complete in under 8 µs. The ESP-IDF ADC HAL call takes ~15 µs. What is the best approach?",
+      choices:["Use Arduino analogRead() instead — it is faster than ESP-IDF","Write a bare-metal routine that directly programs the SAR ADC registers; trade-off: you lose portability and HAL update protection","Switch to a faster MCU — the ESP32 cannot do sub-8 µs ADC sampling","Use DMA to batch multiple samples; DMA has lower per-sample overhead than any software path"],
+      correct:1, explanation:"Arduino analogRead() wraps the same ESP-IDF calls and is likely slower. DMA batching improves throughput but does not reduce first-sample latency for a single conversion. Bypassing the HAL and programming SAR_ADC registers directly eliminates framework overhead. Trade-off: your driver is now tied to the ESP32 register map and won't compile for other targets without a rewrite."}
+  },
+  {
+    section:"11.S", title:"Chapter 11 — Summary", subtitle:"Where architecture, engineering, and economics meet",
+    content_blocks:[
+      {type:"key_idea", text:"Hardware/software co-design is not just a technical discipline — it is also an <strong>economic and organizational</strong> one. Getting it right is what turns a clever idea into a product that works in the field and that a company can afford to build."},
+      {type:"comparison_table", heading:"Chapter 11 key takeaways", columns:["Concept","Core rule"],
+        rows:[["Requirements","Concrete, measurable, shared — before any RTL or firmware"],["Partitioning","Start in software; measure; move hot spots to hardware only when data says to"],["Tape-out","Point of no return — firmware patches cost days, hardware respins cost months and millions"],["Pitfalls","Version skew, interface mismatch, vague requirements, over-optimistic accelerators"],["Modeling","Simple board measurements catch most big mistakes; industry tools catch subtler ones"],["Integration","Shared interface spec + CI + debug hooks (trace, status registers, loopback)"],["Frameworks","High abstraction = fast prototype; drop to bare metal only when HAL overhead is measurably too high"]]}
+    ],
+    question:{type:"mc", text:"Which sequence correctly orders the five stages of the hardware/software co-design flow?",
+      choices:["Partitioning → Requirements → Modeling → Implementation → Integration","Requirements → Partitioning → Modeling → Implementation → Integration","Modeling → Requirements → Partitioning → Implementation → Integration","Implementation → Modeling → Partitioning → Requirements → Integration"],
+      correct:1, explanation:"Requirements come first — you cannot make sensible partitioning decisions without knowing what the system must do. Partitioning follows, then modeling validates decisions cheaply. Implementation builds each piece, and integration brings everything together."}
+  }
+];
+
+let currentStep = 0;
+let submitted = {};  // stepIdx -> chosen answer index
+let studentName = '';
+
+function doLogin(){
+  const val = document.getElementById('student-name').value.trim();
+  if(!val){ document.getElementById('login-error').style.display='block'; return; }
+  studentName = val;
+  document.getElementById('login-page').style.display='none';
+  document.getElementById('lesson-page').style.display='grid';
+  document.getElementById('name-pill').textContent = val.split(' ')[0];
+  renderNav();
+  renderContent(0);
+}
+
+document.getElementById('student-name').addEventListener('keydown', e => {
+  if(e.key==='Enter') doLogin();
+});
+
+function renderNav(){
+  const nav = document.getElementById('step-nav');
+  nav.innerHTML = '<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:4px">Sections</div>';
+  STEPS.forEach((s, i) => {
+    const done = submitted[i] != null;
+    const active = i === currentStep;
+    const cls = active ? 'step-nav-item active' : done ? 'step-nav-item done' : 'step-nav-item unlocked';
+    const icon = done ? '✓ ' : active ? '▶ ' : '';
+    const shortTitle = (s.title||'').replace(/^[\d\.]+\s*—\s*/,'');
+    nav.innerHTML += `<div class="${cls}" onclick="goStep(${i})">
+      <div class="nav-section">${s.section||''}</div>
+      <div style="font-size:11px">${icon}${shortTitle}</div>
+    </div>`;
+  });
+}
+
+function goStep(i){
+  currentStep = i;
+  renderNav();
+  renderContent(i);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function renderContent(i){
+  const s = STEPS[i];
+  let html = `<div class="section-chip">${s.section}</div>
+    <h2 style="font-size:1.3rem;margin-bottom:.2rem">${s.title}</h2>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:18px">${s.subtitle}</p>`;
+  (s.content_blocks||[]).forEach(b => { html += renderBlock(b); });
+  if(s.question) html += renderQuestion(i, s.question);
+  document.getElementById('content-area').innerHTML = html;
+}
+
+function renderBlock(b){
+  if(b.type==='key_idea') return `<div class="content-block"><div class="key-idea">${b.text}</div></div>`;
+  if(b.type==='callout') return `<div class="content-block"><div class="callout callout-${b.style||'info'}">${b.text}</div></div>`;
+  if(b.type==='comparison_table'){
+    const cols=(b.columns||[]).map(c=>`<th>${c}</th>`).join('');
+    const rows=(b.rows||[]).map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('');
+    return `<div class="content-block">${b.heading?`<h4 style="font-size:13px;margin-bottom:7px">${b.heading}</h4>`:''}<div style="overflow-x:auto"><table class="comp-table"><thead><tr>${cols}</tr></thead><tbody>${rows}</tbody></table></div></div>`;
+  }
+  return '';
+}
+
+function renderQuestion(stepIdx, q){
+  const letters=['A','B','C','D'];
+  const sub = submitted[stepIdx];
+  let html = `<div class="question-box"><h4 style="margin-bottom:12px;font-size:14px">📝 ${q.text}</h4>`;
+  (q.choices||[]).forEach((c,i)=>{
+    let cls='mc-choice';
+    if(sub!=null){
+      if(i===q.correct) cls+=' correct';
+      else if(sub===i) cls+=' wrong';
+    }
+    html+=`<div class="${cls}" onclick="${sub==null?`pickAnswer(${stepIdx},${i})`:''}">
+      <div class="mc-letter">${letters[i]}</div><span>${c}</span></div>`;
+  });
+  if(sub==null){
+    html+=`<button class="btn btn-primary" style="margin-top:12px;width:100%" onclick="submitAnswer(${stepIdx})">Submit Answer</button>`;
+  } else {
+    const correct = sub===q.correct;
+    html+=`<div class="feedback-box ${correct?'fb-correct':'fb-wrong'}">
+      <strong>${correct?'✓ Correct!':'✗ Incorrect'}</strong><br>${q.explanation}</div>`;
+    if(stepIdx < STEPS.length-1){
+      html+=`<button class="btn btn-primary" style="margin-top:12px" onclick="goStep(${stepIdx+1})">Next Section →</button>`;
+    } else {
+      html+=`<div style="margin-top:16px;padding:14px;background:#0d4429;border:1px solid var(--green);border-radius:8px;font-size:14px;font-weight:600;color:var(--green)">🎉 Chapter 11 complete! All sections done.</div>`;
+    }
+  }
+  html+='</div>';
+  return html;
+}
+
+let pendingAnswer = {};
+function pickAnswer(stepIdx, i){
+  pendingAnswer[stepIdx] = i;
+  // Re-render just the question choices for visual feedback
+  document.querySelectorAll(`#content-area .mc-choice`).forEach((el,idx)=>{
+    el.classList.toggle('selected', idx===i);
+  });
+}
+
+function submitAnswer(stepIdx){
+  const choice = pendingAnswer[stepIdx];
+  if(choice==null){ alert('Please select an answer first.'); return; }
+  submitted[stepIdx] = choice;
+  renderNav();
+  renderContent(stepIdx);
+}
+</script>
+</body>
+</html>

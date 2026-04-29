@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CECS 460 — Lab 11: Hardware/Software Co-Design</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d1117;--card:#161b22;--card2:#1c2330;--border:#30363d;
+  --text:#e6edf3;--muted:#8b949e;
+  --accent:#58a6ff;--green:#3fb950;--yellow:#d29922;--red:#f85149;--purple:#a371f7;
+}
+body{background:var(--bg);color:var(--text);font-family:system-ui,sans-serif;min-height:100vh;display:grid;grid-template-rows:auto 1fr}
+
+/* ── TOP NAV ── */
+nav{background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 18px;height:52px;position:sticky;top:0;z-index:30}
+.brand{font-size:13px;font-weight:700;color:var(--accent);letter-spacing:.3px}
+.nav-sep{color:var(--border);font-size:18px}
+.nav-chapter{font-size:13px;color:var(--muted)}
+.nav-right{margin-left:auto;display:flex;gap:8px;align-items:center}
+.pill{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:10px;font-size:11px;font-weight:700}
+.pill-blue{background:#0d2149;color:var(--accent);border:1px solid #1f4d99}
+.pill-green{background:#0d4429;color:var(--green);border:1px solid #1a7f37}
+.pill-yellow{background:#2d2000;color:var(--yellow);border:1px solid #664400}
+.pill-gray{background:var(--card2);color:var(--muted);border:1px solid var(--border)}
+
+/* ── LOGIN OVERLAY ── */
+#login-screen{position:fixed;inset:0;background:var(--bg);z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px}
+.login-brand{font-size:11px;font-weight:700;color:var(--accent);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px}
+.login-title{font-size:1.4rem;font-weight:700;margin-bottom:4px}
+.login-sub{color:var(--muted);font-size:.85rem;margin-bottom:30px;text-align:center;max-width:360px;line-height:1.5}
+.login-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:30px 26px;width:100%;max-width:380px}
+.login-card label{display:block;font-size:.78rem;color:var(--muted);margin-bottom:6px}
+.login-card input{width:100%;padding:12px 14px;font-size:1rem;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:inherit;outline:none;transition:border-color .2s}
+.login-card input:focus{border-color:var(--accent)}
+.login-card button{width:100%;margin-top:16px;padding:12px;background:var(--accent);color:#000;border:none;border-radius:6px;font-size:.95rem;font-family:inherit;cursor:pointer;font-weight:700;transition:background .2s}
+.login-card button:hover{background:#79c0ff}
+.bom-hint{margin-top:22px;background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;font-size:.8rem;color:var(--muted);line-height:1.7;width:100%;max-width:380px}
+.bom-hint strong{color:var(--yellow)}
+.bom-hint .check{color:var(--green);margin-right:5px}
+
+/* ── MAIN LAYOUT ── */
+#app{display:none;grid-template-columns:260px 1fr;min-height:calc(100vh - 52px)}
+
+/* ── SIDEBAR ── */
+.sidebar{background:var(--card);border-right:1px solid var(--border);padding:16px 12px;position:sticky;top:52px;height:calc(100vh - 52px);overflow-y:auto;display:flex;flex-direction:column;gap:2px}
+.sidebar-heading{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;padding:4px 8px;margin-bottom:4px}
+.step-item{display:flex;align-items:flex-start;gap:10px;padding:10px 10px;border-radius:7px;cursor:pointer;border:1px solid transparent;transition:all .18s;margin-bottom:2px}
+.step-item:hover{background:var(--card2)}
+.step-item.active{background:#0d1c35;border-color:var(--accent)}
+.step-item.done{border-color:#1a7f37;background:#0d2a1a}
+.step-item.locked{opacity:.4;cursor:default}
+.step-num{width:26px;height:26px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px}
+.step-item.active .step-num{border-color:var(--accent);color:var(--accent)}
+.step-item.done .step-num{border-color:var(--green);color:var(--green);background:#0d4429}
+.step-meta{flex:1}
+.step-label{font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.step-title{font-size:12px;font-weight:600;margin-top:2px;line-height:1.35}
+.step-item.active .step-title{color:var(--accent)}
+.step-item.done .step-title{color:var(--green)}
+.sidebar-status{margin-top:auto;background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:11px}
+.sidebar-status .sh{font-weight:700;color:var(--accent);margin-bottom:8px;font-size:10px;text-transform:uppercase;letter-spacing:.06em}
+.kv{display:flex;justify-content:space-between;margin-top:4px;font-size:11px}
+.kv .k{color:var(--muted)}
+.progress-bar{height:4px;background:var(--border);border-radius:2px;margin-top:10px;overflow:hidden}
+.progress-fill{height:100%;background:var(--green);border-radius:2px;transition:width .4s}
+
+/* ── CONTENT ── */
+.content{padding:28px 32px;max-width:840px}
+.step-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:12px;font-size:11px;font-weight:700;margin-bottom:10px}
+.badge-blue{background:var(--accent);color:#000}
+.badge-yellow{background:var(--yellow);color:#000}
+.badge-red{background:var(--red);color:#fff}
+.badge-green{background:var(--green);color:#000}
+.badge-purple{background:var(--purple);color:#fff}
+h1.step-h{font-size:1.6rem;font-weight:700;margin-bottom:6px;line-height:1.2}
+.step-subtitle{font-size:.9rem;color:var(--muted);margin-bottom:24px;line-height:1.5}
+
+/* content blocks */
+.block{margin-bottom:20px}
+.key-idea{background:#0d2149;border-left:4px solid var(--accent);padding:14px 16px;border-radius:0 8px 8px 0;font-size:14px;line-height:1.7}
+.callout{padding:13px 16px;border-radius:8px;font-size:13px;line-height:1.65}
+.callout-warn{background:#2d2000;border-left:4px solid var(--yellow)}
+.callout-info{background:#0d2149;border-left:4px solid var(--accent)}
+.callout-success{background:#0d4429;border-left:4px solid var(--green)}
+.callout-danger{background:#2d0a0a;border-left:4px solid var(--red)}
+
+/* wiring diagram box */
+.wiring-box{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:16px;font-size:13px}
+.wiring-box h4{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px}
+.wire-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px}
+.wire-row:last-child{border-bottom:none}
+.wire-pin{background:#0d2149;color:var(--accent);padding:2px 8px;border-radius:4px;font-family:monospace;font-size:11px;font-weight:700;white-space:nowrap}
+.wire-arrow{color:var(--muted);flex-shrink:0}
+.wire-desc{color:var(--text)}
+
+/* instruction steps */
+.instruction-list{list-style:none;padding:0;counter-reset:inst}
+.instruction-list li{counter-increment:inst;display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px;line-height:1.6}
+.instruction-list li:last-child{border-bottom:none}
+.instruction-list li::before{content:counter(inst);background:var(--accent);color:#000;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px}
+
+/* serial monitor mockup */
+.serial-box{background:#0a0f0a;border:1px solid #1a3a1a;border-radius:8px;overflow:hidden;font-size:12px}
+.serial-header{background:#111a11;padding:7px 12px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #1a3a1a}
+.serial-dot{width:10px;height:10px;border-radius:50%}
+.serial-body{padding:12px 14px;font-family:'Consolas','Courier New',monospace;line-height:1.8;color:#4ec94e}
+.serial-dim{color:#2a6a2a}
+.serial-warn{color:var(--yellow)}
+.serial-ok{color:var(--green);font-weight:700}
+
+/* observation box */
+.observe-box{background:var(--card2);border:2px dashed var(--border);border-radius:8px;padding:16px;font-size:13px;line-height:1.6}
+.observe-box h4{font-size:11px;font-weight:700;color:var(--yellow);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+
+/* question */
+.question-box{background:var(--card2);border:1px solid var(--accent);border-radius:10px;padding:20px;margin-top:24px}
+.question-box h4{font-size:14px;margin-bottom:14px;line-height:1.5}
+.mc-choice{display:flex;align-items:flex-start;gap:10px;padding:10px 13px;margin:5px 0;border:1px solid var(--border);border-radius:7px;cursor:pointer;transition:all .18s;font-size:13px;line-height:1.45}
+.mc-choice:hover:not(.disabled){border-color:var(--accent);background:#0d1c35}
+.mc-choice.selected{border-color:var(--accent);background:#0d1c35}
+.mc-choice.correct{border-color:var(--green);background:#0d4429;cursor:default}
+.mc-choice.wrong{border-color:var(--red);background:#2d0a0a;cursor:default}
+.mc-choice.disabled{cursor:default}
+.mc-letter{width:24px;height:24px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px}
+.feedback{margin-top:14px;padding:12px 15px;border-radius:7px;font-size:13px;line-height:1.65}
+.fb-ok{background:#0d4429;border:1px solid var(--green)}
+.fb-no{background:#2d0a0a;border:1px solid var(--red)}
+.submit-btn{width:100%;margin-top:14px;padding:11px;background:var(--accent);color:#000;border:none;border-radius:6px;font-size:.95rem;font-family:inherit;cursor:pointer;font-weight:700;transition:background .2s}
+.submit-btn:hover{background:#79c0ff}
+.next-btn{display:inline-flex;align-items:center;gap:6px;margin-top:14px;padding:10px 20px;background:var(--green);color:#000;border:none;border-radius:6px;font-size:.95rem;font-weight:700;cursor:pointer;transition:background .2s}
+.next-btn:hover{background:#56d068}
+
+/* decision matrix */
+.matrix-table{width:100%;border-collapse:collapse;font-size:13px}
+.matrix-table th{background:var(--card2);padding:10px 12px;text-align:left;border:1px solid var(--border);font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.matrix-table td{padding:10px 12px;border:1px solid var(--border);vertical-align:top}
+.matrix-table tr:nth-child(even) td{background:var(--card2)}
+.matrix-table select{background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:3px 6px;font-size:12px;width:100%}
+
+/* completion screen */
+.complete-screen{text-align:center;padding:48px 32px}
+.complete-screen .trophy{font-size:56px;margin-bottom:16px}
+.complete-screen h2{font-size:1.8rem;font-weight:700;color:var(--green);margin-bottom:8px}
+.complete-screen p{color:var(--muted);font-size:.95rem;line-height:1.6;max-width:480px;margin:0 auto 20px}
+.score-card{display:inline-block;background:var(--card);border:1px solid var(--green);border-radius:10px;padding:20px 32px;margin-top:8px}
+.score-card .pts{font-size:2.4rem;font-weight:700;color:var(--green)}
+.score-card .label{font-size:12px;color:var(--muted);margin-top:4px}
+
+.preview-badge{position:fixed;bottom:14px;right:14px;background:#2d2000;border:1px solid var(--yellow);color:var(--yellow);font-size:11px;font-weight:700;padding:5px 12px;border-radius:6px;z-index:999}
+</style>
+</head>
+<body>
+
+<div class="preview-badge">📋 STATIC PREVIEW</div>
+
+<!-- ══════════════ LOGIN ══════════════ -->
+<div id="login-screen">
+  <div class="login-brand">CECS 460 · System on Chip</div>
+  <div class="login-title">Lab 11 — Hardware/Software Co-Design</div>
+  <p class="login-sub">You'll watch software fail under load, then fix it with a hardware accelerator. Make sure your bench is set up before starting.</p>
+  <div class="login-card">
+    <label>Full Name</label>
+    <input type="text" id="name-input" placeholder="Jane Doe" autocomplete="off" autofocus>
+    <button onclick="startLab()">Enter Lab →</button>
+  </div>
+  <div class="bom-hint">
+    <strong>⚠ Before you begin — check your bench:</strong><br>
+    <span class="check">✓</span>ESP32 DevKit flashed and powered<br>
+    <span class="check">✓</span>16-pixel WS2812 LED strip connected<br>
+    <span class="check">✓</span>Potentiometer wired to ADC pin (GPIO34)<br>
+    <span class="check">✓</span>Connected to WiFi: <strong style="color:var(--accent)">DEEZ</strong> / password
+  </div>
+</div>
+
+<!-- ══════════════ TOP NAV ══════════════ -->
+<nav>
+  <span class="brand">CECS 460</span>
+  <span class="nav-sep">/</span>
+  <span class="nav-chapter">Lab 11 — Hardware/Software Co-Design</span>
+  <div class="nav-right">
+    <span class="pill pill-blue" id="nav-seat">Seat —</span>
+    <span class="pill pill-green" id="nav-esp" style="display:none">● ESP32 Online</span>
+    <span class="pill pill-gray" id="nav-progress">0 / 5 steps</span>
+  </div>
+</nav>
+
+<!-- ══════════════ MAIN APP ══════════════ -->
+<div id="app">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-heading">Lab Steps</div>
+
+    <div class="step-item active" id="nav-0" onclick="goStep(0)">
+      <div class="step-num">1</div>
+      <div class="step-meta">
+        <div class="step-label">Step 1</div>
+        <div class="step-title">A Blink That Almost Works</div>
+      </div>
+    </div>
+
+    <div class="step-item" id="nav-1" onclick="goStep(1)">
+      <div class="step-num">2</div>
+      <div class="step-meta">
+        <div class="step-label">Step 2</div>
+        <div class="step-title">Software Under Pressure</div>
+      </div>
+    </div>
+
+    <div class="step-item" id="nav-2" onclick="goStep(2)">
+      <div class="step-num">3</div>
+      <div class="step-meta">
+        <div class="step-label">Step 3</div>
+        <div class="step-title">Why Did It Fail?</div>
+      </div>
+    </div>
+
+    <div class="step-item" id="nav-3" onclick="goStep(3)">
+      <div class="step-num">4</div>
+      <div class="step-meta">
+        <div class="step-label">Step 4</div>
+        <div class="step-title">The Accelerator</div>
+      </div>
+    </div>
+
+    <div class="step-item" id="nav-4" onclick="goStep(4)">
+      <div class="step-num">5</div>
+      <div class="step-meta">
+        <div class="step-label">Step 5</div>
+        <div class="step-title">The Partition Decision</div>
+      </div>
+    </div>
+
+    <div class="sidebar-status">
+      <div class="sh">Your Progress</div>
+      <div class="kv"><span class="k">Steps done</span><span id="sb-done">0 / 5</span></div>
+      <div class="kv"><span class="k">Score</span><span id="sb-score" style="color:var(--green)">0 pts</span></div>
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+    </div>
+  </div>
+
+  <!-- CONTENT AREA -->
+  <div class="content" id="content-area"></div>
+</div>
+
+<script>
+let studentName = '';
+let currentStep = 0;
+let submitted = {};   // step -> answer
+let totalScore = 0;
+const MAX_SCORE = 100;
+
+function startLab(){
+  const v = document.getElementById('name-input').value.trim();
+  if(!v){ document.getElementById('name-input').style.borderColor='var(--red)'; return; }
+  studentName = v;
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app').style.display='grid';
+  document.getElementById('nav-seat').textContent = v.split(' ')[0];
+  // simulate ESP32 coming online after 2s
+  setTimeout(()=>{ document.getElementById('nav-esp').style.display='inline-flex'; }, 2000);
+  renderStep(0);
+}
+document.addEventListener('keydown', e=>{ if(e.key==='Enter' && document.getElementById('login-screen').style.display!=='none') startLab(); });
+
+// ── STEP DEFINITIONS ────────────────────────────────────────────────────────
+const STEPS = [
+
+  // ── STEP 1 ────────────────────────────────────────────────────────────────
+  () => `
+    <div class="step-badge badge-blue">Step 1 of 5</div>
+    <h1 class="step-h">A Blink That Almost Works</h1>
+    <p class="step-subtitle">Measure a software-timed 1 Hz signal and observe drift under CPU load.</p>
+
+    <div class="block">
+      <div class="key-idea">
+        Your ESP32 is running a firmware that blinks an LED at exactly 1 Hz using <code style="color:var(--accent)">delay(500)</code> in a software loop. This <em>looks</em> correct — but is it? When the CPU is busy doing other things, <code>delay()</code> can't guarantee exact timing. This step makes the problem visible.
+      </div>
+    </div>
+
+    <div class="block">
+      <div class="wiring-box">
+        <h4>🔌 Wiring Check — Step 1</h4>
+        <div class="wire-row"><span class="wire-pin">GPIO2</span><span class="wire-arrow">→</span><span class="wire-desc">330 Ω resistor → LED → GND</span></div>
+        <div class="wire-row"><span class="wire-pin">3.3V</span><span class="wire-arrow">→</span><span class="wire-desc">Power rail</span></div>
+        <div class="wire-row"><span class="wire-pin">GND</span><span class="wire-arrow">→</span><span class="wire-desc">Ground rail</span></div>
+      </div>
+    </div>
+
+    <div class="block">
+      <div class="callout callout-info">
+        <strong>Flash this sketch:</strong> <code style="color:var(--accent)">hardware/starter_code/step1_blink/step1_blink.ino</code><br>
+        Open Serial Monitor at <strong>115200 baud</strong> after flashing.
+      </div>
+    </div>
+
+    <div class="block">
+      <div class="observe-box">
+        <h4>👁 What to observe</h4>
+        The Serial Monitor will print the actual time between blinks. With no load, it should be very close to 500 ms. Now watch what happens when you open the CPU load task via the serial command <code style="color:var(--accent)">load on</code>.
+      </div>
+    </div>
+
+    <div class="block">
+      <div class="serial-box">
+        <div class="serial-header">
+          <div class="serial-dot" style="background:#f85149"></div>
+          <div class="serial-dot" style="background:#d29922"></div>
+          <div class="serial-dot" style="background:#3fb950"></div>
+          <span style="font-size:11px;color:#4a5880;margin-left:6px">Serial Monitor — 115200 baud</span>
+        </div>
+        <div class="serial-body">
+<span class="serial-dim">--- CECS 460 Lab 11 Step 1 ---</span>
+<span class="serial-dim">Blink interval target: 500 ms</span>
+Blink interval: <span class="serial-ok">501 ms</span>
+Blink interval: <span class="serial-ok">499 ms</span>
+Blink interval: <span class="serial-ok">500 ms</span>
+<span class="serial-dim">&gt; load on</span>
+Blink interval: <span class="serial-warn">612 ms</span>  ← CPU busy
+Blink interval: <span class="serial-warn">748 ms</span>  ← getting worse
+Blink interval: <span class="serial-warn">531 ms</span>
+Blink interval: <span class="serial-warn">689 ms</span>  ← drift visible
+        </div>
+      </div>
+    </div>
+
+    <div class="question-box" id="q-box-0">
+      <h4>📝 When you typed <code>load on</code>, the blink interval drifted from ~500 ms to 600–750 ms. Why?</h4>
+      <div class="mc-choice" onclick="pick(0,0,this)"><div class="mc-letter">A</div><span>The LED hardware is too slow to switch at exactly 500 ms</span></div>
+      <div class="mc-choice" onclick="pick(0,1,this)"><div class="mc-letter">B</div><span>The CPU was busy running the load task, so <code>delay()</code> returned late — software timing shares the CPU with everything else</span></div>
+      <div class="mc-choice" onclick="pick(0,2,this)"><div class="mc-letter">C</div><span>The WiFi radio interfered with the GPIO signal</span></div>
+      <div class="mc-choice" onclick="pick(0,3,this)"><div class="mc-letter">D</div><span>The ESP32 clock frequency changed under thermal load</span></div>
+      <button class="submit-btn" onclick="submitStep(0,1,'Software timing drift: when the CPU is busy, <code>delay()</code> can not return on time because there is nothing else enforcing the deadline. This is the core problem hardware timers and dedicated peripherals solve — they run independently of the CPU.')">Submit Answer</button>
+    </div>`,
+
+  // ── STEP 2 ────────────────────────────────────────────────────────────────
+  () => `
+    <div class="step-badge badge-yellow">Step 2 of 5</div>
+    <h1 class="step-h">Software Under Pressure</h1>
+    <p class="step-subtitle">The bar graph lags and stutters when the CPU is under load — watch it happen.</p>
+
+    <div class="block">
+      <div class="key-idea">
+        Now we scale up the failure. Your ESP32 is polling the potentiometer ADC in a software loop and driving a 16-pixel WS2812 LED bar graph. Turn the knob — the bar graph should follow immediately. Then we add a background CPU load task. Watch what happens.
+      </div>
+    </div>
+
+    <div class="block">
+      <div class="wiring-box">
+        <h4>🔌 Wiring Check — Steps 2–5</h4>
+        <div class="wire-row"><span class="wire-pin">GPIO34</span><span class="wire-arrow">→</span><span class="wire-desc">Potentiometer wiper (center pin)</span></div>
+        <div class="wire-row"><span class="wire-pin">3.3V</span><span class="wire-arrow">→</span><span class="wire-desc">Pot VCC + 1000 µF cap (+) + WS2812 VCC</span></div>
+        <div class="wire-row"><span class="wire-pin">GND</span><span class="wire-arrow">→</span><span class="wire-desc">Pot GND + cap (−) + WS2812 GND</span></div>
+        <div class="wire-row"><span class="wire-pin">GPIO13</span><span class="wire-arrow">→</span><span class="wire-desc">470 Ω resistor → WS2812 data-in</span></div>
+      </div>
+    </div>
+
+    <div class="block">
+      <div class="callout callout-info">
+        <strong>Flash this sketch:</strong> <code style="color:var(--accent)">hardware/starter_code/step2_overload/step2_overload.ino</code>
+      </div>
+    </div>
+
+    <div class="block">
+      <ol class="instruction-list">
+        <li>Flash the sketch and power up. Turn the potentiometer slowly — the LED bar graph should track your hand smoothly.</li>
+        <li>Open Serial Monitor. Type <code style="color:var(--accent)">load on</code> and press Enter.</li>
+        <li>Now turn the knob again. Watch how long it takes the bar graph to respond.</li>
+        <li>Type <code style="color:var(--accent)">load off</code> and confirm the bar graph becomes smooth again.</li>
+      </ol>
+    </div>
+
+    <div class="block">
+      <div class="observe-box">
+        <h4>👁 What you should see</h4>
+        <strong>Load OFF:</strong> Bar graph tracks knob position instantly — smooth, responsive.<br><br>
+        <strong>Load ON:</strong> Visible lag of 300–800 ms between turning the knob and the LEDs updating. If you spin the knob quickly, the LEDs may freeze entirely for a moment, then jump to the new position. This is the software polling failure.
+      </div>
+    </div>
+
+    <div class="block">
+      <div class="callout callout-warn">
+        <strong>What's happening under the hood:</strong> The ADC polling loop and the LED update are running on the same CPU core as the load task. When the load task is doing heavy computation, it starves the polling loop — ADC samples are delayed, and the bar graph falls behind reality.
+      </div>
+    </div>
+
+    <div class="question-box" id="q-box-1">
+      <h4>📝 You turn the knob but the bar graph doesn't update for 600 ms. The CPU is running a background load task at 100% utilization. What is the root cause?</h4>
+      <div class="mc-choice" onclick="pick(1,0,this)"><div class="mc-letter">A</div><span>The WS2812 LED strip has a hardware defect that causes slow updates</span></div>
+      <div class="mc-choice" onclick="pick(1,1,this)"><div class="mc-letter">B</div><span>The ADC hardware is running too slowly to sample at the required rate</span></div>
+      <div class="mc-choice" onclick="pick(1,2,this)"><div class="mc-letter">C</div><span>The software ADC polling loop is sharing CPU time with the load task — when the CPU is busy, the polling loop doesn't get scheduled, so samples are delayed</span></div>
+      <div class="mc-choice" onclick="pick(1,3,this)"><div class="mc-letter">D</div><span>The potentiometer resistance is too high for the ESP32 ADC input</span></div>
+      <button class="submit-btn" onclick="submitStep(1,2,'Exactly right. Software polling competes for CPU time. The load task is using the CPU, so the polling loop can not run. The ADC hardware is idle — it is ready to take samples — but nobody is asking it to. This is the gap that a DMA controller fills.')">Submit Answer</button>
+    </div>`,
+
+  // ── STEP 3 ────────────────────────────────────────────────────────────────
+  () => `
+    <div class="step-badge badge-red">Step 3 of 5</div>
+    <h1 class="step-h">Why Did It Fail?</h1>
+    <p class="step-subtitle">Diagnose the problem with Serial Monitor timing data — put numbers on the failure.</p>
+
+    <div class="block">
+      <div class="key-idea">
+        A good engineer doesn't just say "it was slow." You put a number on it. This sketch prints the timestamp of every ADC sample to Serial Monitor. You'll see the sample rate drop from ~1000 Hz to under 50 Hz when the CPU load turns on — a 20× degradation, visible in the data.
+      </div>
+    </div>
+
+    <div class="block">
+      <div class="callout callout-info">
+        <strong>Flash this sketch:</strong> <code style="color:var(--accent)">hardware/starter_code/step3_diagnose/step3_diagnose.ino</code><br>
+        Open Serial Monitor at <strong>115200 baud</strong>.
+      </div>
+    </div>
+
+    <div class="block">
+      <ol class="instruction-list">
+        <li>With load OFF, watch the interval column — each ADC sample should arrive every ~1 ms (1000 Hz).</li>
+        <li>Type <code style="color:var(--accent)">load on</code>. Watch the interval column blow up.</li>
+        <li>Note the worst-case interval you see. Write it in the box below.</li>
+        <li>Type <code style="color:var(--accent)">load off</code> and confirm recovery to ~1 ms.</li>
+      </ol>
+    </div>
+
+    <div class="block">
+      <div class="serial-box">
+        <div class="serial-header">
+          <div class="serial-dot" style="background:#f85149"></div>
+          <div class="serial-dot" style="background:#d29922"></div>
+          <div class="serial-dot" style="background:#3fb950"></div>
+          <span style="font-size:11px;color:#4a5880;margin-left:6px">Serial Monitor — 115200 baud</span>
+        </div>
+        <div class="serial-body">
+<span class="serial-dim">t(ms)    interval    sample_rate</span>
+<span class="serial-ok">1002     1.1 ms      909 Hz</span>
+<span class="serial-ok">1003     1.0 ms      1000 Hz</span>
+<span class="serial-ok">1004     1.1 ms      909 Hz</span>
+<span class="serial-dim">&gt; load on</span>
+<span class="serial-warn">1005     18.4 ms     54 Hz   ← CPU stolen</span>
+<span class="serial-warn">1023     22.1 ms     45 Hz</span>
+<span class="serial-warn">1045     31.7 ms     32 Hz</span>
+<span class="serial-warn">1077     19.3 ms     52 Hz   ← starved</span>
+<span style="color:#f85149;font-weight:700">1096     48.2 ms     21 Hz   ← worst case</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="block">
+      <div class="observe-box">
+        <h4>📊 What the numbers tell you</h4>
+        A bar graph that updates at 21 Hz has a 48 ms lag minimum — that's why the knob feels "sticky." The ADC hardware is sitting idle during those 48 ms. It could be sampling at full speed if something other than the CPU were driving it. That something is a <strong>DMA controller</strong>.
+      </div>
+    </div>
+
+    <div class="question-box" id="q-box-2">
+      <h4>📝 With the load running, the ADC sample rate drops from 1000 Hz to ~21 Hz. The ADC hardware itself is still capable of 1000 Hz. What resource is the actual bottleneck?</h4>
+      <div class="mc-choice" onclick="pick(2,0,this)"><div class="mc-letter">A</div><span>The SPI bus — the WS2812 strip is saturating the SPI peripheral</span></div>
+      <div class="mc-choice" onclick="pick(2,1,this)"><div class="mc-letter">B</div><span>CPU time — the software polling loop only gets to run when the CPU is not occupied by the load task</span></div>
+      <div class="mc-choice" onclick="pick(2,2,this)"><div class="mc-letter">C</div><span>Flash memory bandwidth — reading the sketch code is slowing down the ADC reads</span></div>
+      <div class="mc-choice" onclick="pick(2,3,this)"><div class="mc-letter">D</div><span>The potentiometer's RC time constant — the analog signal can not settle faster than 21 Hz</span></div>
+      <button class="submit-btn" onclick="submitStep(2,1,'CPU time is the bottleneck. The ADC hardware is capable and ready — it is the software loop that can not get scheduled. This is the exact situation where hardware offload pays off: if a DMA controller asked the ADC for samples and filled a buffer autonomously, the CPU would never need to be involved in the data movement at all.')">Submit Answer</button>
+    </div>`,
+
+  // ── STEP 4 ────────────────────────────────────────────────────────────────
+  () => `
+    <div class="step-badge badge-green">Step 4 of 5</div>
+    <h1 class="step-h">The Accelerator</h1>
+    <p class="step-subtitle">Swap software polling for DMA. The bar graph stays smooth under the same load.</p>
+
+    <div class="block">
+      <div class="key-idea">
+        This is the fix. Instead of the CPU polling the ADC in a loop, you configure the ESP32's <strong>DMA controller</strong> to read ADC samples autonomously into a memory buffer. The CPU only wakes up when a full buffer is ready — it does not participate in every sample. The load task gets to run freely, and the bar graph stays responsive.
+      </div>
+    </div>
+
+    <div class="block">
+      <div class="callout callout-info">
+        <strong>Flash this sketch:</strong> <code style="color:var(--accent)">hardware/starter_code/step4_accelerator/step4_accelerator.ino</code><br>
+        Same wiring as Step 2 — no hardware changes needed.
+      </div>
+    </div>
+
+    <div class="block">
+      <ol class="instruction-list">
+        <li>Flash the sketch. Turn the knob — confirm the bar graph tracks smoothly.</li>
+        <li>Type <code style="color:var(--accent)">load on</code> in Serial Monitor.</li>
+        <li>Turn the knob again. The bar graph should still be smooth — same load as Step 2, but no lag.</li>
+        <li>Open Serial Monitor. Confirm the sample rate stays near 1000 Hz even with the load running.</li>
+      </ol>
+    </div>
+
+    <div class="block">
+      <div class="serial-box">
+        <div class="serial-header">
+          <div class="serial-dot" style="background:#f85149"></div>
+          <div class="serial-dot" style="background:#d29922"></div>
+          <div class="serial-dot" style="background:#3fb950"></div>
+          <span style="font-size:11px;color:#4a5880;margin-left:6px">Serial Monitor — 115200 baud (DMA mode)</span>
+        </div>
+        <div class="serial-body">
+<span class="serial-dim">--- DMA ADC mode active ---</span>
+<span class="serial-dim">t(ms)    interval    sample_rate</span>
+<span class="serial-ok">1001     1.0 ms      1000 Hz</span>
+<span class="serial-ok">1002     1.0 ms      1000 Hz</span>
+<span class="serial-dim">&gt; load on</span>
+<span class="serial-ok">1003     1.0 ms      1000 Hz  ← DMA unaffected</span>
+<span class="serial-ok">1004     1.1 ms      909 Hz</span>
+<span class="serial-ok">1005     1.0 ms      1000 Hz  ← CPU is busy, DMA doesn't care</span>
+<span class="serial-ok">1006     1.0 ms      1000 Hz</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="block">
+      <div class="callout callout-success">
+        <strong>What changed:</strong> The DMA controller is a dedicated hardware block. It has its own bus master access to RAM and the ADC peripheral. It does not need CPU time to move data — it runs in parallel. The CPU is completely free to run the load task, handle WiFi, and update the LEDs. Hardware and software are now doing different jobs simultaneously.
+      </div>
+    </div>
+
+    <div class="block">
+      <div class="observe-box">
+        <h4>🔑 The co-design insight</h4>
+        You just moved one function — ADC data movement — from software to a dedicated hardware block. The CPU didn't get faster. The ADC didn't get faster. You just stopped making the CPU do work a hardware block could do instead. <strong>That is hardware/software partitioning.</strong>
+      </div>
+    </div>
+
+    <div class="question-box" id="q-box-3">
+      <h4>📝 With DMA enabled, the ADC sample rate stays at ~1000 Hz even when the CPU is fully loaded. Why does moving to DMA fix the problem?</h4>
+      <div class="mc-choice" onclick="pick(3,0,this)"><div class="mc-letter">A</div><span>DMA runs the CPU at a higher clock frequency during ADC reads</span></div>
+      <div class="mc-choice" onclick="pick(3,1,this)"><div class="mc-letter">B</div><span>The DMA controller moves data between the ADC and RAM autonomously — it does not need CPU time, so the load task and the ADC sampling happen in parallel</span></div>
+      <div class="mc-choice" onclick="pick(3,2,this)"><div class="mc-letter">C</div><span>DMA compresses the ADC data so fewer bytes need to be transferred</span></div>
+      <div class="mc-choice" onclick="pick(3,3,this)"><div class="mc-letter">D</div><span>The load task is paused while DMA transfers are in progress</span></div>
+      <button class="submit-btn" onclick="submitStep(3,1,'DMA is a dedicated hardware bus master. It negotiates with the memory bus directly, fills a buffer from the ADC peripheral, and only interrupts the CPU when the buffer is full — once per 1000 samples instead of 1000 times per second. The CPU is free the entire time. This is the fundamental value of hardware offload: parallelism without software involvement.')">Submit Answer</button>
+    </div>`,
+
+  // ── STEP 5 ────────────────────────────────────────────────────────────────
+  () => `
+    <div class="step-badge badge-purple">Step 5 of 5</div>
+    <h1 class="step-h">The Partition Decision</h1>
+    <p class="step-subtitle">Apply what you observed to the hardware/software partitioning framework.</p>
+
+    <div class="block">
+      <div class="key-idea">
+        You've now seen the full co-design loop: identify a bottleneck, measure it, move the hot function to a hardware block, and verify the fix. This step asks you to reason about <em>when</em> each approach is the right call — and fill in a decision matrix that captures the trade-offs you just lived through.
+      </div>
+    </div>
+
+    <div class="block">
+      <div style="overflow-x:auto">
+        <table class="matrix-table">
+          <thead>
+            <tr>
+              <th>Function</th>
+              <th>Step 2 — SW polling</th>
+              <th>Step 4 — DMA offload</th>
+              <th>Winner</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>ADC sample rate under load</strong></td>
+              <td style="color:var(--red)">~21 Hz (degraded)</td>
+              <td style="color:var(--green)">~1000 Hz (stable)</td>
+              <td><select id="m1"><option value="">Select…</option><option>Software</option><option>DMA Hardware</option></select></td>
+            </tr>
+            <tr>
+              <td><strong>CPU headroom for other tasks</strong></td>
+              <td style="color:var(--red)">Low — polling consumes cycles constantly</td>
+              <td style="color:var(--green)">High — CPU free between buffer completions</td>
+              <td><select id="m2"><option value="">Select…</option><option>Software</option><option>DMA Hardware</option></select></td>
+            </tr>
+            <tr>
+              <td><strong>Ease of debugging</strong></td>
+              <td style="color:var(--green)">Easy — add a print, set a breakpoint</td>
+              <td style="color:var(--yellow)">Harder — DMA runs invisibly; need status registers</td>
+              <td><select id="m3"><option value="">Select…</option><option>Software</option><option>DMA Hardware</option></select></td>
+            </tr>
+            <tr>
+              <td><strong>Code complexity</strong></td>
+              <td style="color:var(--green)">Low — <code>analogRead()</code> in a loop</td>
+              <td style="color:var(--yellow)">Medium — configure DMA descriptors, handle completion ISR</td>
+              <td><select id="m4"><option value="">Select…</option><option>Software</option><option>DMA Hardware</option></select></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="block">
+      <div class="callout callout-warn">
+        <strong>The "start in software" heuristic:</strong> Software polling is perfectly fine at low sample rates or light CPU loads. You only move to DMA when measurement shows the polling loop is starving. In this lab, the crossover happened when the CPU load task pushed ADC sample rate below 50 Hz — that's your data-driven trigger.
+      </div>
+    </div>
+
+    <div class="question-box" id="q-box-4">
+      <h4>📝 A new product needs to sample a temperature sensor at 2 Hz and run a TCP/IP stack. The software ADC read takes 80 µs. CPU load from the network stack peaks at 60%. Should you offload the ADC sampling to DMA?</h4>
+      <div class="mc-choice" onclick="pick(4,0,this)"><div class="mc-letter">A</div><span>Yes — always use DMA for any ADC operation</span></div>
+      <div class="mc-choice" onclick="pick(4,1,this)"><div class="mc-letter">B</div><span>No — 2 Hz × 80 µs = 160 µs/sec = 0.016% CPU. Software polling is perfectly fine; DMA adds complexity for no measurable benefit</span></div>
+      <div class="mc-choice" onclick="pick(4,2,this)"><div class="mc-letter">C</div><span>Yes — because the network stack is already at 60% CPU, any additional work will cause failure</span></div>
+      <div class="mc-choice" onclick="pick(4,3,this)"><div class="mc-letter">D</div><span>No — DMA cannot work alongside a TCP/IP stack</span></div>
+      <button class="submit-btn" onclick="submitStep(4,1,'2 Hz × 80 µs = 0.016% CPU utilization. Even with 60% network load, the polling loop uses a negligible fraction of the remaining 40% headroom. Adding DMA complexity for 0.016% savings violates the start-in-software rule: only move to hardware when measurement shows the software path is the actual bottleneck. In this lab you needed DMA because the load pushed sample rate from 1000 Hz to 21 Hz — an obvious failure. At 2 Hz with 0.016% CPU, there is no failure to fix.',true)">Submit Answer</button>
+    </div>`
+];
+
+// ── RENDERING & NAVIGATION ──────────────────────────────────────────────────
+function renderStep(i){
+  currentStep = i;
+  document.getElementById('content-area').innerHTML = STEPS[i]();
+  updateNav();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function goStep(i){ renderStep(i); }
+
+function updateNav(){
+  const doneCount = Object.keys(submitted).length;
+  document.getElementById('sb-done').textContent = doneCount + ' / 5';
+  document.getElementById('sb-score').textContent = totalScore + ' pts';
+  document.getElementById('nav-progress').textContent = doneCount + ' / 5 steps';
+  document.getElementById('progress-fill').style.width = (doneCount/5*100) + '%';
+
+  for(let i=0;i<5;i++){
+    const el = document.getElementById('nav-'+i);
+    el.className = 'step-item';
+    if(submitted[i]!=null) el.classList.add('done');
+    else if(i===currentStep) el.classList.add('active');
+  }
+}
+
+// ── ANSWER SELECTION ─────────────────────────────────────────────────────────
+let pending = {};
+function pick(step, idx, el){
+  if(submitted[step]!=null) return;
+  document.querySelectorAll('#q-box-'+step+' .mc-choice').forEach(e=>{
+    e.classList.remove('selected');
+  });
+  el.classList.add('selected');
+  pending[step] = idx;
+}
+
+function submitStep(step, correct, explanation, isFinal){
+  const chosen = pending[step];
+  if(chosen==null){ alert('Select an answer first.'); return; }
+
+  submitted[step] = chosen;
+  const isCorrect = chosen === correct;
+  if(isCorrect) totalScore += 20;
+
+  const box = document.getElementById('q-box-'+step);
+  // Lock all choices
+  box.querySelectorAll('.mc-choice').forEach((el,i)=>{
+    el.classList.remove('selected');
+    el.classList.add('disabled');
+    if(i===correct) el.classList.add('correct');
+    else if(i===chosen && !isCorrect) el.classList.add('wrong');
+  });
+  // Remove submit button
+  const btn = box.querySelector('.submit-btn');
+  if(btn) btn.remove();
+
+  // Add feedback
+  const fb = document.createElement('div');
+  fb.className = 'feedback '+(isCorrect?'fb-ok':'fb-no');
+  fb.innerHTML = '<strong>'+(isCorrect?'✓ Correct!':'✗ Not quite — see the correct answer above')+'</strong><br>'+explanation;
+  box.appendChild(fb);
+
+  // Next / finish button
+  const nxt = document.createElement('button');
+  if(isFinal){
+    nxt.className='next-btn';
+    nxt.innerHTML='🎉 Finish Lab';
+    nxt.onclick=showComplete;
+  } else {
+    nxt.className='next-btn';
+    nxt.innerHTML='Next Step →';
+    nxt.onclick=()=>renderStep(step+1);
+  }
+  box.appendChild(nxt);
+
+  updateNav();
+}
+
+function showComplete(){
+  const pct = Math.round(totalScore/MAX_SCORE*100);
+  document.getElementById('content-area').innerHTML = `
+    <div class="complete-screen">
+      <div class="trophy">🏆</div>
+      <h2>Lab Complete!</h2>
+      <p>You watched software fail under load, diagnosed the failure with real measurements, fixed it with a DMA hardware offload, and applied the partitioning framework to a new scenario.</p>
+      <p style="margin-top:0">That is hardware/software co-design.</p>
+      <div class="score-card">
+        <div class="pts">${totalScore} / ${MAX_SCORE}</div>
+        <div class="label">${pct}% · ${pct>=90?'★ Excellent':pct>=70?'Pass':'Try again'}</div>
+      </div>
+      <div style="margin-top:28px;background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:18px;max-width:480px;font-size:13px;line-height:1.7;text-align:left">
+        <strong style="color:var(--accent);font-size:11px;text-transform:uppercase;letter-spacing:.06em">Key takeaway</strong><br>
+        Software polling is the right default — simple, debuggable, easy to change. You only move to hardware (DMA, timer, crypto engine) when <em>measurement</em> shows the software path is the actual bottleneck. In this lab, the crossover was obvious: 1000 Hz → 21 Hz under load. In the real world, you profile first, then decide.
+      </div>
+    </div>`;
+  updateNav();
+}
+</script>
+</body>
+</html>
