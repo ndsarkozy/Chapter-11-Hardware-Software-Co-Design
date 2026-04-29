@@ -1,0 +1,69 @@
+{
+  "chapter": "ch11Final",
+  "max_points": 100,
+  "questions": [
+    {
+      "id": "q_11_0",
+      "step": "11.0",
+      "points": 10,
+      "type": "mc",
+      "correct": 2
+    },
+    {
+      "id": "q_11_1",
+      "step": "11.1",
+      "points": 15,
+      "type": "mc",
+      "correct": 1
+    },
+    {
+      "id": "q_11_2",
+      "step": "11.2",
+      "points": 15,
+      "type": "mc",
+      "correct": 1
+    },
+    {
+      "id": "q_11_2b",
+      "step": "11.2b",
+      "points": 15,
+      "type": "mc",
+      "correct": 1
+    },
+    {
+      "id": "q_11_2c",
+      "step": "11.2c",
+      "points": 10,
+      "type": "mc",
+      "correct": 1
+    },
+    {
+      "id": "q_11_3",
+      "step": "11.3",
+      "points": 10,
+      "type": "mc",
+      "correct": 1
+    },
+    {
+      "id": "q_11_4",
+      "step": "11.4",
+      "points": 10,
+      "type": "mc",
+      "correct": 1
+    },
+    {
+      "id": "q_11_5",
+      "step": "11.5",
+      "points": 10,
+      "type": "mc",
+      "correct": 1
+    },
+    {
+      "id": "q_11_S",
+      "step": "11.S",
+      "points": 5,
+      "type": "mc",
+      "correct": 1
+    }
+  ]
+}
