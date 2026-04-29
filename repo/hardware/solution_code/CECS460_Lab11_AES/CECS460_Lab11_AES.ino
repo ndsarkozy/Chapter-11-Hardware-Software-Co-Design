@@ -230,13 +230,19 @@ void mqttCallback(char* topic, byte* payload, unsigned int len) {
       String url = doc["student_url"].as<String>();
       savePrefInt("slot",g_slot); savePref("token",g_token);
       serialLine("");
+      serialLine("");
       serialLine("╔══════════════════════════════════════════════════════╗");
-      serialLine("║              SLOT ASSIGNED                           ║");
+      serialLine("║           ✓  SEAT ASSIGNED — YOU'RE IN!             ║");
       serialLine("╠══════════════════════════════════════════════════════╣");
-      serialLine("║ Slot  : " + String(g_slot));
-      serialLine("║ Token : " + g_token);
-      serialLine("║ URL   : " + url);
+      serialLine("║  Seat : " + String(g_slot));
+      serialLine("╠══════════════════════════════════════════════════════╣");
+      serialLine("║  Open this link in your browser:                    ║");
+      serialLine("║                                                      ║");
+      serialLine("║  " + url);
+      serialLine("║                                                      ║");
+      serialLine("║  (Copy the URL above into Chrome / Firefox)         ║");
       serialLine("╚══════════════════════════════════════════════════════╝");
+      serialLine("");
       if (g_benchDone && !g_hwAnswerOk)
         serialLine("[MQTT] Benchmark already done — resubmitting...");
     }
