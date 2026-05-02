@@ -33,7 +33,8 @@ repo/
   docs/
     instructor_guide.md       # Complete — deployment steps, per-step notes, grading workflow
     final_report.md           # Complete draft — design decisions, files created, recommendations
-    contribution_statement.md # Template — fill in name before submission
+    contribution_statement.md # Nathan Sarkozy (filled in)
+    expo_slides_outline.md    # Expo presentation outline (10 slides)
   lesson_package/             # Submission artifact — copy into ch11Final before demo
     lesson.json               # All 5 steps fully built
     grading.json              # All 5 questions with keyword rubrics (tested)
@@ -64,7 +65,7 @@ repo/
 | 1 | A blink that almost works | ✅ | ✅ q1 | ✅ | ✅ |
 | 2 | Software under pressure | ✅ | ✅ q2 | ✅ | ✅ |
 | 3 | Why did it fail? | ✅ | ✅ q3 | ✅ | (uses step2 fw) |
-| 4 | The accelerator | ✅ | ✅ q4 | ✅ | ✅ |
+| 4 | The accelerator | ✅ | ✅ q4 | ✅ | ✅ + MQTT pass |
 | 5 | The partition decision | ✅ | ✅ q5 | ✅ | (no firmware) |
 
 **All lesson content is written. All grading rubrics pass automated tests.**
