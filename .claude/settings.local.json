@@ -12,7 +12,8 @@
       "Bash(python *)",
       "Bash(cp \"C:/CSULB/SystemOnChip_460/CECS460_Final_Project/cecs460-ch11-module/repo/classroom-server/classes/cecs460/lessons/ch11Final/lesson.json\" \"C:/CSULB/SystemOnChip_460/Dans_Files/ClassroomFusion-4-22-26-1/complete-build/classroom-server/classes/cecs460/lessons/ch11Final/lesson.json\")",
       "Bash(cp \"C:/CSULB/SystemOnChip_460/CECS460_Final_Project/cecs460-ch11-module/repo/classroom-server/classes/cecs460/lessons/ch11Final/grading.json\" \"C:/CSULB/SystemOnChip_460/Dans_Files/ClassroomFusion-4-22-26-1/complete-build/classroom-server/classes/cecs460/lessons/ch11Final/grading.json\")",
-      "Bash(ipconfig)"
+      "Bash(ipconfig)",
+      "Bash(python3 *)"
     ]
   }
 }

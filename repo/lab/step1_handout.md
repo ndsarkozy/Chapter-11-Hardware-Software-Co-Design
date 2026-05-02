@@ -2,7 +2,7 @@
 ## Step 1: A blink that almost works
 
 **Time:** ~12 minutes
-**You will need:** ESP32 DevKit, breadboard, 1 standard LED, 1x 330 Ω resistor, 2 jumper wires, oscilloscope
+**You will need:** ESP32 DevKit, breadboard, 1 standard LED, 1x 330 Ω resistor, 2 jumper wires, USB data cable
 
 ---
 
@@ -16,7 +16,6 @@ Blinking an LED is the first thing anyone does with a microcontroller. You've do
 2. From **GPIO 18**, run a wire to one end of a **330 Ω resistor**.
 3. From the other end of the resistor, run a wire to the **anode** (longer leg) of the LED.
 4. From the **cathode** (shorter leg) of the LED, run a wire to the **GND** rail.
-5. Connect your **scope probe tip** to **GPIO 18**. Clip the probe ground to the **GND** rail.
 
 ### Flash it
 
@@ -24,13 +23,16 @@ Open `hardware/starter_code/step1_baseline/step1_baseline.ino` and upload it to 
 
 ### Measure it
 
-Configure your scope:
+Open **Serial Monitor** in Arduino IDE (Tools → Serial Monitor, baud **115200**).
 
-- **Timebase:** 200 ms/div
-- **Channel 1 coupling:** DC, 2 V/div
-- **Trigger:** CH1, rising edge, ~1.5 V level
+After every full blink cycle, the firmware prints the measured period and frequency:
 
-Use your scope's auto-measure feature to read the **frequency**. Record it to four decimal places.
+```
+Period: 1002 ms  |  Frequency: 0.9980 Hz
+Period: 1001 ms  |  Frequency: 0.9990 Hz
+```
+
+Watch it for about 10 cycles, then record a representative value.
 
 | My measurement | |
 |---|---|

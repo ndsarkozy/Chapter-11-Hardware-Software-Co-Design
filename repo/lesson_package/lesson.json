@@ -8,13 +8,10 @@
   "required_hardware": [
     "ESP32 DevKit (any variant with accessible GPIOs)",
     "Breadboard and jumper wires",
-    "1x standard LED (step 1)",
-    "16x WS2812 addressable LED strip (steps 2-5)",
-    "330 Ω resistor",
-    "470 Ω resistor (WS2812 data line)",
-    "1000 µF electrolytic capacitor (WS2812 power rail)",
-    "Pushbutton + 10 kΩ pull-down resistor",
-    "Oscilloscope (2 channels, 20 MHz or better)"
+    "1x standard LED + 330 Ω resistor (step 1)",
+    "16×2 LCD with I2C backpack (I2C address 0x27) (steps 2–4)",
+    "Potentiometer (10 kΩ) (steps 2–4)",
+    "USB cable (data cable, not charge-only — required for Serial Monitor)"
   ],
   "steps": [
 
@@ -49,17 +46,17 @@
         {
           "type": "task",
           "heading": "Measure it",
-          "text": "On your scope, set the timebase to 200 ms/div and trigger on the rising edge of GPIO 18. Read the frequency from the scope's measurement panel. Record the value you see in the field below, to four decimal places."
+          "text": "Open Serial Monitor in Arduino IDE (Tools → Serial Monitor, baud 115200). You will see a line printed after every full blink cycle: 'Period: 1002 ms  |  Frequency: 0.9980 Hz'. Watch it for about 10 cycles and record a representative frequency value."
         }
       ],
 
       "interactive_moment": {
         "type": "numeric_entry",
-        "prompt": "What frequency did your scope report?",
+        "prompt": "What frequency did Serial Monitor report?",
         "field_label": "Measured frequency (Hz)",
         "placeholder": "e.g. 0.9987",
         "expected_range": [0.95, 1.05],
-        "out_of_range_feedback": "That's outside the range we'd expect for this code. Double-check your probe connection and scope trigger, then remeasure.",
+        "out_of_range_feedback": "That's outside the range we'd expect for this code. Make sure Serial Monitor is at 115200 baud and the step1_baseline firmware is running.",
         "on_valid_entry": "Your measurement is logged. Nobody in this class will report exactly 1.0000 Hz — and that's the point."
       },
 
@@ -72,20 +69,263 @@
 
       "reveal": {
         "heading": "The short answer",
-        "text": "Your ESP32 is running a loop: turn LED on, wait 500 ms, turn LED off, wait 500 ms. But 'wait 500 ms' in software isn't perfectly precise. The CPU also services background interrupts — the RTOS tick, the USB peripheral, the WiFi radio if it's powered on. Each one steals a handful of microseconds. Over many cycles, those microseconds accumulate and your frequency drifts off by a fraction of a percent. The CPU isn't broken. It's just doing exactly what it's designed to do: running code, one instruction at a time, while interruptions happen. Hold onto that idea — it's about to matter a lot more."
+        "text": "Your ESP32 is running a loop: turn LED on, wait 500 ms, turn LED off, wait 500 ms. But 'wait 500 ms' in software isn't perfectly precise. The CPU also services background interrupts — the RTOS tick, the USB peripheral, the WiFi radio if it's powered on. Each one steals a handful of microseconds. Serial Monitor showed you the real period: slightly more than 1000 ms, never exactly. Over many cycles, those microseconds accumulate and your frequency drifts off by a fraction of a percent. The CPU isn't broken. It's just doing exactly what it's designed to do: running code, one instruction at a time, while interruptions happen. Hold onto that idea — it's about to matter a lot more."
       },
 
       "transition_to_next_step": "Right now, a ~0.3% frequency error is probably invisible to you. In the next step, we'll turn up the difficulty until software's imperfection becomes impossible to miss."
     },
 
-    { "step_id": "step2_overload", "step_number": 2, "title": "Software under pressure", "status": "to_be_built" },
-    { "step_id": "step3_diagnose",  "step_number": 3, "title": "Why did it fail?",       "status": "to_be_built" },
-    { "step_id": "step4_rescue",    "step_number": 4, "title": "The accelerator",        "status": "to_be_built" },
-    { "step_id": "step5_partition", "step_number": 5, "title": "The partition decision", "status": "to_be_built" }
+    {
+      "step_id": "step2_overload",
+      "step_number": 2,
+      "title": "Software under pressure",
+      "estimated_minutes": 15,
+
+      "opening_line": "You blinked an LED. Now you're going to break something more interesting — and this time you'll feel the failure, not just measure it.",
+
+      "content_blocks": [
+        {
+          "type": "prose",
+          "text": "The firmware you're about to flash does three things at once: it reads a potentiometer through the ESP32's ADC, it displays the value on an LCD, and it runs a background CPU load task that hammers the processor with floating-point math. That load task isn't doing anything useful — it's a stand-in for any heavy computation a real device might need to run (signal processing, encryption, protocol parsing). Watch what happens to the LCD when both tasks compete for the same CPU."
+        },
+        {
+          "type": "task",
+          "heading": "Build the circuit",
+          "text": "Keep your step 1 LED in place. Add: (1) Potentiometer — middle pin to GPIO 34, outer pins to 3.3 V and GND. (2) LCD 16×2 with I2C backpack — SDA to GPIO 21, SCL to GPIO 22, VCC to 5 V, GND to GND."
+        },
+        {
+          "type": "reference",
+          "heading": "Wiring diagram",
+          "asset": "assets/step2_wiring.png"
+        },
+        {
+          "type": "task",
+          "heading": "Flash it",
+          "text": "Open step2_overload.ino (hardware/starter_code/step2_overload/) and flash it to your ESP32. The LCD will show 'CECS 460 Step 2' briefly, then start displaying the knob percentage."
+        },
+        {
+          "type": "task",
+          "heading": "Stress it",
+          "text": "Slowly turn the potentiometer back and forth. Watch the LCD percentage update. Notice anything? Now look at the bottom row of the LCD — it should say 'SW Poll  LAGGING'. That message is there because the firmware already knows what's happening."
+        }
+      ],
+
+      "interactive_moment": {
+        "type": "multiple_choice",
+        "prompt": "What do you observe when you turn the potentiometer while the CPU load is running?",
+        "choices": [
+          "The LCD updates instantly — no visible delay",
+          "The LCD lags behind the knob position by a noticeable amount",
+          "The LCD freezes completely and never updates",
+          "The ESP32 reboots when the load task starts"
+        ],
+        "correct_index": 1,
+        "on_correct": "Exactly. The LCD is slow to follow the knob because the CPU is too busy running the load task to read the ADC and update the display quickly. This is the co-design problem in action.",
+        "on_incorrect": "Look again — turn the knob quickly and watch how long the display takes to catch up. There should be a clear, visible lag."
+      },
+
+      "short_answer_prompt": {
+        "question_id": "q2_why_lag",
+        "prompt": "The CPU load task and the ADC polling loop share the same processor. In 2–3 sentences, explain why this causes the LCD to lag. What is the CPU doing when it should be reading the ADC?",
+        "word_limit": 80,
+        "grading_ref": "grading.json#q2_why_lag"
+      },
+
+      "reveal": {
+        "heading": "What's happening inside",
+        "text": "The ESP32 runs your loop() function one line at a time. Every loop iteration, it runs the full CPU load — 5,000 iterations of floating-point math — before it ever reads the ADC or updates the display. The ADC and LCD have to wait their turn. The more expensive the load, the longer the wait, and the more the LCD falls behind the knob. This is called CPU starvation: two tasks competing for one processor, and only one of them winning. In a real system, this might mean a sensor stops responding, a motor loses its control loop, or a safety interlock misses a deadline."
+      },
+
+      "transition_to_next_step": "The failure is visible. But how bad is it, really? In the next step you'll open Serial Monitor and measure exactly how much the sample rate has degraded."
+    },
+
+    {
+      "step_id": "step3_diagnose",
+      "step_number": 3,
+      "title": "Why did it fail?",
+      "estimated_minutes": 15,
+
+      "opening_line": "You saw the problem. Now measure it. A co-design engineer doesn't just notice something is slow — they put a number on it.",
+
+      "content_blocks": [
+        {
+          "type": "prose",
+          "text": "The step2_overload firmware is still running. It's already printing ADC sample rate data to Serial Monitor every 500 ms. Open Serial Monitor and watch the numbers. You'll see lines like: [SW] Sample rate: 42.3 Hz  |  Knob: 67%. That rate tells you exactly how many ADC readings the CPU managed per second while running the load task."
+        },
+        {
+          "type": "task",
+          "heading": "Open Serial Monitor",
+          "text": "In Arduino IDE: Tools → Serial Monitor, set baud to 115200. You should immediately see sample rate lines printing every half-second. Let it run for at least 10 seconds to get a stable average."
+        },
+        {
+          "type": "callout",
+          "style": "info",
+          "text": "The firmware reads the ADC as fast as the loop allows, counting every sample. Every 500 ms it prints how many samples it took — that's your sample rate in Hz. The higher the CPU load, the fewer samples per second."
+        },
+        {
+          "type": "task",
+          "heading": "Record the number",
+          "text": "Watch the Serial Monitor for 30 seconds and note the sample rate. It will fluctuate slightly — that's normal. Write down a representative value."
+        }
+      ],
+
+      "interactive_moment": {
+        "type": "numeric_entry",
+        "prompt": "What sample rate (Hz) does Serial Monitor report for the software ADC polling?",
+        "field_label": "Sample rate (Hz)",
+        "placeholder": "e.g. 42.0",
+        "expected_range": [5, 500],
+        "out_of_range_feedback": "That seems outside the expected range. Make sure Serial Monitor is set to 115200 baud and that the step2_overload firmware is still running.",
+        "on_valid_entry": "Your measurement is logged. Keep this number — you'll compare it directly against Step 4."
+      },
+
+      "short_answer_prompt": {
+        "question_id": "q3_diagnose",
+        "prompt": "The sample rate you measured tells you how often the CPU managed to read the ADC. In 2–3 sentences, explain what this number means for the system. If this were a real sensor (e.g., reading temperature 50 times per second is required), what would happen?",
+        "word_limit": 80,
+        "grading_ref": "grading.json#q3_diagnose"
+      },
+
+      "reveal": {
+        "heading": "What the numbers mean",
+        "text": "A sample rate of ~40 Hz means the CPU read the ADC about 40 times per second. For a knob on an LCD that's merely annoying. For a real application — say, a closed-loop motor controller that needs 1,000 samples per second, or a safety sensor that must never miss a reading — 40 Hz would be a hard failure. The data makes visible what the eye only hints at: the CPU is so busy with the load task that the ADC read barely gets a turn. This is how you turn 'it feels laggy' into 'it is missing its deadline by 25×' — a number you can actually take to a partitioning decision."
+      },
+
+      "transition_to_next_step": "You have the before number. In Step 4, you'll flash the DMA version, run the same CPU load, and measure again. The fix is one hardware peripheral away."
+    },
+
+    {
+      "step_id": "step4_rescue",
+      "step_number": 4,
+      "title": "The accelerator",
+      "estimated_minutes": 20,
+
+      "opening_line": "Same hardware. Same CPU load. Different result — because the CPU is no longer doing the work.",
+
+      "content_blocks": [
+        {
+          "type": "prose",
+          "text": "The ESP32 contains a DMA (Direct Memory Access) controller. DMA hardware can move data between peripherals and memory completely on its own — the CPU sets it up once, then goes back to whatever else it was doing. Step 4 uses the ESP32's I2S peripheral in ADC-DMA mode: the hardware samples the potentiometer at 10,000 times per second and fills a buffer automatically. The CPU loop doesn't poll the ADC at all — it just picks up the already-filled buffer whenever it needs a value."
+        },
+        {
+          "type": "callout",
+          "style": "info",
+          "text": "The wiring is identical to Step 2. You are not changing any hardware. The only change is firmware: analogRead() is replaced by DMA buffer reads via the I2S ADC driver. This is exactly what hardware/software partitioning looks like in practice — move the data-movement work off the CPU onto a dedicated hardware block."
+        },
+        {
+          "type": "task",
+          "heading": "Flash Step 4",
+          "text": "Open step4_accelerator.ino (hardware/starter_code/step4_accelerator/) and flash it to your ESP32. Do not change any wiring. The LCD will briefly show 'DMA Accelerator', then start displaying the knob value again."
+        },
+        {
+          "type": "task",
+          "heading": "Observe the LCD",
+          "text": "Turn the potentiometer. The LCD bottom row now reads 'DMA      SMOOTH'. Verify that the LCD tracks the knob without visible lag — even though the same CPU load is still running."
+        },
+        {
+          "type": "task",
+          "heading": "Measure the sample rate",
+          "text": "Open Serial Monitor (115200 baud). You'll now see [DMA] Sample rate: lines. Record this number. Compare it to what you measured in Step 3."
+        }
+      ],
+
+      "interactive_moment": {
+        "type": "numeric_entry",
+        "prompt": "What sample rate (Hz) does Serial Monitor report now, with DMA handling the ADC?",
+        "field_label": "DMA sample rate (Hz)",
+        "placeholder": "e.g. 420.0",
+        "expected_range": [50, 15000],
+        "out_of_range_feedback": "That's outside the expected range for the DMA path. Make sure step4_accelerator.ino is flashed (not step2) and Serial Monitor is at 115200 baud.",
+        "on_valid_entry": "Logged. That is your 'after' number. The difference between this and your Step 3 reading is the co-design payoff."
+      },
+
+      "short_answer_prompt": {
+        "question_id": "q4_accelerator",
+        "prompt": "Compare your Step 3 and Step 4 sample rates. In 2–3 sentences, explain what the DMA controller did differently from the software polling loop. Why did offloading to DMA fix the problem without changing the CPU load at all?",
+        "word_limit": 100,
+        "grading_ref": "grading.json#q4_accelerator"
+      },
+
+      "reveal": {
+        "heading": "What changed — and why it worked",
+        "text": "In Step 2, every ADC sample required the CPU to stop what it was doing, call analogRead(), wait for the result, and return. Under heavy load, those CPU-in-the-loop samples had to queue behind 5,000 float operations. In Step 4, the DMA controller samples the ADC at 10 kHz autonomously — it has its own hardware path from the ADC to memory and doesn't need the CPU at all. When the CPU loop finally checks for a value, the buffer is already full. The CPU spends zero time waiting for the ADC. The load task and the ADC sampling now run in true parallel: one on the CPU, one on dedicated hardware. This is hardware/software co-design in action."
+      },
+
+      "transition_to_next_step": "You've seen the failure and the fix. The last step is the decision: given a real system requirement, how do you decide what goes in software and what goes in hardware?"
+    },
+
+    {
+      "step_id": "step5_partition",
+      "step_number": 5,
+      "title": "The partition decision",
+      "estimated_minutes": 20,
+
+      "opening_line": "Software is easier to change. Hardware is faster. Every co-design decision is a trade between those two facts.",
+
+      "content_blocks": [
+        {
+          "type": "prose",
+          "text": "You just ran the same experiment industry engineers run before committing to a hardware block: implement it in software, measure it, and only move it to hardware if the measurement shows software can't meet the requirement. That's the start-in-software rule. It isn't 'always use software' — it's 'don't add hardware complexity until measurement forces you to.'"
+        },
+        {
+          "type": "comparison_table",
+          "heading": "Hardware vs. software — when each wins",
+          "columns": ["Factor", "Favor software", "Favor hardware"],
+          "rows": [
+            ["Performance", "Software meets the deadline with headroom", "Software misses the deadline even optimized"],
+            ["Energy", "Duty cycle is low — CPU overhead is negligible", "Task runs continuously and dominates power budget"],
+            ["Flexibility", "Requirements change frequently", "Requirements are frozen and well-specified"],
+            ["Cost", "Existing peripheral works (DMA, AES engine)", "Requires custom RTL — adds NRE cost and schedule"],
+            ["Debuggability", "Default for new designs — easier to observe", "Only after validation; debug hooks must be planned"]
+          ]
+        },
+        {
+          "type": "callout",
+          "style": "warning",
+          "text": "Moving a function to hardware doesn't automatically make the system faster. If the time to feed data into the hardware block (DMA setup, buffer copies, interrupt latency) exceeds the compute savings, you gain nothing. Always measure the full path, not just the compute kernel."
+        },
+        {
+          "type": "task",
+          "heading": "Decision matrix",
+          "text": "For each scenario below, decide: software or hardware? Write your answer and a one-sentence justification.\n\n(A) A temperature sensor is read once every 30 seconds and sent over MQTT. Reading takes ~50 µs in software.\n\n(B) An audio codec streams 48,000 16-bit samples per second from a microphone. The CPU must also run a voice-activity detection algorithm in real time.\n\n(C) An AES-128 key is rotated every 24 hours. Each rotation calls the AES engine once."
+        }
+      ],
+
+      "interactive_moment": {
+        "type": "multiple_choice",
+        "prompt": "Scenario B (48 kHz audio streaming) — which approach is correct and why?",
+        "choices": [
+          "Software polling: 48,000 reads/sec is only 2.4 M ADC calls/sec — the CPU can handle it",
+          "DMA: 48,000 samples/sec would consume nearly all CPU time in a polling loop, leaving nothing for other tasks",
+          "Hardware AES engine: audio streaming is a cryptographic workload",
+          "ULP co-processor: audio always needs ultra-low-power sampling"
+        ],
+        "correct_index": 1,
+        "on_correct": "Correct. At 48 kHz, a polling loop would need to call analogRead() 48,000 times per second — a significant CPU fraction that leaves little room for the detection algorithm, let alone anything else. DMA moves the data autonomously so the CPU only touches it when a full buffer is ready.",
+        "on_incorrect": "Think about the rate: 48,000 samples per second means the CPU needs to service the ADC every 21 µs if polling. That's most of your CPU budget gone before you even start the voice detection. Which hardware block would remove that constraint?"
+      },
+
+      "short_answer_prompt": {
+        "question_id": "q5_partition",
+        "prompt": "Write your own partitioning decision rule in 2–3 sentences. When should a function move from software to hardware? Use what you observed in Steps 2–4 to support your answer — reference your actual measured sample rates.",
+        "word_limit": 100,
+        "grading_ref": "grading.json#q5_partition"
+      },
+
+      "reveal": {
+        "heading": "The rule you just derived",
+        "text": "The start-in-software heuristic: implement in software first, measure under realistic load, and only move to hardware when the measurement shows a specific function is missing its deadline or consuming an unacceptable share of CPU or energy. You did this: Step 2 showed software ADC polling collapsing under load, Step 3 put a number on it (your sample rate), and Step 4 confirmed that DMA fixed it without touching the CPU load at all. That's the full co-design loop — specification, software prototype, measurement, decision, hardware acceleration, re-measurement. Every real SoC design team runs this loop before committing silicon."
+      },
+
+      "transition_to_next_step": "You've completed Chapter 11. The module is done — you now understand hardware/software co-design not as a concept but as something you measured and fixed yourself."
+    }
   ],
 
   "assets": [
     "assets/step1_wiring.png",
-    "hardware/starter_code/step1_baseline/step1_baseline.ino"
+    "assets/step2_wiring.png",
+    "hardware/starter_code/step1_baseline/step1_baseline.ino",
+    "hardware/starter_code/step2_overload/step2_overload.ino",
+    "hardware/starter_code/step4_accelerator/step4_accelerator.ino"
   ]
 }
