@@ -9,7 +9,7 @@
     {
       "question_id": "q1_why_not_exact",
       "step_ref": "step1_baseline",
-      "prompt": "Your scope reading isn't exactly 1.0000 Hz. In 2-3 sentences, explain why. What is the ESP32 actually doing, and why can't the software produce a perfect 1 Hz signal?",
+      "prompt": "Your Serial Monitor reading isn't exactly 1.0000 Hz. In 2–3 sentences, explain why. What is the ESP32 actually doing, and why can't the software produce a perfect 1 Hz signal?",
       "max_points": 10,
 
       "scoring": {
@@ -86,6 +86,330 @@
       "exemplar_partial_credit_answer": "The delay function isn't perfectly precise so the timing drifts a little.",
 
       "grader_notes": "This is a low-stakes opening question designed to get students to commit to a mental model, not to test deep knowledge. Full credit should be achievable by any student who engages genuinely with the question, even if their explanation is informal. The point isn't to trip them up — it's to anchor them before Steps 2-3, where the same concepts will be expanded."
+    },
+
+    {
+      "question_id": "q2_why_lag",
+      "step_ref": "step2_overload",
+      "prompt": "The CPU load task and the ADC polling loop share the same processor. In 2–3 sentences, explain why this causes the LCD to lag. What is the CPU doing when it should be reading the ADC?",
+      "max_points": 10,
+
+      "scoring": {
+        "method": "keyword_weighted",
+
+        "required_concepts": [
+          {
+            "concept": "cpu_shared_resource",
+            "weight": 4,
+            "keywords_any": [
+              "share",
+              "shared",
+              "one processor",
+              "single core",
+              "one core",
+              "same CPU",
+              "compete",
+              "competing",
+              "only one",
+              "takes turns",
+              "sequential"
+            ],
+            "explanation_for_grader": "Student must recognize the CPU is a shared resource — the load task and ADC read cannot run simultaneously on the same core."
+          },
+          {
+            "concept": "load_blocks_adc",
+            "weight": 4,
+            "keywords_any": [
+              "load",
+              "busy",
+              "busy-wait",
+              "math",
+              "loop",
+              "floating point",
+              "running the load",
+              "blocked",
+              "waiting",
+              "starv",
+              "no time",
+              "occupied",
+              "hogging"
+            ],
+            "explanation_for_grader": "Student must identify that the CPU load loop is running when the ADC read should happen — it occupies the processor and the ADC read has to wait."
+          },
+          {
+            "concept": "result_is_lag",
+            "weight": 2,
+            "keywords_any": [
+              "lag",
+              "slow",
+              "delayed",
+              "fewer samples",
+              "less often",
+              "misses",
+              "infrequent",
+              "stutter",
+              "behind"
+            ],
+            "explanation_for_grader": "Credit for connecting the CPU contention to the observable symptom: fewer ADC reads per second means the display falls behind the knob."
+          }
+        ],
+
+        "length_penalty": {
+          "under_word_count": 10,
+          "penalty": 3,
+          "feedback": "Your answer is too short — the question asks for 2–3 sentences."
+        }
+      },
+
+      "exemplar_full_credit_answer": "The CPU is a shared resource — only one task runs at a time. Each loop iteration, the processor spends most of its time running 5,000 iterations of floating-point math before it ever gets to analogRead(). The ADC read and LCD update have to wait in line behind the load task, so they happen much less frequently and the display lags behind the knob.",
+
+      "exemplar_partial_credit_answer": "The load task is running so the CPU is too busy to read the ADC quickly.",
+
+      "grader_notes": "The key insight is that the CPU is a shared, sequential resource. Students who say 'the CPU is busy' without explaining why that causes lag are partial credit. Full credit requires connecting load → CPU blocked → ADC read delayed → lag."
+    },
+
+    {
+      "question_id": "q3_diagnose",
+      "step_ref": "step3_diagnose",
+      "prompt": "The sample rate you measured tells you how often the CPU managed to read the ADC. In 2–3 sentences, explain what this number means for the system. If this were a real sensor (e.g., reading temperature 50 times per second is required), what would happen?",
+      "max_points": 10,
+
+      "scoring": {
+        "method": "keyword_weighted",
+
+        "required_concepts": [
+          {
+            "concept": "sample_rate_meaning",
+            "weight": 4,
+            "keywords_any": [
+              "samples per second",
+              "how often",
+              "how frequently",
+              "readings per second",
+              "Hz",
+              "rate",
+              "times per second",
+              "frequency of sampling"
+            ],
+            "explanation_for_grader": "Student must interpret the sample rate as a concrete measure of how often the CPU services the sensor — not just 'it's slow' but what the number actually represents."
+          },
+          {
+            "concept": "misses_requirement",
+            "weight": 4,
+            "keywords_any": [
+              "miss",
+              "misses",
+              "not enough",
+              "too slow",
+              "below",
+              "under",
+              "fail",
+              "fails",
+              "cannot meet",
+              "deadline",
+              "required",
+              "requirement",
+              "not 50",
+              "less than 50",
+              "insufficient"
+            ],
+            "explanation_for_grader": "Student must recognize that if the measured rate is below the system requirement (e.g. 50 Hz), the system fails its deadline — data is missed or the control loop breaks."
+          },
+          {
+            "concept": "real_world_consequence",
+            "weight": 2,
+            "keywords_any": [
+              "miss readings",
+              "lose data",
+              "incorrect",
+              "inaccurate",
+              "control loop",
+              "safety",
+              "critical",
+              "broken",
+              "wrong output",
+              "stale data",
+              "outdated"
+            ],
+            "explanation_for_grader": "Bonus credit for naming a concrete consequence — stale sensor data, broken control loop, missed safety threshold, etc."
+          }
+        ],
+
+        "length_penalty": {
+          "under_word_count": 10,
+          "penalty": 3,
+          "feedback": "Your answer is too short — the question asks for 2–3 sentences."
+        }
+      },
+
+      "exemplar_full_credit_answer": "The sample rate shows how many times per second the CPU successfully read the ADC — roughly 40 Hz in my case. If the requirement were 50 samples per second and the system only manages 40, it misses its deadline: some sensor readings never happen, meaning the display or control loop operates on stale data. In a safety-critical system, that missed reading could mean a threshold is crossed without being detected.",
+
+      "exemplar_partial_credit_answer": "The sample rate is low because the CPU is busy, so it can't read the sensor fast enough to meet a 50 Hz requirement.",
+
+      "grader_notes": "Accept any plausible sample rate the student measured (it will vary by hardware). The key insight is comparing the measured rate to a hypothetical requirement and recognizing the system would fail. Don't penalize for the specific number — penalize for not connecting rate to deadline."
+    },
+
+    {
+      "question_id": "q4_accelerator",
+      "step_ref": "step4_rescue",
+      "prompt": "Compare your Step 3 and Step 4 sample rates. In 2–3 sentences, explain what the DMA controller did differently from the software polling loop. Why did offloading to DMA fix the problem without changing the CPU load at all?",
+      "max_points": 10,
+
+      "scoring": {
+        "method": "keyword_weighted",
+
+        "required_concepts": [
+          {
+            "concept": "dma_autonomous",
+            "weight": 5,
+            "keywords_any": [
+              "DMA",
+              "autonomous",
+              "automatically",
+              "on its own",
+              "without the CPU",
+              "independent",
+              "hardware",
+              "dedicated",
+              "peripheral",
+              "controller",
+              "does it itself",
+              "no CPU",
+              "cpu free",
+              "offload"
+            ],
+            "explanation_for_grader": "The core insight: DMA fills the buffer without CPU involvement. The CPU doesn't call analogRead() — it just picks up already-filled data. This is the most important concept in the step."
+          },
+          {
+            "concept": "parallel_execution",
+            "weight": 3,
+            "keywords_any": [
+              "parallel",
+              "at the same time",
+              "simultaneously",
+              "concurrently",
+              "both at once",
+              "while the CPU",
+              "while the load",
+              "load still runs",
+              "true parallel"
+            ],
+            "explanation_for_grader": "Student should recognize that DMA and the CPU load now run in parallel — one on the DMA hardware, one on the CPU — which is why the load no longer affects the sample rate."
+          },
+          {
+            "concept": "rate_improved",
+            "weight": 2,
+            "keywords_any": [
+              "higher",
+              "faster",
+              "more samples",
+              "increased",
+              "improved",
+              "better",
+              "smooth",
+              "responsive",
+              "no lag"
+            ],
+            "explanation_for_grader": "Credit for noting the measured improvement — the DMA sample rate should be significantly higher than the software polling rate from Step 3."
+          }
+        ],
+
+        "length_penalty": {
+          "under_word_count": 10,
+          "penalty": 3,
+          "feedback": "Your answer is too short — the question asks for 2–3 sentences."
+        }
+      },
+
+      "exemplar_full_credit_answer": "In Step 3 the CPU polled the ADC itself inside the loop, so every ADC read had to wait behind the load task — I measured about 40 Hz. In Step 4 the DMA controller samples the ADC autonomously at 10 kHz and fills a buffer without touching the CPU at all; the loop just reads what's already there. Because DMA and the load task run in parallel on separate hardware, the load no longer starves the ADC — my Step 4 sample rate jumped to over 400 Hz with the same load running.",
+
+      "exemplar_partial_credit_answer": "DMA handles the ADC so the CPU doesn't have to, which is why it's faster.",
+
+      "grader_notes": "Full credit requires three things: (1) DMA works autonomously, (2) CPU and DMA now run in parallel, (3) the measured rate improved. Partial credit for any two. The specific numbers will vary — accept any Step 4 rate that is clearly higher than Step 3."
+    },
+
+    {
+      "question_id": "q5_partition",
+      "step_ref": "step5_partition",
+      "prompt": "Write your own partitioning decision rule in 2–3 sentences. When should a function move from software to hardware? Use what you observed in Steps 2–4 to support your answer — reference your actual measured sample rates.",
+      "max_points": 10,
+
+      "scoring": {
+        "method": "keyword_weighted",
+
+        "required_concepts": [
+          {
+            "concept": "measure_first",
+            "weight": 4,
+            "keywords_any": [
+              "measure",
+              "measured",
+              "measurement",
+              "profile",
+              "profil",
+              "test first",
+              "try software first",
+              "start in software",
+              "software first",
+              "benchmark",
+              "data",
+              "evidence",
+              "proves",
+              "shows"
+            ],
+            "explanation_for_grader": "The most important concept: don't move to hardware without a measurement that shows software can't meet the requirement. Students who say 'when it's too slow' without mentioning measurement are partial credit."
+          },
+          {
+            "concept": "miss_requirement",
+            "weight": 3,
+            "keywords_any": [
+              "can't meet",
+              "cannot meet",
+              "misses",
+              "deadline",
+              "requirement",
+              "not fast enough",
+              "too slow",
+              "insufficient",
+              "fails",
+              "bottleneck",
+              "dominates"
+            ],
+            "explanation_for_grader": "Student must identify what triggers the move: software failing to meet a requirement — not just being slower than hardware."
+          },
+          {
+            "concept": "references_own_data",
+            "weight": 3,
+            "keywords_any": [
+              "Hz",
+              "sample rate",
+              "step 2",
+              "step 3",
+              "step 4",
+              "my measurement",
+              "I measured",
+              "I saw",
+              "the lag",
+              "DMA fixed",
+              "went from",
+              "increased"
+            ],
+            "explanation_for_grader": "The question explicitly asks for reference to their own measured data. Full credit requires at least a nod to their Step 3/4 numbers or observations, not just abstract principles."
+          }
+        ],
+
+        "length_penalty": {
+          "under_word_count": 10,
+          "penalty": 3,
+          "feedback": "Your answer is too short — the question asks for 2–3 sentences."
+        }
+      },
+
+      "exemplar_full_credit_answer": "A function should move to hardware only when measurement shows software can't meet the system's requirement — not just because hardware would be faster. In Step 3 I measured ~40 Hz with software polling; if the requirement were 50 Hz, that's a real failure. Step 4 showed DMA fixed it by removing the CPU from the data path entirely, so the rule is: try software first, measure under realistic load, and only add hardware when the number proves you need it.",
+
+      "exemplar_partial_credit_answer": "Move to hardware when the software is too slow to keep up with the requirement, like when the sample rate dropped in Step 2.",
+
+      "grader_notes": "This is a synthesis question — the student is building their own rule from the experience. There's no single right answer. Award full credit for any answer that includes: measure first, trigger is missing a requirement (not just 'hardware is faster'), and some reference to their own data. Penalize answers that say 'always use hardware when possible' or 'use hardware when it's faster' — those miss the start-in-software principle."
     }
 
   ]
