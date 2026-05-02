@@ -1,441 +1,331 @@
 {
-  "chapter": "ch11Final",
-  "title": "CECS 460 — Hardware/Software Co-Design and Design Flow",
-  "learning_objectives": [
-    "Explain how requirements and constraints drive hardware/software partitioning decisions",
-    "Apply the start-in-software heuristic and identify when a function should move to hardware or an accelerator",
-    "Describe the tape-out point of no return and why it makes hardware changes exponentially more expensive than firmware updates",
-    "Identify common co-design pitfalls (vague requirements, interface mismatches, version skew, over-optimistic accelerators)",
-    "Compare simple board-level modeling to industry co-simulation tools and articulate what risks each can catch",
-    "Evaluate firmware framework trade-offs between abstraction, automation, and low-level control"
+  "chapter_id": "ch11_hw_sw_codesign",
+  "chapter_title": "Hardware/Software Co-Design and Design Flow",
+  "version": "0.1",
+  "author": "[your name]",
+  "summary": "Students experience hardware/software partitioning firsthand by watching software fail under load and then succeed when the same task is handed to a dedicated peripheral. The lesson teaches co-design by having students do it, not by lecturing about it.",
+  "estimated_duration_minutes": 120,
+  "required_hardware": [
+    "ESP32 DevKit (any variant with accessible GPIOs)",
+    "Breadboard and jumper wires",
+    "1x standard LED + 330 Ω resistor (step 1)",
+    "16×2 LCD with I2C backpack (I2C address 0x27) (steps 2–4)",
+    "Potentiometer (10 kΩ) (steps 2–4)",
+    "USB cable (data cable, not charge-only — required for Serial Monitor)"
   ],
-  "hardware": {
-    "target": "esp32",
-    "sensor": null,
-    "wiring": "No external hardware required for this chapter."
-  },
   "steps": [
+
     {
-      "section": "11.0",
-      "title": "Chapter 11 — Introduction",
-      "subtitle": "Hardware, software, and the negotiation between them",
+      "step_id": "step1_baseline",
+      "step_number": 1,
+      "title": "A blink that almost works",
+      "estimated_minutes": 12,
+
+      "opening_line": "Today you'll make an LED blink. Then you'll make it fail. Then you'll understand why chips have the peripherals they do.",
+
       "content_blocks": [
         {
-          "type": "key_idea",
-          "text": "If the rest of this course has been about <strong>what's inside a SoC</strong>, this chapter is about <strong>how you actually design one</strong>—or, more realistically, how you design a product <em>on top of</em> an existing SoC like the ESP32. Every serious embedded project is a negotiation between <strong>hardware</strong> (logic, accelerators, peripherals, power domains) and <strong>software</strong> (CPUs, RTOS tasks, firmware frameworks)."
+          "type": "prose",
+          "text": "You've blinked LEDs before. This one is no different — except you're going to measure it carefully, and you're going to find that it isn't quite what you expected."
         },
         {
-          "type": "callout",
-          "style": "info",
-          "text": "You've already made hardware/software co-design decisions in labs without calling them that: using the ESP32's AES engine instead of hand-coded AES in C; offloading sampling to timers, DMA, and I²S instead of busy-waiting in loops; letting the ULP co-processor wake the main cores only when needed. This chapter pulls those instincts into a structured flow."
+          "type": "task",
+          "heading": "Build it",
+          "text": "Wire one LED to GPIO 18 through a 330 Ω current-limiting resistor to ground. Connect your oscilloscope probe to GPIO 18 with the ground clip on the ESP32's GND rail."
         },
         {
-          "type": "comparison_table",
-          "heading": "The co-design flow — five stages",
-          "columns": ["Stage", "What you do"],
-          "rows": [
-            ["1. Requirements", "Define measurable targets before writing any code or RTL"],
-            ["2. Partitioning", "Decide which functions run in software vs. hardware/accelerators"],
-            ["3. Modeling", "Estimate performance and energy; catch big mistakes cheaply"],
-            ["4. Implementation", "Write RTL and firmware; define hardware/software interfaces"],
-            ["5. Integration", "Bring pieces together; debug mismatches; run CI on both sides"]
-          ]
+          "type": "reference",
+          "heading": "Wiring diagram",
+          "asset": "assets/step1_wiring.png"
+        },
+        {
+          "type": "task",
+          "heading": "Flash it",
+          "text": "Open step1_baseline.ino (in hardware/starter_code/step1_baseline/) and flash it to your ESP32. The LED will begin blinking once per second."
+        },
+        {
+          "type": "task",
+          "heading": "Measure it",
+          "text": "Open Serial Monitor in Arduino IDE (Tools → Serial Monitor, baud 115200). You will see a line printed after every full blink cycle: 'Period: 1002 ms  |  Frequency: 0.9980 Hz'. Watch it for about 10 cycles and record a representative frequency value."
         }
       ],
-      "question": {
-        "type": "mc",
-        "text": "Which of the following best describes hardware/software co-design?",
+
+      "interactive_moment": {
+        "type": "numeric_entry",
+        "prompt": "What frequency did Serial Monitor report?",
+        "field_label": "Measured frequency (Hz)",
+        "placeholder": "e.g. 0.9987",
+        "expected_range": [0.95, 1.05],
+        "out_of_range_feedback": "That's outside the range we'd expect for this code. Make sure Serial Monitor is at 115200 baud and the step1_baseline firmware is running.",
+        "on_valid_entry": "Your measurement is logged. Nobody in this class will report exactly 1.0000 Hz — and that's the point."
+      },
+
+      "short_answer_prompt": {
+        "question_id": "q1_why_not_exact",
+        "prompt": "Your scope reading isn't exactly 1.0000 Hz. In 2–3 sentences, explain why. What is the ESP32 actually doing, and why can't the software produce a perfect 1 Hz signal?",
+        "word_limit": 80,
+        "grading_ref": "grading.json#q1_why_not_exact"
+      },
+
+      "reveal": {
+        "heading": "The short answer",
+        "text": "Your ESP32 is running a loop: turn LED on, wait 500 ms, turn LED off, wait 500 ms. But 'wait 500 ms' in software isn't perfectly precise. The CPU also services background interrupts — the RTOS tick, the USB peripheral, the WiFi radio if it's powered on. Each one steals a handful of microseconds. Serial Monitor showed you the real period: slightly more than 1000 ms, never exactly. Over many cycles, those microseconds accumulate and your frequency drifts off by a fraction of a percent. The CPU isn't broken. It's just doing exactly what it's designed to do: running code, one instruction at a time, while interruptions happen. Hold onto that idea — it's about to matter a lot more."
+      },
+
+      "transition_to_next_step": "Right now, a ~0.3% frequency error is probably invisible to you. In the next step, we'll turn up the difficulty until software's imperfection becomes impossible to miss."
+    },
+
+    {
+      "step_id": "step2_overload",
+      "step_number": 2,
+      "title": "Software under pressure",
+      "estimated_minutes": 15,
+
+      "opening_line": "You blinked an LED. Now you're going to break something more interesting — and this time you'll feel the failure, not just measure it.",
+
+      "content_blocks": [
+        {
+          "type": "prose",
+          "text": "The firmware you're about to flash does three things at once: it reads a potentiometer through the ESP32's ADC, it displays the value on an LCD, and it runs a background CPU load task that hammers the processor with floating-point math. That load task isn't doing anything useful — it's a stand-in for any heavy computation a real device might need to run (signal processing, encryption, protocol parsing). Watch what happens to the LCD when both tasks compete for the same CPU."
+        },
+        {
+          "type": "task",
+          "heading": "Build the circuit",
+          "text": "Keep your step 1 LED in place. Add: (1) Potentiometer — middle pin to GPIO 34, outer pins to 3.3 V and GND. (2) LCD 16×2 with I2C backpack — SDA to GPIO 21, SCL to GPIO 22, VCC to 5 V, GND to GND."
+        },
+        {
+          "type": "reference",
+          "heading": "Wiring diagram",
+          "asset": "assets/step2_wiring.png"
+        },
+        {
+          "type": "task",
+          "heading": "Flash it",
+          "text": "Open step2_overload.ino (hardware/starter_code/step2_overload/) and flash it to your ESP32. The LCD will show 'CECS 460 Step 2' briefly, then start displaying the knob percentage."
+        },
+        {
+          "type": "task",
+          "heading": "Stress it",
+          "text": "Slowly turn the potentiometer back and forth. Watch the LCD percentage update. Notice anything? Now look at the bottom row of the LCD — it should say 'SW Poll  LAGGING'. That message is there because the firmware already knows what's happening."
+        }
+      ],
+
+      "interactive_moment": {
+        "type": "multiple_choice",
+        "prompt": "What do you observe when you turn the potentiometer while the CPU load is running?",
         "choices": [
-          "Writing firmware that runs on a CPU without any custom hardware",
-          "Designing hardware blocks in isolation from the software that will use them",
-          "A structured process for deciding which functions run in hardware vs. software based on requirements, measurements, and constraints",
-          "Porting an existing C library to run on an FPGA"
+          "The LCD updates instantly — no visible delay",
+          "The LCD lags behind the knob position by a noticeable amount",
+          "The LCD freezes completely and never updates",
+          "The ESP32 reboots when the load task starts"
         ],
-        "correct": 2,
-        "explanation": "Co-design means hardware and software are designed together, not in isolation. The process starts with requirements, uses measurements to guide partitioning decisions, and keeps hardware/firmware teams aligned throughout."
-      }
+        "correct_index": 1,
+        "on_correct": "Exactly. The LCD is slow to follow the knob because the CPU is too busy running the load task to read the ADC and update the display quickly. This is the co-design problem in action.",
+        "on_incorrect": "Look again — turn the knob quickly and watch how long the display takes to catch up. There should be a clear, visible lag."
+      },
+
+      "short_answer_prompt": {
+        "question_id": "q2_why_lag",
+        "prompt": "The CPU load task and the ADC polling loop share the same processor. In 2–3 sentences, explain why this causes the LCD to lag. What is the CPU doing when it should be reading the ADC?",
+        "word_limit": 80,
+        "grading_ref": "grading.json#q2_why_lag"
+      },
+
+      "reveal": {
+        "heading": "What's happening inside",
+        "text": "The ESP32 runs your loop() function one line at a time. Every loop iteration, it runs the full CPU load — 5,000 iterations of floating-point math — before it ever reads the ADC or updates the display. The ADC and LCD have to wait their turn. The more expensive the load, the longer the wait, and the more the LCD falls behind the knob. This is called CPU starvation: two tasks competing for one processor, and only one of them winning. In a real system, this might mean a sensor stops responding, a motor loses its control loop, or a safety interlock misses a deadline."
+      },
+
+      "transition_to_next_step": "The failure is visible. But how bad is it, really? In the next step you'll open Serial Monitor and measure exactly how much the sample rate has degraded."
     },
+
     {
-      "section": "11.predict",
-      "title": "Three LEDs, One Frequency — Predict the Winner",
-      "subtitle": "Before you flash the code — reason from first principles",
+      "step_id": "step3_diagnose",
+      "step_number": 3,
+      "title": "Why did it fail?",
+      "estimated_minutes": 15,
+
+      "opening_line": "You saw the problem. Now measure it. A co-design engineer doesn't just notice something is slow — they put a number on it.",
+
       "content_blocks": [
         {
-          "type": "key_idea",
-          "text": "You are about to test three different ways to blink an LED at the same target frequency on the same ESP32. <strong>LED1 (GPIO 18)</strong> uses <code>delayMicroseconds()</code> busy-wait inside <code>loop()</code> — the CPU counts microseconds the entire time. <strong>LED2 (GPIO 19)</strong> uses a hardware timer ISR — the timer peripheral fires at the programmed interval and the CPU briefly handles an interrupt each half-period. <strong>LED3 (GPIO 21)</strong> uses the LEDC peripheral — the CPU configures a clock divider once in <code>setup()</code>, then the peripheral drives the pin autonomously with <strong>zero CPU involvement</strong> after that. All three are configured for the same target frequency. The question: which one survives a heavy CPU workload best?"
+          "type": "prose",
+          "text": "The step2_overload firmware is still running. It's already printing ADC sample rate data to Serial Monitor every 500 ms. Open Serial Monitor and watch the numbers. You'll see lines like: [SW] Sample rate: 42.3 Hz  |  Knob: 67%. That rate tells you exactly how many ADC readings the CPU managed per second while running the load task."
         },
         {
-          "type": "comparison_table",
-          "heading": "Three timing methods — resources used",
-          "columns": ["LED", "GPIO", "Timing Method", "CPU involvement after setup"],
-          "rows": [
-            ["LED1", "18", "Software busy-wait (delayMicroseconds in loop)", "100% — CPU is counting the entire delay"],
-            ["LED2", "19", "Hardware timer ISR", "Brief — CPU handles a short interrupt each half-period"],
-            ["LED3", "21", "LEDC peripheral (clock divider)", "Zero — silicon clock divider drives pin autonomously"]
-          ]
+          "type": "task",
+          "heading": "Open Serial Monitor",
+          "text": "In Arduino IDE: Tools → Serial Monitor, set baud to 115200. You should immediately see sample rate lines printing every half-second. Let it run for at least 10 seconds to get a stable average."
         },
         {
           "type": "callout",
           "style": "info",
-          "text": "This is the prediction step. Flash nothing yet. Reason from what you know about how each method works. The sketch results come in the next step."
+          "text": "The firmware reads the ADC as fast as the loop allows, counting every sample. Every 500 ms it prints how many samples it took — that's your sample rate in Hz. The higher the CPU load, the fewer samples per second."
+        },
+        {
+          "type": "task",
+          "heading": "Record the number",
+          "text": "Watch the Serial Monitor for 30 seconds and note the sample rate. It will fluctuate slightly — that's normal. Write down a representative value."
         }
       ],
-      "question": {
-        "type": "free_response",
-        "text": "All three LEDs are told to blink at 5 Hz. The ESP32 is given a heavy CPU workload simultaneously. Rank the three LEDs from MOST accurate to LEAST accurate under load, and explain WHY each one behaves the way it does. Reference the specific hardware resource each method uses for timekeeping.",
-        "placeholder": "Example start: LED3 (LEDC) will be most accurate because...",
-        "hint": "Think about which resource each method relies on to keep time. What happens to that resource when the CPU is busy?"
-      }
+
+      "interactive_moment": {
+        "type": "numeric_entry",
+        "prompt": "What sample rate (Hz) does Serial Monitor report for the software ADC polling?",
+        "field_label": "Sample rate (Hz)",
+        "placeholder": "e.g. 42.0",
+        "expected_range": [5, 500],
+        "out_of_range_feedback": "That seems outside the expected range. Make sure Serial Monitor is set to 115200 baud and that the step2_overload firmware is still running.",
+        "on_valid_entry": "Your measurement is logged. Keep this number — you'll compare it directly against Step 4."
+      },
+
+      "short_answer_prompt": {
+        "question_id": "q3_diagnose",
+        "prompt": "The sample rate you measured tells you how often the CPU managed to read the ADC. In 2–3 sentences, explain what this number means for the system. If this were a real sensor (e.g., reading temperature 50 times per second is required), what would happen?",
+        "word_limit": 80,
+        "grading_ref": "grading.json#q3_diagnose"
+      },
+
+      "reveal": {
+        "heading": "What the numbers mean",
+        "text": "A sample rate of ~40 Hz means the CPU read the ADC about 40 times per second. For a knob on an LCD that's merely annoying. For a real application — say, a closed-loop motor controller that needs 1,000 samples per second, or a safety sensor that must never miss a reading — 40 Hz would be a hard failure. The data makes visible what the eye only hints at: the CPU is so busy with the load task that the ADC read barely gets a turn. This is how you turn 'it feels laggy' into 'it is missing its deadline by 25×' — a number you can actually take to a partitioning decision."
+      },
+
+      "transition_to_next_step": "You have the before number. In Step 4, you'll flash the DMA version, run the same CPU load, and measure again. The fix is one hardware peripheral away."
     },
+
     {
-      "section": "11.measure",
-      "title": "Flash, Observe, and Load-Test",
-      "subtitle": "Put real numbers on the failure — and the fix",
+      "step_id": "step4_rescue",
+      "step_number": 4,
+      "title": "The accelerator",
+      "estimated_minutes": 20,
+
+      "opening_line": "Same hardware. Same CPU load. Different result — because the CPU is no longer doing the work.",
+
       "content_blocks": [
         {
-          "type": "key_idea",
-          "text": "Wire up three LEDs and flash <code>04_visual_demo.ino</code> to your ESP32 DOIT DevKit V1. Each LED needs its own 220Ω current-limiting resistor in series between the GPIO pin and the LED anode; LED cathodes go to GND. Once flashed, open the Serial Monitor at <strong>115200 baud</strong>. You will see one line per second showing the measured frequency and error percentage for LED1 and LED2, the status of LED3, and the current load level."
+          "type": "prose",
+          "text": "The ESP32 contains a DMA (Direct Memory Access) controller. DMA hardware can move data between peripherals and memory completely on its own — the CPU sets it up once, then goes back to whatever else it was doing. Step 4 uses the ESP32's I2S peripheral in ADC-DMA mode: the hardware samples the potentiometer at 10,000 times per second and fills a buffer automatically. The CPU loop doesn't poll the ADC at all — it just picks up the already-filled buffer whenever it needs a value."
+        },
+        {
+          "type": "callout",
+          "style": "info",
+          "text": "The wiring is identical to Step 2. You are not changing any hardware. The only change is firmware: analogRead() is replaced by DMA buffer reads via the I2S ADC driver. This is exactly what hardware/software partitioning looks like in practice — move the data-movement work off the CPU onto a dedicated hardware block."
+        },
+        {
+          "type": "task",
+          "heading": "Flash Step 4",
+          "text": "Open step4_accelerator.ino (hardware/starter_code/step4_accelerator/) and flash it to your ESP32. Do not change any wiring. The LCD will briefly show 'DMA Accelerator', then start displaying the knob value again."
+        },
+        {
+          "type": "task",
+          "heading": "Observe the LCD",
+          "text": "Turn the potentiometer. The LCD bottom row now reads 'DMA      SMOOTH'. Verify that the LCD tracks the knob without visible lag — even though the same CPU load is still running."
+        },
+        {
+          "type": "task",
+          "heading": "Measure the sample rate",
+          "text": "Open Serial Monitor (115200 baud). You'll now see [DMA] Sample rate: lines. Record this number. Compare it to what you measured in Step 3."
+        }
+      ],
+
+      "interactive_moment": {
+        "type": "numeric_entry",
+        "prompt": "What sample rate (Hz) does Serial Monitor report now, with DMA handling the ADC?",
+        "field_label": "DMA sample rate (Hz)",
+        "placeholder": "e.g. 420.0",
+        "expected_range": [50, 15000],
+        "out_of_range_feedback": "That's outside the expected range for the DMA path. Make sure step4_accelerator.ino is flashed (not step2) and Serial Monitor is at 115200 baud.",
+        "on_valid_entry": "Logged. That is your 'after' number. The difference between this and your Step 3 reading is the co-design payoff."
+      },
+
+      "short_answer_prompt": {
+        "question_id": "q4_accelerator",
+        "prompt": "Compare your Step 3 and Step 4 sample rates. In 2–3 sentences, explain what the DMA controller did differently from the software polling loop. Why did offloading to DMA fix the problem without changing the CPU load at all?",
+        "word_limit": 100,
+        "grading_ref": "grading.json#q4_accelerator"
+      },
+
+      "reveal": {
+        "heading": "What changed — and why it worked",
+        "text": "In Step 2, every ADC sample required the CPU to stop what it was doing, call analogRead(), wait for the result, and return. Under heavy load, those CPU-in-the-loop samples had to queue behind 5,000 float operations. In Step 4, the DMA controller samples the ADC at 10 kHz autonomously — it has its own hardware path from the ADC to memory and doesn't need the CPU at all. When the CPU loop finally checks for a value, the buffer is already full. The CPU spends zero time waiting for the ADC. The load task and the ADC sampling now run in true parallel: one on the CPU, one on dedicated hardware. This is hardware/software co-design in action."
+      },
+
+      "transition_to_next_step": "You've seen the failure and the fix. The last step is the decision: given a real system requirement, how do you decide what goes in software and what goes in hardware?"
+    },
+
+    {
+      "step_id": "step5_partition",
+      "step_number": 5,
+      "title": "The partition decision",
+      "estimated_minutes": 20,
+
+      "opening_line": "Software is easier to change. Hardware is faster. Every co-design decision is a trade between those two facts.",
+
+      "content_blocks": [
+        {
+          "type": "prose",
+          "text": "You just ran the same experiment industry engineers run before committing to a hardware block: implement it in software, measure it, and only move it to hardware if the measurement shows software can't meet the requirement. That's the start-in-software rule. It isn't 'always use software' — it's 'don't add hardware complexity until measurement forces you to.'"
         },
         {
           "type": "comparison_table",
-          "heading": "Wiring",
-          "columns": ["GPIO", "Method", "Resistor", "Notes"],
+          "heading": "Hardware vs. software — when each wins",
+          "columns": ["Factor", "Favor software", "Favor hardware"],
           "rows": [
-            ["18", "Software busy-wait (LED1)", "220Ω", "Cathode to GND, anode through resistor to GPIO 18"],
-            ["19", "Hardware timer ISR (LED2)", "220Ω", "Cathode to GND, anode through resistor to GPIO 19"],
-            ["21", "LEDC peripheral (LED3)", "220Ω", "Cathode to GND, anode through resistor to GPIO 21"]
+            ["Performance", "Software meets the deadline with headroom", "Software misses the deadline even optimized"],
+            ["Energy", "Duty cycle is low — CPU overhead is negligible", "Task runs continuously and dominates power budget"],
+            ["Flexibility", "Requirements change frequently", "Requirements are frozen and well-specified"],
+            ["Cost", "Existing peripheral works (DMA, AES engine)", "Requires custom RTL — adds NRE cost and schedule"],
+            ["Debuggability", "Default for new designs — easier to observe", "Only after validation; debug hooks must be planned"]
           ]
         },
         {
           "type": "callout",
           "style": "warning",
-          "text": "Record one Serial Monitor reading at EACH load level. Type <code>l</code> to cycle: NONE → LIGHT → HEAVY → BRUTAL. At BRUTAL load and 5 Hz, watch the LEDs visually — you should be able to count the blink difference."
+          "text": "Moving a function to hardware doesn't automatically make the system faster. If the time to feed data into the hardware block (DMA setup, buffer copies, interrupt latency) exceeds the compute savings, you gain nothing. Always measure the full path, not just the compute kernel."
         },
         {
-          "type": "callout",
-          "style": "info",
-          "text": "Serial Monitor commands: <code>l</code> = cycle load (NONE → LIGHT → HEAVY → BRUTAL), <code>+</code> = double frequency, <code>-</code> = halve frequency, <code>r</code> = reset to 5 Hz with no load."
+          "type": "task",
+          "heading": "Decision matrix",
+          "text": "For each scenario below, decide: software or hardware? Write your answer and a one-sentence justification.\n\n(A) A temperature sensor is read once every 30 seconds and sent over MQTT. Reading takes ~50 µs in software.\n\n(B) An audio codec streams 48,000 16-bit samples per second from a microphone. The CPU must also run a voice-activity detection algorithm in real time.\n\n(C) An AES-128 key is rotated every 24 hours. Each rotation calls the AES engine once."
         }
       ],
-      "question": {
-        "type": "free_response",
-        "text": "At BRUTAL load, describe what you observed VISUALLY (not just Serial output numbers). Which LEDs were visibly different from each other? What does that visual difference tell you about where the timing job was executing for each LED?",
-        "placeholder": "At BRUTAL load I observed...",
-        "hint": "Focus on what your eyes told you, not the Serial numbers. Could you count a difference in blink rate? What does a slower blink on LED1 mean about what the CPU was doing?"
-      }
-    },
-    {
-      "section": "11.1",
-      "title": "11.1 — Requirements and Specification",
-      "subtitle": "Good co-design starts before anyone writes Verilog or C",
-      "content_blocks": [
-        {
-          "type": "key_idea",
-          "text": "Requirements drive everything. Consider a battery-powered ESP32 smart sensor node that measures temperature/humidity and reports data securely over Matter. Its requirements fall into three categories: <strong>functional</strong> (take a reading every 60 s, transmit over Wi-Fi/BLE/Thread, indicate status with one LED), <strong>non-functional</strong> (≥1 year battery life, BOM cost under target, &lt;500 ms wake-to-send latency), and <strong>security</strong> (keys stored securely, no plain-text radio packets). From a co-design perspective these drive everything: energy and latency requirements push you toward hardware radio blocks, hardware crypto, and deep sleep; cost constraints push you toward reusing existing IP rather than inventing custom silicon."
-        },
-        {
-          "type": "comparison_table",
-          "heading": "Concrete vs. vague requirements",
-          "columns": ["Vague (unacceptable)", "Concrete (acceptable)"],
-          "rows": [
-            ["\"Low power\"", "\"Active current ≤ 45 mA at 3.3 V\""],
-            ["\"Fast response\"", "\"End-to-end latency ≤ 200 ms from sensor to cloud\""],
-            ["\"Easy to update\"", "\"OTA firmware update completes within 90 s over Wi-Fi\""],
-            ["\"Secure\"", "\"AES-128 encryption on every transmitted packet, key rotated every 24 h\""]
-          ]
-        },
-        {
-          "type": "callout",
-          "style": "info",
-          "text": "A good specification is <strong>concrete</strong> (measurable targets with units and thresholds), <strong>stable enough</strong> to avoid constant churn, and <strong>shared</strong> — hardware, firmware, and test all work from the same document. Documenting requirements early reduces scope creep and gives you a checklist for verification later."
-        }
-      ],
-      "question": {
-        "type": "mc",
-        "text": "A product manager writes: \"The device should have good battery life.\" Why is this requirement unacceptable for co-design?",
+
+      "interactive_moment": {
+        "type": "multiple_choice",
+        "prompt": "Scenario B (48 kHz audio streaming) — which approach is correct and why?",
         "choices": [
-          "It does not specify the battery chemistry or cell count",
-          "It cannot be measured, tested, or used to make a hardware/software partitioning decision",
-          "Battery life is a manufacturing concern, not a design concern",
-          "It should be phrased as a non-functional requirement instead"
+          "Software polling: 48,000 reads/sec is only 2.4 M ADC calls/sec — the CPU can handle it",
+          "DMA: 48,000 samples/sec would consume nearly all CPU time in a polling loop, leaving nothing for other tasks",
+          "Hardware AES engine: audio streaming is a cryptographic workload",
+          "ULP co-processor: audio always needs ultra-low-power sampling"
         ],
-        "correct": 1,
-        "explanation": "\"Good battery life\" has no units, no threshold, and no test condition. Without a concrete target (e.g., \"≥1 year at one reading/minute on a 1000 mAh Li-ion cell\"), the team cannot determine whether a ULP wakeup circuit in hardware is necessary or whether firmware-only deep sleep is sufficient. The vague requirement makes partitioning decisions guesswork."
-      }
-    },
-    {
-      "section": "11.2",
-      "title": "11.2 — Hardware/Software Partitioning",
-      "subtitle": "Deciding where each function lives",
-      "content_blocks": [
-        {
-          "type": "key_idea",
-          "text": "<strong>Start in software unless you have a strong reason not to.</strong> Software is easier to change and patch, easier to debug (printfs, breakpoints, logging), and reusable across products and silicon revisions. You only start thinking about hardware when <em>measurement</em> shows that a specific operation dominates CPU time or energy — for example, AES/SHA for secure networking, a heavy FIR filter in a DSP chain, or a math-heavy control or ML loop. The questions then become: Can the CPU handle it at a reasonable clock and power? Are there existing accelerators (AES engine, DSP, I²S+DMA, ULP core) available? Is the product high-volume enough to justify custom hardware?"
-        },
-        {
-          "type": "comparison_table",
-          "heading": "ESP32 smart sensor — partitioning example",
-          "columns": ["Function", "Lives in", "Reason"],
-          "rows": [
-            ["Radio MAC/PHY", "Hardware", "Wi-Fi/BLE/Thread implemented in dedicated radio blocks"],
-            ["AES/SHA crypto", "Hardware", "Crypto engines reduce CPU time and energy per packet"],
-            ["Deep sleep wakeup", "Hardware (ULP + RTC)", "ULP samples periodically while main CPU is off"],
-            ["Matter stack / app logic", "Software (FreeRTOS)", "Complex, frequently updated, benefits from OTA patches"],
-            ["Power management task", "Software (FreeRTOS)", "Decides sleep schedule; policy changes without a respin"],
-            ["UI (button + LED)", "Software (FreeRTOS)", "Simple I/O; easily changed to accommodate UX feedback"]
-          ]
-        },
-        {
-          "type": "callout",
-          "style": "warning",
-          "text": "<strong>Over-optimistic accelerator trap:</strong> Moving a function to hardware does not automatically make it faster end-to-end. If the time to move data <em>into</em> the accelerator (buffer copies, interrupt setup, DMA descriptors) exceeds the compute savings, you gain nothing. Always measure the <em>full path</em>, not just the compute kernel."
-        }
-      ],
-      "question": {
-        "type": "mc",
-        "text": "A firmware profiler shows that software AES-128 consumes 280 µs per call. The device encrypts one packet every 500 ms. Should this function be moved to the ESP32 hardware AES engine?",
-        "choices": [
-          "Yes — any function that takes more than 100 µs should always be in hardware",
-          "No — 280 µs is only 0.056% of a 500 ms interval, so CPU headroom is not a problem",
-          "Yes — hardware AES is always more energy-efficient regardless of call frequency",
-          "No — the ESP32 hardware AES engine only supports AES-256"
-        ],
-        "correct": 1,
-        "explanation": "280 µs / 500,000 µs = 0.056% CPU utilization. That's not a bottleneck at this call rate. The start-in-software rule says you only move to hardware when a specific operation demonstrably dominates CPU time or energy — 0.056% does not qualify. If the packet rate increased to one every ~3–5 ms (approaching 5–10% CPU), offloading would become worth evaluating."
-      }
-    },
-    {
-      "section": "11.2b",
-      "title": "11.2 — The Business Dimension: Tape-Out",
-      "subtitle": "Why hardware decisions are permanent",
-      "content_blocks": [
-        {
-          "type": "key_idea",
-          "text": "<strong>Tape-out</strong> is the moment a chip design is sent to a semiconductor foundry to generate photomasks and begin wafer fabrication. Any bug in the RTL is replicated across every die on every wafer. Fixing a hardware bug after tape-out requires a <strong>respin</strong>: new masks, new wafer runs, months of schedule delay, and millions of dollars at advanced nodes. This is why tape-out is called the <em>point of no return</em>. Software is fundamentally different: a firmware patch requires engineering effort but no new masks, and in many products it can be pushed over the air in days or weeks."
-        },
-        {
-          "type": "comparison_table",
-          "heading": "Cost to fix a bug: hardware vs. firmware",
-          "columns": ["Fix type", "Mechanism", "Schedule impact", "Cost"],
-          "rows": [
-            ["Firmware patch", "Push OTA update to all devices", "Days to weeks", "Engineering time only"],
-            ["Hardware workaround", "Firmware avoids broken block; uses alternate path", "Weeks", "Engineering time + possible perf penalty"],
-            ["Respin (metal fix)", "New mask layers, limited RTL change", "3–6 months", "$500K–$2M at 28 nm"],
-            ["Full respin", "New mask set, all layers", "6–18 months", "$2M–$10M+ at advanced nodes"]
-          ]
-        },
-        {
-          "type": "callout",
-          "style": "info",
-          "text": "This asymmetry leads to a key guideline: functionality that is <strong>likely to change</strong> (complex protocols, UI behavior, business logic) belongs in software if performance allows. Functions that must be <strong>extremely fast, energy-efficient, or security-critical</strong> (crypto engines, safety shutdown logic, DRAM controllers) are good candidates for hardware — but only after very careful specification and verification."
-        }
-      ],
-      "question": {
-        "type": "mc",
-        "text": "After a chip tapes out, engineers discover that the hardware timer block has a bug causing a 0.08% timing error — well within the firmware's acceptable tolerance. A respin would cost $3M and delay launch by 8 months. What is the correct decision, and what principle does it illustrate?",
-        "choices": [
-          "Always respin — hardware bugs must be fixed in hardware",
-          "Ship with a firmware workaround; the cost and schedule impact of a respin far outweigh a correctable 0.08% error, illustrating the tape-out point of no return",
-          "Cancel the product — hardware bugs at this stage are unrecoverable",
-          "Release a software patch post-launch and notify customers of the hardware defect"
-        ],
-        "correct": 1,
-        "explanation": "0.08% timing error is negligible and firmware can absorb it. Spending $3M and 8 months on a respin for a tolerable error is economically irrational. This illustrates the tape-out asymmetry: firmware workarounds ship in weeks at near-zero cost, while hardware fixes are catastrophically expensive. The lesson for co-design: keep flexible/changeable logic in software, and only commit to hardware after careful verification."
-      }
-    },
-    {
-      "section": "11.2c",
-      "title": "11.2 — Common Co-Design Pitfalls",
-      "subtitle": "Traps that catch student projects and real SoC teams alike",
-      "content_blocks": [
-        {
-          "type": "key_idea",
-          "text": "Good co-design is as much about <strong>communication and process</strong> as it is about clever architectures. The same pitfalls appear in student projects and billion-dollar SoC programs."
-        },
-        {
-          "type": "comparison_table",
-          "heading": "Common co-design pitfalls",
-          "columns": ["Pitfall", "What happens", "How to avoid it"],
-          "rows": [
-            ["Vague or changing requirements", "\"We'll figure it out later\" leads to conflicting assumptions and late surprises", "Lock a concrete spec before any RTL or firmware is written"],
-            ["Mismatched interface assumptions", "Different expectations for reset behavior, timing, or data formats at the HW/FW boundary", "Write a shared register map / interface spec both teams sign off on"],
-            ["Over-optimistic accelerators", "Fancy accelerator designed, but data-movement overhead kills the speedup", "Benchmark the full path (DMA setup + compute + readback), not just the kernel"],
-            ["Not enough debug hooks", "No status registers, counters, or trace; bugs become impossible to localize", "Design observability in from day one — counters, interrupt status, loopback modes"],
-            ["Version skew", "HW and FW teams using different versions of a spec or register map", "Single source-of-truth document in version control; generate headers from it"]
-          ]
-        }
-      ],
-      "question": {
-        "type": "mc",
-        "text": "A hardware team adds a new AES accelerator. The firmware team writes a driver assuming the accelerator uses a 128-bit input buffer at offset 0x10, but the hardware team changed it to offset 0x14 in a last-minute RTL update. What pitfall does this represent, and what process would have prevented it?",
-        "choices": [
-          "Over-optimistic accelerator trap — the accelerator should have been benchmarked first",
-          "Version skew / interface mismatch — a shared, version-controlled register map that both teams reference would have caught the divergence",
-          "Vague requirements — a more concrete performance spec would have locked the address",
-          "Missing debug hooks — a loopback mode would have revealed the wrong offset"
-        ],
-        "correct": 1,
-        "explanation": "This is a classic interface mismatch caused by version skew: the hardware changed without the firmware team knowing. The fix is a single source-of-truth register map (e.g., a YAML/JSON hardware description) committed to version control, from which both RTL parameters and firmware header files are automatically generated. Any change to the register map forces a deliberate update in both codebases."
-      }
-    },
-    {
-      "section": "11.3",
-      "title": "11.3 — Modeling and Simulation",
-      "subtitle": "Sanity-check decisions before committing to RTL or complex firmware",
-      "content_blocks": [
-        {
-          "type": "key_idea",
-          "text": "Once you tentatively decide what's hardware and what's software, you want to catch big mistakes <em>cheaply</em> before committing. Industry teams use high-level modeling languages (SystemC, MATLAB/Simulink), transaction-level models (TLM), and co-simulation frameworks that run firmware on an instruction-set simulator connected to a hardware model. These are powerful but heavyweight. For this course, modeling can be much simpler: write pseudocode or a simple C/MATLAB prototype of the algorithm, estimate operations per sample/packet, run it on the ESP32, and measure timing and energy using timers and current probes. Even this simple setup can catch big architectural mistakes early."
-        },
-        {
-          "type": "comparison_table",
-          "heading": "Course-level vs. industry-level modeling",
-          "columns": ["Approach", "Tools", "What it catches", "What it misses"],
-          "rows": [
-            ["CECS 460 (board measurement)", "ESP32 + timer API + current probe", "CPU bottlenecks, energy per operation, rough latency", "Bus contention, cache effects, multi-block interactions"],
-            ["SystemC / TLM", "SystemC simulator, custom models", "Architectural performance, bus bandwidth, block interactions", "Detailed timing, power gating, silicon-specific behavior"],
-            ["Full co-simulation", "ISS + RTL simulator (Synopsys, Cadence)", "Firmware-hardware protocol bugs, interrupt latency, DMA races", "Slow — can't run full OS workloads; expensive licenses"]
-          ]
-        },
-        {
-          "type": "callout",
-          "style": "info",
-          "text": "Try ideas in a model or prototype first, then commit to expensive implementation steps. The underlying principle is the same whether you're writing a quick C benchmark on the ESP32 or setting up a full SystemC co-simulation: <strong>cheap experiments early save expensive respins late.</strong>"
-        }
-      ],
-      "question": {
-        "type": "mc",
-        "text": "For a CECS 460 project you time a software SHA-256 hash at 320 µs per block on the ESP32. Packets arrive every 10 ms. Which conclusion is most justified by this measurement alone?",
-        "choices": [
-          "Hardware SHA acceleration is mandatory — 320 µs is always too slow",
-          "320 µs / 10,000 µs = 3.2% CPU per packet — software is acceptable now, but moving to hardware SHA becomes worth evaluating if packet rate doubles or triples",
-          "The firmware is broken — SHA-256 should take under 10 µs on any modern MCU",
-          "SystemC co-simulation is needed before any partitioning decision can be made"
-        ],
-        "correct": 1,
-        "explanation": "320 µs / 10,000 µs = 3.2% CPU utilization. That's not a bottleneck at the current rate, so the start-in-software rule says stay in software for now. But if the packet rate doubled to one every 5 ms, CPU load would hit ~6.4%, approaching the range where hardware SHA (typically 2–8 µs) starts making economic sense. Simple board measurement gives you exactly this kind of data-driven insight without any heavy tooling."
-      }
-    },
-    {
-      "section": "11.4",
-      "title": "11.4 — Implementation and Integration",
-      "subtitle": "RTL, firmware, interfaces, and debug tools working together",
-      "content_blocks": [
-        {
-          "type": "key_idea",
-          "text": "After partitioning and modeling, hardware and firmware teams implement their respective pieces and bring them together. <strong>Hardware designers</strong> write RTL in Verilog/VHDL, synthesize to gate-level netlists, run timing/power/area analysis, and define the hardware/software interface: memory-mapped registers (control, status, configuration), interrupt behavior and handshakes, and reset behavior. <strong>Firmware developers</strong> write C/C++ (or Rust) on SoC-specific SDKs — for ESP32 that's ESP-IDF or Arduino-ESP32 with FreeRTOS — creating tasks for networking, application logic, sensing, UI, and power management."
-        },
-        {
-          "type": "comparison_table",
-          "heading": "Hardware/software interface elements",
-          "columns": ["Element", "What it defines", "Who owns it"],
-          "rows": [
-            ["Memory-mapped registers", "Addresses, bit fields, R/W/RO/WO semantics, reset values", "Hardware (shared spec)"],
-            ["Interrupts", "Trigger conditions, priority, enable/mask bits, clear procedure", "Hardware (shared spec)"],
-            ["DMA descriptors", "Buffer addresses, sizes, linked-list format, completion signals", "Hardware (shared spec)"],
-            ["Reset behavior", "Which registers reset to what value; soft vs. hard reset", "Hardware (shared spec)"],
-            ["Driver code", "C structs, inline accessors, HAL functions wrapping the registers", "Firmware"]
-          ]
-        },
-        {
-          "type": "callout",
-          "style": "warning",
-          "text": "Continuous integration (CI) can build and test both RTL and firmware regularly, catching regressions when someone 'fixes' a block in a way that breaks assumptions elsewhere. Logic analyzers, JTAG, and on-chip trace are essential for debugging mismatches between intended register behavior and what the hardware actually does."
-        }
-      ],
-      "question": {
-        "type": "mc",
-        "text": "You are writing a driver for a custom DMA peripheral. The hardware spec says the 'transfer complete' interrupt is cleared by writing 1 to bit 3 of the STATUS register. Your driver reads the STATUS register, ORs in bit 3, and writes it back. Why is this approach risky?",
-        "choices": [
-          "Writing to a status register is always forbidden in memory-mapped I/O",
-          "A read-modify-write on a status register can accidentally clear other pending interrupt bits that were set between the read and the write",
-          "The DMA controller does not support bit-field writes; the entire register must be written at once",
-          "The interrupt should be cleared in the ISR, not in the driver"
-        ],
-        "correct": 1,
-        "explanation": "This is the classic read-modify-write hazard on write-1-to-clear (W1C) status registers. If another interrupt flag is set between the READ and the WRITE, your OR'd write will also clear that flag before your ISR sees it, silently dropping an event. The correct pattern is to write the constant value with only bit 3 set (e.g., STATUS = (1 << 3)) — no read required. This is a real co-design pitfall: the hardware spec must clearly mark W1C bits, and firmware must follow the protocol exactly."
-      }
-    },
-    {
-      "section": "11.5",
-      "title": "11.5 — Tools and Design Environments",
-      "subtitle": "Firmware frameworks, hardware tools, and the abstraction trade-off",
-      "content_blocks": [
-        {
-          "type": "key_idea",
-          "text": "Modern co-design leans heavily on tools. On the <strong>firmware side</strong>, high-level frameworks like PlatformIO and Zephyr provide board support packages (BSPs), build systems, dependency management, drivers, networking stacks, and RTOS integration — making it much faster to bring up working prototypes. On the <strong>hardware side</strong>, cloud-hosted and open-source tools support RTL editing, synthesis, simulation, and even place-and-route, enabling small teams or courses to explore realistic flows without huge license costs. These tools trade <em>convenience for control</em>: you get productivity and community support, but you may lose visibility into low-level details (exact memory layout, interrupt priorities, fine-tuned timing) and pay a bit in code size or latency."
-        },
-        {
-          "type": "comparison_table",
-          "heading": "Firmware framework comparison",
-          "columns": ["Framework", "Abstraction level", "What it automates", "What you give up"],
-          "rows": [
-            ["Arduino-ESP32", "High", "Peripheral setup, common libraries, easy upload", "Fine-grained interrupt config, register-level control, RTOS visibility"],
-            ["ESP-IDF + FreeRTOS", "Medium", "RTOS tasks, Wi-Fi/BLE stack, NVS, OTA, power management", "Some register-level visibility; framework overhead in tight loops"],
-            ["Bare-metal (no framework)", "Low", "Nothing — you write everything", "Portability, community support, driver maintenance burden"],
-            ["Zephyr RTOS", "Medium-high", "Cross-platform BSPs, device tree, networking, power", "ESP32-specific hardware features may be partially exposed"]
-          ]
-        },
-        {
-          "type": "callout",
-          "style": "info",
-          "text": "For CECS 460, frameworks are great for getting systems working quickly — but it is still useful to occasionally look under the hood so you understand what they are doing for you. Knowing when to drop to bare metal (e.g., when a framework's HAL overhead exceeds a tight timing budget) is a core co-design skill."
-        }
-      ],
-      "question": {
-        "type": "mc",
-        "text": "You need an ADC sampling routine that must complete in under 8 µs. Benchmarking shows the ESP-IDF ADC HAL call takes ~15 µs. What is the best approach, and what is one valid trade-off of that choice?",
-        "choices": [
-          "Use Arduino analogRead() instead — it is faster than ESP-IDF",
-          "Write a bare-metal routine that directly programs the SAR ADC registers; trade-off: you lose the portability and future-proofing that ESP-IDF HAL updates provide",
-          "Switch to a faster MCU — the ESP32 is not capable of sub-8 µs ADC sampling",
-          "Use DMA to batch multiple samples; DMA has lower per-sample overhead than any software path"
-        ],
-        "correct": 1,
-        "explanation": "Arduino analogRead() wraps the same ESP-IDF calls and is likely slower, not faster. DMA batching improves throughput but does not reduce first-sample latency below 8 µs for a single conversion. The correct answer is to bypass the HAL and program the SAR_ADC registers directly — this eliminates framework overhead and can achieve sub-8 µs conversions. The trade-off: your driver is now tied to the ESP32 register map; it will not compile for other targets without a rewrite, and you must manually track any undocumented peripheral errata."
-      }
-    },
-    {
-      "section": "11.S",
-      "title": "Chapter 11 — Summary",
-      "subtitle": "Where architecture, engineering, and economics meet",
-      "content_blocks": [
-        {
-          "type": "key_idea",
-          "text": "Hardware/software co-design is not just a technical discipline — it is also an <strong>economic and organizational</strong> one. Getting it right is what turns a clever idea into a product that works in the field and that a company can afford to build."
-        },
-        {
-          "type": "comparison_table",
-          "heading": "Chapter 11 key takeaways",
-          "columns": ["Concept", "Core rule"],
-          "rows": [
-            ["Requirements", "Concrete, measurable, shared — before any RTL or firmware"],
-            ["Partitioning", "Start in software; measure; move hot spots to hardware only when data says to"],
-            ["Tape-out", "Point of no return — firmware patches cost days, hardware respins cost months and millions"],
-            ["Pitfalls", "Version skew, interface mismatch, vague requirements, over-optimistic accelerators"],
-            ["Modeling", "Simple board measurements catch most big mistakes; industry tools catch subtler ones"],
-            ["Integration", "Shared interface spec + CI + debug hooks (trace, status registers, loopback)"],
-            ["Frameworks", "High abstraction = fast prototype; drop to bare metal only when HAL overhead is measurably too high"]
-          ]
-        },
-        {
-          "type": "callout",
-          "style": "info",
-          "text": "The patterns in Chapter 11 scale from a two-person ESP32 project to a 500-person SoC program. The tools get heavier and the stakes get higher, but the underlying questions are always the same: <em>What must the system do? Where should each function live? What happens if I'm wrong — and how do I find out early?</em>"
-        }
-      ],
-      "question": {
-        "type": "mc",
-        "text": "Which sequence correctly orders the five stages of the hardware/software co-design flow covered in this chapter?",
-        "choices": [
-          "Partitioning → Requirements → Modeling → Implementation → Integration",
-          "Requirements → Partitioning → Modeling → Implementation → Integration",
-          "Modeling → Requirements → Partitioning → Implementation → Integration",
-          "Implementation → Modeling → Partitioning → Requirements → Integration"
-        ],
-        "correct": 1,
-        "explanation": "Requirements come first — you cannot make sensible partitioning decisions without knowing what the system must do. Partitioning follows, then modeling validates those decisions cheaply. Implementation builds each piece, and integration brings everything together. Skipping or reordering steps (especially going straight to implementation before requirements are solid) is the root cause of most co-design failures."
-      }
+        "correct_index": 1,
+        "on_correct": "Correct. At 48 kHz, a polling loop would need to call analogRead() 48,000 times per second — a significant CPU fraction that leaves little room for the detection algorithm, let alone anything else. DMA moves the data autonomously so the CPU only touches it when a full buffer is ready.",
+        "on_incorrect": "Think about the rate: 48,000 samples per second means the CPU needs to service the ADC every 21 µs if polling. That's most of your CPU budget gone before you even start the voice detection. Which hardware block would remove that constraint?"
+      },
+
+      "short_answer_prompt": {
+        "question_id": "q5_partition",
+        "prompt": "Write your own partitioning decision rule in 2–3 sentences. When should a function move from software to hardware? Use what you observed in Steps 2–4 to support your answer — reference your actual measured sample rates.",
+        "word_limit": 100,
+        "grading_ref": "grading.json#q5_partition"
+      },
+
+      "reveal": {
+        "heading": "The rule you just derived",
+        "text": "The start-in-software heuristic: implement in software first, measure under realistic load, and only move to hardware when the measurement shows a specific function is missing its deadline or consuming an unacceptable share of CPU or energy. You did this: Step 2 showed software ADC polling collapsing under load, Step 3 put a number on it (your sample rate), and Step 4 confirmed that DMA fixed it without touching the CPU load at all. That's the full co-design loop — specification, software prototype, measurement, decision, hardware acceleration, re-measurement. Every real SoC design team runs this loop before committing silicon."
+      },
+
+      "transition_to_next_step": "You've completed Chapter 11. The module is done — you now understand hardware/software co-design not as a concept but as something you measured and fixed yourself."
     }
+  ],
+
+  "assets": [
+    "assets/step1_wiring.png",
+    "assets/step2_wiring.png",
+    "hardware/starter_code/step1_baseline/step1_baseline.ino",
+    "hardware/starter_code/step2_overload/step2_overload.ino",
+    "hardware/starter_code/step4_accelerator/step4_accelerator.ino"
   ]
 }

@@ -163,57 +163,69 @@ def submit(chapter):
         if raw:
             steps = raw.get("steps", [])
             if 0 <= int(step) < len(steps):
-                q = steps[int(step)].get("question", {})
-                feedback = q.get("explanation", "")
+                step_obj = steps[int(step)]
                 submitted = str(list(answers.values())[0]) if answers else ""
-                correct_ans = str(q.get("correct", ""))
-                q_type = q.get("type", "mc")
+                q_id_submitted = list(answers.keys())[0] if answers else ""
 
-                if q_type == "free_response":
-                    # Keyword-score free_response steps using grading.json
-                    q_id = q.get("q_id", list(answers.keys())[0] if answers else "")
-                    grading_q = None
-                    for gq in grading.get("questions", []):
-                        if gq["id"] == q_id:
-                            grading_q = gq
-                            break
+                # Support both schemas:
+                # Old schema: step.question  with q_id / type / correct / explanation
+                # Our schema: step.short_answer_prompt  with question_id
+                q = step_obj.get("question", {})
+                sap = step_obj.get("short_answer_prompt", {})
+
+                # Determine effective question id and type
+                if sap:
+                    q_id   = sap.get("question_id", q_id_submitted)
+                    q_type = "free_response"
+                else:
+                    q_id   = q.get("q_id", q_id_submitted)
+                    q_type = q.get("type", "mc")
+
+                feedback = q.get("explanation", "")
+
+                if q_type in ("free_response", "hw_result"):
+                    # Find matching grading question — support both "id" and "question_id" keys
+                    grading_q = next(
+                        (gq for gq in grading.get("questions", [])
+                         if gq.get("question_id") == q_id or gq.get("id") == q_id),
+                        None
+                    )
                     if grading_q:
                         ans_lower = submitted.lower()
-                        kws = grading_q.get("keywords", [])
-                        matched = sum(1 for kw in kws if kw.lower() in ans_lower)
-                        ratio = matched / len(kws) if kws else 0
-                        pts = min(round(ratio * grading_q.get("points", 10)), grading_q.get("points", 10))
+                        max_pts   = grading_q.get("max_points", grading_q.get("points", 10))
+
+                        # Our schema uses required_concepts / keyword_weighted
+                        if grading_q.get("scoring", {}).get("method") == "keyword_weighted":
+                            awarded = 0
+                            for concept in grading_q["scoring"].get("required_concepts", []):
+                                if any(kw.lower() in ans_lower for kw in concept.get("keywords_any", [])):
+                                    awarded += concept.get("weight", 0)
+                            # Length penalty
+                            lp = grading_q["scoring"].get("length_penalty", {})
+                            if lp and len(submitted.split()) < lp.get("under_word_count", 0):
+                                awarded = max(0, awarded - lp.get("penalty", 0))
+                            pts = min(awarded, max_pts)
+                        else:
+                            # Old schema: flat keywords list
+                            kws     = grading_q.get("keywords", [])
+                            matched = sum(1 for kw in kws if kw.lower() in ans_lower)
+                            ratio   = matched / len(kws) if kws else 0
+                            pts     = min(round(ratio * max_pts), max_pts)
+
                         correct = pts > 0
-                        pct = round(pts / grading_q.get("points", 10) * 100) if grading_q.get("points") else 0
-                        feedback = grading_q.get("rubric", "")
+                        pct     = round(pts / max_pts * 100) if max_pts else 0
+                        feedback = grading_q.get("grader_notes", grading_q.get("rubric", ""))
                     else:
-                        pts = 5  # partial credit, manual review needed
+                        pts = 5  # partial credit — no matching rubric found
                         correct = True
                         pct = 50
-                elif q_type == "hw_result":
-                    # Auto-submitted by firmware; score via grading.json keywords
-                    q_id = q.get("q_id", list(answers.keys())[0] if answers else "")
-                    grading_q = None
-                    for gq in grading.get("questions", []):
-                        if gq["id"] == q_id:
-                            grading_q = gq
-                            break
-                    if grading_q:
-                        ans_lower = submitted.lower()
-                        kws = grading_q.get("keywords", [])
-                        matched = sum(1 for kw in kws if kw.lower() in ans_lower)
-                        pts = grading_q.get("points", 10) if matched >= 3 else (5 if matched >= 1 else 0)
-                        correct = pts > 0
-                        pct = round(pts / grading_q.get("points", 10) * 100)
-                    else:
-                        pts = 10 if submitted.strip() else 0
-                        correct = pts > 0
-                        pct = 100 if correct else 0
                 else:
                     # MC / TF: exact match
+                    correct_ans = str(q.get("correct", ""))
                     correct = submitted.strip().lower() == correct_ans.strip().lower()
                     pts = 10 if correct else 0
                     pct = 100 if correct else 0
+
                 bonus = False   # bonus evaluated on full lesson, not per step
 
     entry = {

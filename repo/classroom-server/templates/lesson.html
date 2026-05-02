@@ -148,9 +148,9 @@ nav{background:var(--card);border-bottom:1px solid var(--border);display:flex;al
     <!-- Server-rendered first step (JS will replace this when it runs) -->
     {% if lesson.steps and lesson.steps[0] %}
     {% set s0 = lesson.steps[0] %}
-    <div class="section-chip">{{ s0.section or '' }}</div>
+    <div class="section-chip">{{ s0.section or ('Step ' ~ s0.step_number if s0.step_number else '') }}</div>
     <h2 style="font-size:1.3rem;margin-bottom:.2rem">{{ s0.title or '' }}</h2>
-    <p style="font-size:13px;color:var(--muted);margin-bottom:18px">{{ s0.subtitle or '' }}</p>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:18px">{{ s0.subtitle or s0.opening_line or '' }}</p>
     {% for b in s0.content_blocks or [] %}
       {% if b.type == 'key_idea' %}
       <div class="content-block"><div class="key-idea">{{ b.text | safe }}</div></div>
@@ -160,6 +160,14 @@ nav{background:var(--card);border-bottom:1px solid var(--border);display:flex;al
       <div class="content-block">{% if b.heading %}<h4 style="font-size:13px;margin-bottom:7px">{{ b.heading }}</h4>{% endif %}<ul class="bullet-list">{% for item in b["items"] or [] %}<li>{{ item | safe }}</li>{% endfor %}</ul></div>
       {% elif b.type == 'comparison_table' %}
       <div class="content-block">{% if b.heading %}<h4 style="font-size:13px;margin-bottom:7px">{{ b.heading }}</h4>{% endif %}<div style="overflow-x:auto"><table class="comp-table"><thead><tr>{% for c in b["columns"] or [] %}<th>{{ c }}</th>{% endfor %}</tr></thead><tbody>{% for r in b["rows"] or [] %}<tr>{% for c in r %}<td>{{ c }}</td>{% endfor %}</tr>{% endfor %}</tbody></table></div></div>
+      {% elif b.type == 'prose' %}
+      <div class="content-block" style="font-size:13px;line-height:1.65">{{ b.text | safe }}</div>
+      {% elif b.type == 'task' %}
+      <div class="content-block" style="background:var(--card2);border-left:4px solid var(--yellow);padding:13px 15px;border-radius:0 8px 8px 0">{% if b.heading %}<div style="font-size:11px;font-weight:700;color:var(--yellow);text-transform:uppercase;margin-bottom:5px">{{ b.heading }}</div>{% endif %}<div style="font-size:13px;line-height:1.65">{{ b.text | safe }}</div></div>
+      {% elif b.type == 'reference' %}
+      <div class="content-block" style="background:var(--card2);border:1px solid var(--border);border-radius:7px;padding:10px 14px">{% if b.heading %}<div style="font-size:11px;font-weight:700;color:var(--accent);margin-bottom:4px">{{ b.heading }}</div>{% endif %}<div style="font-size:12px;color:var(--muted)">📎 {{ b.asset or b.text or '' }}</div></div>
+      {% else %}
+      <div class="content-block" style="font-size:13px;line-height:1.65">{{ b.text | safe }}</div>
       {% endif %}
     {% endfor %}
     {% if s0.question %}
@@ -371,14 +379,42 @@ function renderContent(i){
   const s = STEPS[i];
   if(!s){ document.getElementById('content-area').innerHTML='<div style="color:var(--muted);padding:20px">Waiting for instructor to unlock this section…</div>'; return; }
 
-  let html = `<div class="section-chip">${s.section||''}</div>
+  // Support both schemas: old uses section/subtitle, ours uses step_number/opening_line
+  const section  = s.section  || (s.step_number != null ? 'Step ' + s.step_number : '');
+  const subtitle = s.subtitle || s.opening_line || '';
+
+  let html = `<div class="section-chip">${section}</div>
     <h2 style="font-size:1.3rem;margin-bottom:.2rem">${s.title||''}</h2>
-    <p style="font-size:13px;color:var(--muted);margin-bottom:18px">${s.subtitle||''}</p>`;
+    <p style="font-size:13px;color:var(--muted);margin-bottom:18px">${subtitle}</p>`;
 
   (s.content_blocks||[]).forEach(b => { html += renderBlock(b); });
 
-  if(s.question){
+  // Our schema: interactive_moment — client-side feedback only, not graded
+  if(s.interactive_moment){
+    html += renderInteractiveMoment(i, s.interactive_moment);
+  }
+
+  // Our schema: short_answer_prompt — graded, submitted to server
+  if(s.short_answer_prompt){
+    const sap = s.short_answer_prompt;
+    html += renderQuestion(i, {type:'free_response', q_id:sap.question_id, text:sap.prompt, placeholder:'Type your answer here… (2–3 sentences)'}, submittedSteps[i]);
+  }
+
+  // Old schema: question (only if no short_answer_prompt)
+  if(s.question && !s.short_answer_prompt){
     html += renderQuestion(i, s.question, submittedSteps[i]);
+  }
+
+  // Our schema: reveal — shown after submission
+  if(submittedSteps[i] != null && s.reveal){
+    html += `<div style="margin-top:18px;background:#0d2149;border-left:4px solid var(--green);padding:13px 15px;border-radius:0 8px 8px 0">
+      <div style="font-size:11px;font-weight:700;color:var(--green);text-transform:uppercase;margin-bottom:5px">${s.reveal.heading||'Answer'}</div>
+      <div style="font-size:13px;line-height:1.65">${s.reveal.text||''}</div></div>`;
+  }
+
+  // Our schema: transition — shown after submission
+  if(submittedSteps[i] != null && s.transition_to_next_step){
+    html += `<div style="margin-top:14px;padding:10px 14px;border-radius:7px;background:var(--card2);border:1px solid var(--border);font-size:13px;color:var(--muted);font-style:italic">${s.transition_to_next_step}</div>`;
   }
 
   document.getElementById('content-area').innerHTML = html;
@@ -393,12 +429,19 @@ function renderBlock(b){
       return `<div class="content-block"><div class="callout callout-${b.style||'info'}">${b.text}</div></div>`;
     case 'bullet_list':
       return `<div class="content-block">${b.heading?`<h4 style="font-size:13px;margin-bottom:7px">${b.heading}</h4>`:''}<ul class="bullet-list">${(b.items||[]).map(i=>`<li>${i}</li>`).join('')}</ul></div>`;
-    case 'comparison_table':
+    case 'comparison_table': {
       const cols=(b.columns||[]).map(c=>`<th>${c}</th>`).join('');
       const rows=(b.rows||[]).map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('');
       return `<div class="content-block">${b.heading?`<h4 style="font-size:13px;margin-bottom:7px">${b.heading}</h4>`:''}<div style="overflow-x:auto"><table class="comp-table"><thead><tr>${cols}</tr></thead><tbody>${rows}</tbody></table></div></div>`;
+    }
+    case 'prose':
+      return `<div class="content-block" style="font-size:13px;line-height:1.65">${b.text||''}</div>`;
+    case 'task':
+      return `<div class="content-block" style="background:var(--card2);border-left:4px solid var(--yellow);padding:13px 15px;border-radius:0 8px 8px 0">${b.heading?`<div style="font-size:11px;font-weight:700;color:var(--yellow);text-transform:uppercase;margin-bottom:5px">${b.heading}</div>`:''}<div style="font-size:13px;line-height:1.65">${b.text||''}</div></div>`;
+    case 'reference':
+      return `<div class="content-block" style="background:var(--card2);border:1px solid var(--border);border-radius:7px;padding:10px 14px">${b.heading?`<div style="font-size:11px;font-weight:700;color:var(--accent);margin-bottom:4px">${b.heading}</div>`:''}<div style="font-size:12px;color:var(--muted)">📎 ${b.asset||b.text||''}</div></div>`;
     default:
-      return `<div class="content-block" style="font-size:13px">${b.text||''}</div>`;
+      return `<div class="content-block" style="font-size:13px;line-height:1.65">${b.text||''}</div>`;
   }
 }
 
@@ -452,6 +495,17 @@ function renderQuestion(stepIdx, q, submitted){
     } else if(hasBench){
       html += `<div style="font-size:11px;color:var(--muted);margin-top:6px">This answer is auto-submitted by your ESP32 firmware via MQTT. No action needed.</div>`;
     }
+  } else if(q.type === 'numeric_entry'){
+    if(submitted != null){
+      html += `<div style="background:var(--card);border:1px solid var(--border);border-radius:7px;padding:12px;margin:8px 0;font-size:13px;color:var(--muted)">Your value: <strong>${submitted}</strong></div>`;
+      if(q.on_valid_entry) html += `<div class="feedback-box fb-correct">${q.on_valid_entry}</div>`;
+    } else {
+      html += `<label style="font-size:13px;color:var(--muted);display:block;margin-bottom:5px">${q.field_label||''}</label>`;
+      html += `<div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">`;
+      html += `<input type="number" step="any" id="fr-${stepIdx}" placeholder="${q.placeholder||''}" style="background:#0d1117;color:var(--text);border:1px solid var(--border);border-radius:5px;padding:7px 10px;font-size:14px;width:200px">`;
+      html += `</div>`;
+      if(q.expected_range) html += `<div style="font-size:11px;color:var(--muted)">Expected range: ${q.expected_range[0]}–${q.expected_range[1]}</div>`;
+    }
   } else if(q.type === 'free_response'){
     // Text area for typed answers (replaces Serial Monitor input)
     if(submitted != null){
@@ -502,19 +556,23 @@ function selectTF(stepIdx, v, el){
 }
 
 async function submitStep(stepIdx){
-  const q = STEPS[stepIdx]?.question || {};
+  const step = STEPS[stepIdx] || {};
+  // Support both schemas: our schema uses short_answer_prompt, old schema uses question
+  const sap = step.short_answer_prompt;
+  const q   = step.question || {};
+  const effectiveType = sap ? 'free_response' : q.type;
+  const qId = sap ? sap.question_id : (q.q_id || `q${stepIdx+1}`);
+
   let draft;
-  if(q.type === 'free_response'){
+  if(effectiveType === 'free_response' || effectiveType === 'numeric_entry'){
     const ta = document.getElementById('fr-'+stepIdx);
-    draft = ta ? ta.value.trim() : '';
+    draft = ta ? (ta.value||ta.value===0 ? String(ta.value).trim() : '') : '';
     if(!draft){ alert('Please type your answer first.'); return; }
     saveDraft(stepIdx, draft);
   } else {
     draft = loadDraft(stepIdx);
     if(draft===''||draft==null){ alert('Please select an answer first.'); return; }
   }
-  // Use custom q_id if defined on the step question, otherwise default to q{stepIdx+1}
-  const qId = q.q_id || `q${stepIdx+1}`;
   try{
     const r = await fetch(`/${CLASS_ID}/submit/${CHAPTER}`, {
       method:'POST', headers:{'Content-Type':'application/json'},
@@ -532,6 +590,75 @@ async function submitStep(stepIdx){
       renderNav();
     } else { alert(d.error||'Submission error'); }
   }catch(e){ alert('Network error'); }
+}
+
+// ── Our schema: interactive_moment rendering (client-side only, not graded) ──
+function renderInteractiveMoment(stepIdx, im){
+  if(!im) return '';
+  const letters = ['A','B','C','D','E'];
+  let html = `<div class="question-box" id="im-box-${stepIdx}">`;
+  html += `<h4 style="margin-bottom:12px;font-size:14px">🤔 ${im.prompt||im.text||''}</h4>`;
+
+  if(im.type === 'multiple_choice'){
+    (im.choices||[]).forEach((c,i) => {
+      html += `<div class="mc-choice" id="im-${stepIdx}-${i}" onclick="checkIM(${stepIdx},${i})">
+        <div class="mc-letter">${letters[i]}</div><span>${c}</span></div>`;
+    });
+    const oc = (im.on_correct||'').replace(/\\/g,'\\\\').replace(/`/g,'\\`');
+    const oi = (im.on_incorrect||'').replace(/\\/g,'\\\\').replace(/`/g,'\\`');
+    html += `<div id="im-feedback-${stepIdx}" style="display:none" class="feedback-box"></div>
+      <script>_imData[${stepIdx}]={correct:${im.correct_index??-1},onCorrect:\`${oc}\`,onIncorrect:\`${oi}\`};<\/script>`;
+  } else if(im.type === 'numeric_entry'){
+    html += `<label style="font-size:13px;color:var(--muted);display:block;margin-bottom:5px">${im.field_label||''}</label>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
+        <input type="number" step="any" id="ne-${stepIdx}" placeholder="${im.placeholder||''}"
+          style="background:#0d1117;color:var(--text);border:1px solid var(--border);border-radius:5px;padding:7px 10px;font-size:14px;width:200px">
+        <button class="btn btn-primary" onclick="checkNE(${stepIdx})">Check</button>
+      </div>`;
+    if(im.expected_range) html += `<div style="font-size:11px;color:var(--muted);margin-bottom:4px">Expected range: ${im.expected_range[0]}–${im.expected_range[1]}</div>`;
+    const oor = (im.out_of_range_feedback||'').replace(/\\/g,'\\\\').replace(/`/g,'\\`');
+    const ov  = (im.on_valid_entry||'').replace(/\\/g,'\\\\').replace(/`/g,'\\`');
+    html += `<div id="im-feedback-${stepIdx}" style="display:none" class="feedback-box"></div>
+      <script>_imData[${stepIdx}]={min:${(im.expected_range||[0,1e9])[0]},max:${(im.expected_range||[0,1e9])[1]},oor:\`${oor}\`,valid:\`${ov}\`};<\/script>`;
+  }
+
+  html += `</div>`;
+  return html;
+}
+
+const _imData = {};
+
+function checkIM(stepIdx, chosen){
+  const d = _imData[stepIdx];
+  if(!d) return;
+  // Disable further clicks
+  document.querySelectorAll(`[id^="im-${stepIdx}-"]`).forEach(e => { e.onclick = null; });
+  const isCorrect = chosen === d.correct;
+  document.getElementById('im-'+stepIdx+'-'+chosen).classList.add(isCorrect ? 'correct' : 'wrong');
+  if(!isCorrect && document.getElementById('im-'+stepIdx+'-'+d.correct)){
+    document.getElementById('im-'+stepIdx+'-'+d.correct).classList.add('correct');
+  }
+  const fb = document.getElementById('im-feedback-'+stepIdx);
+  if(fb){
+    fb.style.display = 'block';
+    fb.className = 'feedback-box ' + (isCorrect ? 'fb-correct' : 'fb-wrong');
+    fb.innerHTML = '<strong>'+(isCorrect ? '✓ Correct!' : '✗ Not quite')+'</strong><br>'+(isCorrect ? d.onCorrect : d.onIncorrect);
+  }
+}
+
+function checkNE(stepIdx){
+  const d = _imData[stepIdx];
+  const input = document.getElementById('ne-'+stepIdx);
+  if(!d || !input) return;
+  const val = parseFloat(input.value);
+  if(isNaN(val)){ alert('Please enter a number.'); return; }
+  const inRange = val >= d.min && val <= d.max;
+  const fb = document.getElementById('im-feedback-'+stepIdx);
+  if(fb){
+    fb.style.display = 'block';
+    fb.className = 'feedback-box ' + (inRange ? 'fb-correct' : 'fb-wrong');
+    fb.innerHTML = inRange ? d.valid : d.oor;
+  }
 }
 
 // ── Device auto-sync ─────────────────────────────────────────────────────────
