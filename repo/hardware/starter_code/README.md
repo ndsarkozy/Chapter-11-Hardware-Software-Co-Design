@@ -7,6 +7,8 @@
 | Arduino IDE | 2.x (2.3.0 or later recommended) |
 | arduino-esp32 board package | 3.x (install via Board Manager: `esp32` by Espressif) |
 | LiquidCrystal_I2C library | Any version — install via Library Manager |
+| PubSubClient library | 2.8.x — install via Library Manager (Step 4 only) |
+| ArduinoJson library | 6.x — install via Library Manager (Step 4 only) |
 
 > **Board Manager URL:** `https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json`
 
@@ -61,25 +63,20 @@
 5. If upload fails with a timeout: hold the **BOOT** button on the ESP32 while clicking Upload, release once upload starts
 6. Open **Serial Monitor** at **115200 baud** to verify the sketch is running
 
-## Server connection setup
+## Server connection setup (Step 4)
 
-Steps 2–4 are standalone (no server required). The server connection is used by the solution firmware (`solution_code/`) for MQTT pass reporting.
-
-To configure the solution firmware for a different server IP, edit the top of `CECS460_Lab11_AES.ino`:
+Step 4 firmware (`step4_accelerator.ino`) connects to the classroom server automatically after the DMA pass condition is met. Configuration is at the top of the sketch:
 
 ```cpp
-const char* MQTT_HOST = "192.168.8.228";  // change to your server's IP
-const int   MQTT_PORT = 1883;
-const char* WIFI_SSID = "DEEZ";
-const char* WIFI_PASS = "password";
+#define WIFI_SSID  "DEEZ"
+#define WIFI_PASS  "password"
+#define MQTT_HOST  "192.168.8.228"   // change if server IP changes
+#define MQTT_PORT  1883
 ```
 
-Or send a serial command after flashing:
-```
-set mqtt 192.168.8.100
-set ssid MyNetwork
-set pass MyPassword
-```
+To deploy on a different network, update `MQTT_HOST` and `WIFI_SSID`/`WIFI_PASS` and reflash. The server IP can change if DHCP reassigns it — run `ipconfig` on the server laptop to verify before class.
+
+Steps 1–3 are fully standalone (no server or WiFi required).
 
 ## Common problems
 
@@ -91,3 +88,7 @@ set pass MyPassword
 | LCD shows garbage | Wrong baud rate in Serial Monitor, or I2C address mismatch. |
 | `LiquidCrystal_I2C` not found | Install via Library Manager: search "LiquidCrystal I2C" by Frank de Brabander. |
 | `driver/i2s.h` not found | Wrong board package version — must use arduino-esp32 **3.x**. |
+| `PubSubClient.h` not found | Install via Library Manager: search "PubSubClient" by Nick O'Leary. |
+| `ArduinoJson.h` not found | Install via Library Manager: search "ArduinoJson" by Benoit Blanchon (install v6.x). |
+| Step 4: no WiFi connect | Verify SSID/password at top of sketch match the classroom network. |
+| Step 4: no MQTT pass sent | Confirm server is running and `MQTT_HOST` IP is correct. Check Serial Monitor for `[MQTT]` lines. |

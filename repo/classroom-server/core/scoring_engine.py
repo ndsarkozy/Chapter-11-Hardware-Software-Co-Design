@@ -44,8 +44,8 @@ def score_submission(answers: dict, grading_rules: dict) -> dict:
     total     = 0
 
     for q in questions:
-        q_id    = q["id"]
-        q_pts   = q.get("points", 0)
+        q_id    = q.get("id") or q.get("question_id", "")
+        q_pts   = q.get("points") or q.get("max_points", 0)
         answer  = str(answers.get(q_id, "")).lower()
         keywords = [k.lower() for k in q.get("keywords", [])]
         mode     = q.get("keyword_mode", "any")

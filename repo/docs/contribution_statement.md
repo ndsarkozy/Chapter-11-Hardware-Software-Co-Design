@@ -1,17 +1,17 @@
 # Contribution Statement
 
-This project was completed solo by **[Your Name]**.
+This project was completed solo by **Nathan Sarkozy**.
 
 Since this was a one-person team, all responsibilities were handled by the same person:
 
 | Area | Responsible |
 |---|---|
-| Content design (lesson flow, pedagogy) | [Your Name] |
-| Hardware implementation (wiring, sketches) | [Your Name] |
-| Assessment and grading rubric design | [Your Name] |
-| Testing and debugging | [Your Name] |
-| Documentation (instructor guide, final report, handouts) | [Your Name] |
-| Final demo preparation and recorded walkthrough | [Your Name] |
+| Content design (lesson flow, pedagogy) | Nathan Sarkozy |
+| Hardware implementation (wiring, sketches) | Nathan Sarkozy |
+| Assessment and grading rubric design | Nathan Sarkozy |
+| Testing and debugging | Nathan Sarkozy |
+| Documentation (instructor guide, final report, handouts) | Nathan Sarkozy |
+| Final demo preparation and recorded walkthrough | Nathan Sarkozy |
 
 ## AI tool usage disclosure
 

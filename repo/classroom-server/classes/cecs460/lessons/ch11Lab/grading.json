@@ -1,0 +1,15 @@
+{
+  "chapter_id": "ch11Lab",
+  "version": "1.0",
+  "max_points": 10,
+  "notes": "Used only by ESP32 firmware MQTT pass reporting — not the browser lesson.",
+  "questions": [
+    {
+      "id": "q4_lab_pass",
+      "points": 10,
+      "keywords": ["PASS", "pass"],
+      "keyword_mode": "any",
+      "rubric": "Firmware auto-submits 'PASS' when sustained DMA sample rate > 200 Hz, confirming the student changed USE_DMA to 1 and the DMA controller is operational."
+    }
+  ]
+}
