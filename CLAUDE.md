@@ -38,10 +38,10 @@ repo/
     lesson.json               # All 5 steps fully built
     grading.json              # All 5 questions with keyword rubrics (tested)
     assets/
-      step1_wiring.svg        # Step 1 wiring diagram (exists)
-      step2_wiring.png        # MISSING — needs to be created
+      step1_wiring.svg        # Step 1 wiring diagram
+      step2_wiring.svg        # Steps 2-4 wiring diagram (LCD + pot)
     instructor_notes/
-      step1.md                # Instructor notes for Step 1
+      step1.md through step5.md  # Instructor notes for all steps
   lab/                        # Student-facing handouts
     step1_handout.md          # Complete
     step2_handout.md          # Complete
@@ -119,31 +119,72 @@ python3 repo/tests/test_grading.py
 START_SERVER.bat
 ```
 
+## Step 4 firmware — MQTT pass design
+
+`repo/hardware/starter_code/step4_accelerator/step4_accelerator.ino`
+
+**Student modification task:** change `#define USE_DMA 0` to `1` at the top of the file.
+
+- `USE_DMA=0`: software `analogRead()` loop — same lag as Step 2, ~40–80 Hz
+- `USE_DMA=1`: ESP32 DMA controller fills ADC buffer at 10 kHz — LCD smooth, ~400–500 Hz
+
+**Pass trigger:** when DMA rate holds above 200 Hz for 5 seconds, firmware connects to WiFi/MQTT and publishes `{answers: {q4_lab_pass: "PASS"}, chapter: "ch11Lab"}` to `c460_ch11_codesign/{slot}/answer`. Server scores it 10/10 (100%), dashboard shows pass.
+
+**ch11Lab:** `classroom-server/classes/cecs460/lessons/ch11Lab/grading.json` — old-schema grading file with just `q4_lab_pass`, used only by firmware MQTT submissions (not the browser lesson).
+
+**Required libraries (Arduino IDE Library Manager):**
+- LiquidCrystal I2C (Frank de Brabander)
+- PubSubClient (Nick O'Leary) — v2.8.x
+- ArduinoJson (Benoit Blanchon) — v6.x
+
+**Network config `#define`s at top of sketch** (change if IP/SSID differs):
+```cpp
+#define WIFI_SSID  "DEEZ"
+#define WIFI_PASS  "password"
+#define MQTT_HOST  "192.168.8.228"
+#define MQTT_PORT  1883
+```
+
+## scoring_engine.py fix
+
+`core/scoring_engine.py` now handles both grading schemas:
+- Old: `q["id"]`, `q["points"]`, `q["keywords"]`
+- New (our lesson): `q["question_id"]`, `q["max_points"]`, `q["scoring"]["required_concepts"]`
+
+The fix: `q.get("id") or q.get("question_id", "")` and `q.get("points") or q.get("max_points", 0)`. Without this, MQTT answer submissions would crash with KeyError.
+
+## Syncing ch11Final
+
+`ch11Final/` is the folder the server loads at runtime. Keep it in sync with `lesson_package/`:
+
+```bash
+cp repo/lesson_package/lesson.json   repo/classroom-server/classes/cecs460/lessons/ch11Final/
+cp repo/lesson_package/grading.json  repo/classroom-server/classes/cecs460/lessons/ch11Final/
+```
+
 ## What still needs to be done
 
 ### Must complete before submission
 
 | Item | Notes |
 |------|-------|
-| **Sync `ch11Final` with `lesson_package/`** | Copy our lesson.json + grading.json into `classroom-server/classes/cecs460/lessons/ch11Final/` — server currently runs old AES lesson |
-| **MQTT pass reporting in firmware** | Starter firmware (steps 2–4) doesn't send a pass signal to the server yet. Solution firmware does (AES benchmark). Spec requires server-triggered pass, not manual. |
-| **Testing evidence** | Flash each sketch, screenshot Serial Monitor output, screenshot instructor dashboard showing a pass. Save to `testing_evidence/`. |
-| **`assets/step2_wiring.png`** | Referenced in lesson.json step 2 but file doesn't exist. Create wiring diagram. |
-| **Contribution statement** | Fill in name in `docs/contribution_statement.md`. |
-| **Recorded demo video (5–10 min)** | Walk through from student + instructor perspective, show server pass. |
-| **Expo slides** | Presentation outline for live demo. |
+| **Testing evidence** | Flash each sketch, screenshot Serial Monitor output, screenshot instructor dashboard showing a pass. Save to `testing_evidence/`. Requires physical hardware. |
+| **Recorded demo video (5–10 min)** | Walk through from student + instructor perspective, show server pass. Requires server + ESP32. |
+| **Expo slides** | Outline written to `docs/expo_slides_outline.md` — convert to actual slides. |
 
-### Nice to have
+### Done
 
-| Item | Notes |
-|------|-------|
-| Instructor notes for steps 2–5 | Only step1.md exists in `lesson_package/instructor_notes/` |
-| Step2 wiring asset | `assets/step2_wiring.png` missing — lesson.json references it |
-
-## Critical known issue
-
-`classroom-server/classes/cecs460/lessons/ch11Final/lesson.json` is the **old AES benchmark lesson** — it is what the server actually serves right now. Our new hands-on lesson lives in `lesson_package/`. Before testing the full loop (student → lesson → MQTT pass → dashboard), copy `lesson_package/lesson.json` and `lesson_package/grading.json` into `ch11Final/`.
+| Item | Status |
+|------|--------|
+| ch11Final synced with lesson_package | ✅ |
+| MQTT pass in step4 firmware (USE_DMA task) | ✅ |
+| ch11Lab grading.json for firmware pass | ✅ |
+| scoring_engine.py crash fix | ✅ |
+| step2_wiring.svg | ✅ `lesson_package/assets/step2_wiring.svg` |
+| Instructor notes steps 1–5 | ✅ `lesson_package/instructor_notes/` |
+| Contribution statement | ✅ `docs/contribution_statement.md` (Nathan Sarkozy) |
+| Expo slides outline | ✅ `docs/expo_slides_outline.md` |
 
 ## Professor's reference firmware
 
-`repo/hardware/solution_code/CECS460_Lab11_AES/CECS460_Lab11_AES.ino` — professor's AES benchmark firmware. This is the only firmware that currently does MQTT pass reporting. Do not distribute to students — it's instructor-only reference.
+`repo/hardware/solution_code/CECS460_Lab11_AES/CECS460_Lab11_AES.ino` — professor's AES benchmark firmware. Do not distribute to students — instructor-only reference.
