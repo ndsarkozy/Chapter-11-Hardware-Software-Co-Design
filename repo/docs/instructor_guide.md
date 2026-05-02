@@ -1,74 +1,173 @@
-# Instructor guide — Chapter 11: Hardware/Software Co-Design
+# Instructor Guide — Chapter 11: Hardware/Software Co-Design
 
-*This guide is 1–2 pages targeted at an instructor deploying the module next semester. It will be fleshed out as the module is completed.*
+**Module:** CECS 460 Chapter 11 — Hardware/Software Co-Design and Design Flow
+**Prepared for:** Spring 2026, future semesters
+**Estimated class time:** ~90 minutes for all 5 steps
 
-## What changed
+---
 
-*(To be written once all 5 steps are built.)*
+## What this module does
 
-## Why this version is better than the original chapter content
+Students experience hardware/software partitioning firsthand rather than reading about it. The arc is:
 
-*(To be written.)*
+1. **Step 1** — blink an LED; measure that software timing isn't perfect (Serial Monitor)
+2. **Step 2** — add a potentiometer + LCD; run a CPU load; watch the display lag
+3. **Step 3** — quantify the failure via Serial Monitor sample rate
+4. **Step 4** — reflash with DMA firmware; same load, no lag; measure the improvement
+5. **Step 5** — apply the decision framework to new scenarios; write a partitioning rule
 
-## Required materials
+The failure and the fix are both visible and measurable with no oscilloscope — only Serial Monitor is needed.
 
-See [`../hardware/BOM.md`](../hardware/BOM.md).
+---
 
-## Setup steps
+## Why this is better than the original chapter material
 
-1. Clone this repo onto a machine running the Interactive Classroom System
-2. Copy `lesson_package/` into the system's chapter content directory:
-   ```bash
-   cp -r lesson_package /path/to/classroom_system/chapters/ch11/
+The professor's original Ch11 lab used an AES-128 software vs. hardware benchmark: students flash firmware, wait for MQTT telemetry, and compare microsecond timing numbers. That's accurate but abstract — students never feel the problem, they just read numbers.
+
+This module makes the consequence physical: the LCD lags behind the knob. Students feel the failure before they understand it. The fix (DMA) is equally physical — same circuit, different firmware, the lag vanishes. The decision matrix in Step 5 then asks them to generalize from their own measured data.
+
+---
+
+## Hardware required (per team)
+
+See `hardware/BOM.md` for sourcing and cost.
+
+| Item | Qty | Notes |
+|---|---|---|
+| ESP32 DevKit (38-pin) | 1 | USB-C preferred |
+| Breadboard (full size) | 1 | |
+| Jumper wires | 1 kit | M-M, M-F |
+| Standard LED (5 mm) | 1 | Any color |
+| 330 Ω resistor | 1 | LED current limit |
+| Potentiometer (10 kΩ) | 1 | |
+| 16×2 LCD with I2C backpack | 1 | I2C address 0x27 |
+| USB data cable | 1 | **Not charge-only** |
+
+No oscilloscope required. No external power supply required.
+
+---
+
+## Software required
+
+- Arduino IDE 2.x
+- arduino-esp32 board package v3.x (Espressif, via Board Manager)
+- LiquidCrystal_I2C library (Library Manager)
+
+Full build/flash instructions: `hardware/starter_code/README.md`
+
+---
+
+## Deploying the lesson into the classroom system
+
+1. Copy `lesson_package/` contents into the classroom server's chapter directory:
    ```
-3. Restart the classroom system
-4. Verify Chapter 11 appears in the chapter list and Step 1 loads without errors
-5. Pre-wire one demo board and have it running a scope capture when students arrive — it sets the tone
+   repo/classroom-server/classes/cecs460/lessons/ch11Final/
+   ```
+   Overwrite `lesson.json` and `grading.json` with the versions from `lesson_package/`.
 
-## Expected trouble spots
+2. Confirm `classroom-server/classes/cecs460/class_config.json` has:
+   ```json
+   "active_lesson": "ch11Final"
+   ```
 
-*(To be written based on testing.)*
+3. Start the server:
+   ```
+   START_SERVER.bat
+   ```
+   or
+   ```
+   cd repo/classroom-server && python run.py
+   ```
 
-- USB cable issues (charge-only cables vs. data cables)
-- ESP32 boot mode problems (hold BOOT button during upload on some variants)
-- WS2812 level-shifting issues on 3.3 V logic (step 2+)
-- Scope trigger misconfiguration (step 1)
+4. Open the instructor dashboard: `http://192.168.8.228:5000/cecs460/instructor` (PIN: 4600)
 
-## Grading workflow
+5. Test: log in as a student at `http://192.168.8.228:5000/cecs460/login`, navigate to Step 1, confirm it loads correctly.
 
-*(To be written.)*
+> **Note:** `192.168.8.228` is the laptop IP on the Mango GL.iNet router (SSID: `DEEZ`). If the IP changes, run `ipconfig` to find the new one and update it with `CHANGE_IP.bat`.
 
-## Lab: Three-LED Timing Demo (04_visual_demo.ino)
+---
 
-### Demo script (3-minute lecture version)
+## Running the class session
 
-1. Boot at 5 Hz, LOAD=NONE. Show Serial output on projector. All three LEDs in sync — ask students to confirm they look the same.
-2. Type `l` twice → HEAVY load. Point to LED 1 visibly beginning to stutter or slow. Ask: "What changed?"
-3. Type `l` once more → BRUTAL. LED 1 is now clearly at a different cadence. Students can count the blinks.
-4. Ask: "What is LED 3 doing that LED 2 isn't?" (Expected answer: LED 3 involves zero CPU after setup — no ISR, no interrupt, just a clock divider in silicon. LED 2 still runs a brief ISR on every timer fire.)
-5. Type `r` to reset. Hand keyboard to a student.
+### Before students arrive
 
-### Common student mistakes
+- [ ] Start the classroom server (`START_SERVER.bat`)
+- [ ] Confirm instructor dashboard loads
+- [ ] Pre-wire one demo board with Step 2 circuit and have Serial Monitor running — shows students the lag immediately as they walk in
+- [ ] Confirm `step1_baseline.ino`, `step2_overload.ino`, `step4_accelerator.ino` all compile cleanly on your machine
 
-| Problem | Symptom | Fix |
-|---------|---------|-----|
-| LED wired backwards | LED doesn't light | Flip the LED — cathode to GND, anode through resistor to GPIO |
-| Missing resistor | LED very bright then dies | Always use 220Ω in series |
-| Wrong baud rate | Garbled Serial output | Set Serial Monitor to 115200 baud |
-| Arduino-ESP32 core 2.x | Compile error on timerBegin() | Core 3.x uses `timerBegin(freq_hz)` — upgrade to core 3.x in Board Manager |
-| LEDC no output | LED3 stays off | Confirm PIN_LEDC = 21 and `ledcAttach()` called before `ledcWrite()` |
-| USB cable charge-only | No COM port appears | Replace with data-capable USB cable |
+### Step 1 (~12 min)
 
-### Discussion questions (post-demo)
+Students wire LED to GPIO 18, flash `step1_baseline.ino`, open Serial Monitor, read the frequency printed each cycle. Expected range: 0.996–1.004 Hz. Answer Q1.
 
-1. "If you were designing a smart thermostat that blinks an LED at different rates for heating/cooling/idle — which method would you use and why?" *(Expected: ISR or LEDC, because the rate must change at runtime based on sensor input. Pure LEDC can't react to inputs without CPU reconfiguration.)*
+**Common issues:**
+- LED doesn't light → check polarity (anode to GPIO side)
+- No Serial output → check baud rate is 115200
+- No COM port → charge-only USB cable; swap it
 
-2. "LEDC is baked into the ESP32 silicon. Who paid for that decision, and who benefits?" *(Expected: Espressif paid the die area cost at tape-out. Every ESP32 user benefits from that partitioning decision for free. This is the tape-out economics argument from Section 11.2.3.)*
+### Step 2 (~15 min)
 
-3. "What would break if you used pure LEDC and then needed to respond to a button press that changes blink rate?" *(Expected: LEDC has no inputs — it just runs a clock divider. The CPU must reconfigure the peripheral on every rate change. For purely static output LEDC wins; for reactive output ISR is more flexible.)*
+Students add potentiometer (GPIO 34) and LCD (I2C, GPIO 21/22), flash `step2_overload.ino`. Turn the knob — the LCD lags. Serial Monitor shows sample rate (~40–80 Hz typically). Answer Q2.
 
-### Grading notes
+**Common issues:**
+- LCD blank → check I2C address (default 0x27; some modules use 0x3F)
+- LCD garbled text → bad SDA/SCL wiring or wrong I2C address
+- No lag visible → increase `LOAD_STRENGTH` in the sketch (default 5000; try 20000)
 
-- q_predict: Watch for students who say "LEDC is best because it's hardware" without explaining the clock divider mechanism. That is a disqualifier — award partial credit only.
-- q_measure: The key is a VISUAL description. Students who only quote Serial numbers did not observe the physical demo. Deduct heavily for this.
-- Expected correct ranking: LEDC > ISR > SW (most to least accurate under load).
+### Step 3 (~15 min)
+
+No reflash. Students read Serial Monitor, record sample rate, compare against the 50 Hz hypothetical requirement. Answer Q3.
+
+### Step 4 (~20 min)
+
+Students flash `step4_accelerator.ino` — same wiring. LCD becomes smooth. Serial Monitor shows `[DMA]` sample rate (~400–500 Hz typically). Answer Q4.
+
+**Common issues:**
+- `driver/i2s.h` not found → wrong arduino-esp32 version; must be 3.x
+- Sample rate not much higher → confirm step4 is flashed (not step2); check Serial output prefix `[DMA]` vs `[SW]`
+
+### Step 5 (~20 min)
+
+No hardware. Students fill in the decision matrix and write Q5 in the lesson system.
+
+---
+
+## Grading
+
+Answers are scored by keyword-weighted matching in `lesson_package/grading.json`. The server grades automatically on submission and displays results in the instructor dashboard.
+
+| Question | Max pts | Key concept |
+|---|---|---|
+| Q1 — Why not exact? | 10 | Software timing + CPU interrupts |
+| Q2 — Why lag? | 10 | CPU as shared resource |
+| Q3 — What does the rate mean? | 10 | Sample rate as a deadline metric |
+| Q4 — What did DMA do? | 10 | Autonomous hardware, parallel execution |
+| Q5 — Your rule | 10 | Measure-first + reference own data |
+
+Full grading rubric with exemplars: `lesson_package/grading.json`
+
+To validate the rubric against sample answers before class:
+```bash
+python3 tests/test_grading.py
+```
+
+---
+
+## Common student mistakes (all steps)
+
+| Mistake | Step | Fix |
+|---|---|---|
+| Charge-only USB cable | 1–4 | Replace — no COM port will appear |
+| ESP32 boot mode | 1–4 | Hold BOOT button during upload on some boards |
+| LCD address wrong | 2–4 | Change `0x27` to `0x3F` in sketch line 24 |
+| Measures Step 2 sample rate as Step 4 | 4 | Have them check Serial output for `[DMA]` prefix |
+| Q5 answer: "always use hardware" | 5 | Redirect: when does hardware actually help? What did your numbers show? |
+
+---
+
+## Recommendations for next semester
+
+1. **Add a step 3 firmware variant** that lets students adjust `LOAD_STRENGTH` via Serial command so they can find the exact threshold where the sample rate drops below 50 Hz.
+2. **Add a WS2812 LED strip** as a more dramatic visual — a 16-pixel bar graph lagging is more visually striking than an LCD number.
+3. **Add MQTT pass reporting** to the starter firmware so the server dashboard shows green when students complete Step 4 successfully.
+4. **Record canonical Serial Monitor captures** for each step so students have a reference when their output looks unexpected.

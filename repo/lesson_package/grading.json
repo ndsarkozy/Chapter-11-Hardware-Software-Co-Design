@@ -308,7 +308,11 @@
               "better",
               "smooth",
               "responsive",
-              "no lag"
+              "no lag",
+              "jumped",
+              "went up",
+              "went from",
+              "increased to"
             ],
             "explanation_for_grader": "Credit for noting the measured improvement — the DMA sample rate should be significantly higher than the software polling rate from Step 3."
           }

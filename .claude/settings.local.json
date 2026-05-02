@@ -13,7 +13,10 @@
       "Bash(cp \"C:/CSULB/SystemOnChip_460/CECS460_Final_Project/cecs460-ch11-module/repo/classroom-server/classes/cecs460/lessons/ch11Final/lesson.json\" \"C:/CSULB/SystemOnChip_460/Dans_Files/ClassroomFusion-4-22-26-1/complete-build/classroom-server/classes/cecs460/lessons/ch11Final/lesson.json\")",
       "Bash(cp \"C:/CSULB/SystemOnChip_460/CECS460_Final_Project/cecs460-ch11-module/repo/classroom-server/classes/cecs460/lessons/ch11Final/grading.json\" \"C:/CSULB/SystemOnChip_460/Dans_Files/ClassroomFusion-4-22-26-1/complete-build/classroom-server/classes/cecs460/lessons/ch11Final/grading.json\")",
       "Bash(ipconfig)",
-      "Bash(python3 *)"
+      "Bash(python3 *)",
+      "Bash(python3 -c \"import sys; sys.stdout.reconfigure\\(encoding='utf-8'\\)\")",
+      "Bash(PYTHONIOENCODING=utf-8 python3 tests/test_grading.py)",
+      "Bash(PYTHONIOENCODING=utf-8 python3 *)"
     ]
   }
 }
