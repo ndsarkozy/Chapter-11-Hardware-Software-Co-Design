@@ -106,6 +106,12 @@ def lesson(chapter):
 
     varied = _vary_for_slot(raw, slot)
 
+    # Alias new-schema keys to legacy keys the template expects.
+    # `chapter` MUST be the URL chapter (used by JS to build the submit URL),
+    # NOT lesson.chapter_id which is a content slug.
+    varied["chapter"] = chapter
+    varied.setdefault("title", varied.get("chapter_title", chapter))
+
     if fmt == "json":
         return jsonify(varied)
 

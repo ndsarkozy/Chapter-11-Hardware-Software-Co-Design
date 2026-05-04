@@ -147,6 +147,16 @@ input[type=password]:focus{outline:2px solid var(--accent)}
       <!-- Step control -->
       <div style="display:flex;flex-direction:column;overflow:hidden">
         <div class="panel-head" style="flex-shrink:0">{% if questions and not steps %}Questions{% else %}Lesson steps{% endif %}<span id="active-step-label"></span></div>
+        <div style="display:flex;gap:8px;padding:10px 12px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--card)">
+          <button class="btn" id="btn-prev-slide" onclick="prevSlide()"
+                  style="flex:1;padding:10px;font-size:13px;font-weight:700;background:var(--card2);color:var(--text);border:1px solid var(--border)">
+            ◀ Prev
+          </button>
+          <button class="btn btn-blue" id="btn-next-slide" onclick="nextSlide()"
+                  style="flex:2;padding:10px;font-size:13px;font-weight:700">
+            Next Slide ▶
+          </button>
+        </div>
         <div class="panel-body" id="step-list"></div>
       </div>
     </div>
@@ -469,6 +479,38 @@ async function goStep(step) {
   lessonState.active_step = step;
   renderSteps();
 }
+
+async function nextSlide() {
+  const total = STEPS.length || QUESTIONS.length;
+  if (!total) return;
+  const active = lessonState.active_step ?? 0;
+  const target = Math.min(total - 1, active + 1);
+  if (target === active) return;
+  if (STEPS.length) {
+    const unlocked = lessonState.unlocked_steps ?? [0];
+    if (!unlocked.includes(target)) await unlockStep(target);
+    await goStep(target);
+  } else {
+    await pushQuestion(target);
+  }
+}
+
+async function prevSlide() {
+  const active = lessonState.active_step ?? 0;
+  const target = Math.max(0, active - 1);
+  if (target === active) return;
+  if (STEPS.length) {
+    await goStep(target);
+  } else {
+    await pushQuestion(target);
+  }
+}
+
+document.addEventListener('keydown', e => {
+  if (e.target.matches('input, textarea')) return;
+  if (e.key === 'ArrowRight' || e.key === 'PageDown') { e.preventDefault(); nextSlide(); }
+  if (e.key === 'ArrowLeft'  || e.key === 'PageUp')   { e.preventDefault(); prevSlide(); }
+});
 
 async function pushQuestion(index) {
   const r = await fetch(`/${CLASS_ID}/lesson/push-question`, {

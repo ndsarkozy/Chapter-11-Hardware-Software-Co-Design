@@ -47,18 +47,34 @@ def score_submission(answers: dict, grading_rules: dict) -> dict:
         q_id    = q.get("id") or q.get("question_id", "")
         q_pts   = q.get("points") or q.get("max_points", 0)
         answer  = str(answers.get(q_id, "")).lower()
-        keywords = [k.lower() for k in q.get("keywords", [])]
-        mode     = q.get("keyword_mode", "any")
 
-        if keywords:
-            if mode == "all":
-                matched = all(kw in answer for kw in keywords)
-            else:
-                matched = any(kw in answer for kw in keywords)
+        scoring = q.get("scoring", {})
+        method  = scoring.get("method")
+
+        if method == "keyword_weighted":
+            # New schema: weighted required_concepts
+            earned = 0
+            for concept in scoring.get("required_concepts", []):
+                if any(kw.lower() in answer for kw in concept.get("keywords_any", [])):
+                    earned += concept.get("weight", 0)
+            lp = scoring.get("length_penalty", {})
+            if lp and len(answer.split()) < lp.get("under_word_count", 0):
+                earned = max(0, earned - lp.get("penalty", 0))
+            earned = min(earned, q_pts)
+            matched = earned > 0
         else:
-            matched = False   # No keywords → needs manual/AI review
+            # Legacy schema: flat keywords list
+            keywords = [k.lower() for k in q.get("keywords", [])]
+            mode     = q.get("keyword_mode", "any")
+            if keywords:
+                if mode == "all":
+                    matched = all(kw in answer for kw in keywords)
+                else:
+                    matched = any(kw in answer for kw in keywords)
+            else:
+                matched = False
+            earned = q_pts if matched else 0
 
-        earned = q_pts if matched else 0
         total += earned
         breakdown[q_id] = {"earned": earned, "max": q_pts, "matched": matched}
 
@@ -113,7 +129,10 @@ def append_ai_export(
             except json.JSONDecodeError:
                 existing = []
 
-    rubrics = {q["id"]: q.get("rubric", "") for q in grading_rules.get("questions", [])}
+    rubrics = {
+        (q.get("id") or q.get("question_id", "")): q.get("rubric") or q.get("grader_notes", "")
+        for q in grading_rules.get("questions", [])
+    }
     record  = {
         "timestamp":  datetime.utcnow().isoformat(),
         "student_id": student_id,

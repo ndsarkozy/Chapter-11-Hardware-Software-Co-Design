@@ -593,6 +593,8 @@ async function submitStep(stepIdx){
 }
 
 // ── Our schema: interactive_moment rendering (client-side only, not graded) ──
+const _imData = {};
+
 function renderInteractiveMoment(stepIdx, im){
   if(!im) return '';
   const letters = ['A','B','C','D','E'];
@@ -600,15 +602,26 @@ function renderInteractiveMoment(stepIdx, im){
   html += `<h4 style="margin-bottom:12px;font-size:14px">🤔 ${im.prompt||im.text||''}</h4>`;
 
   if(im.type === 'multiple_choice'){
+    // Store data BEFORE building HTML (innerHTML-injected <script> tags don't execute)
+    _imData[stepIdx] = {
+      kind: 'mc',
+      correct: im.correct_index ?? -1,
+      onCorrect:   im.on_correct   || '',
+      onIncorrect: im.on_incorrect || '',
+    };
     (im.choices||[]).forEach((c,i) => {
       html += `<div class="mc-choice" id="im-${stepIdx}-${i}" onclick="checkIM(${stepIdx},${i})">
         <div class="mc-letter">${letters[i]}</div><span>${c}</span></div>`;
     });
-    const oc = (im.on_correct||'').replace(/\\/g,'\\\\').replace(/`/g,'\\`');
-    const oi = (im.on_incorrect||'').replace(/\\/g,'\\\\').replace(/`/g,'\\`');
-    html += `<div id="im-feedback-${stepIdx}" style="display:none" class="feedback-box"></div>
-      <script>_imData[${stepIdx}]={correct:${im.correct_index??-1},onCorrect:\`${oc}\`,onIncorrect:\`${oi}\`};<\/script>`;
+    html += `<div id="im-feedback-${stepIdx}" style="display:none" class="feedback-box"></div>`;
   } else if(im.type === 'numeric_entry'){
+    const range = im.expected_range || [0, 1e9];
+    _imData[stepIdx] = {
+      kind: 'ne',
+      min: range[0], max: range[1],
+      oor:   im.out_of_range_feedback || '',
+      valid: im.on_valid_entry        || '',
+    };
     html += `<label style="font-size:13px;color:var(--muted);display:block;margin-bottom:5px">${im.field_label||''}</label>
       <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
         <input type="number" step="any" id="ne-${stepIdx}" placeholder="${im.placeholder||''}"
@@ -616,17 +629,12 @@ function renderInteractiveMoment(stepIdx, im){
         <button class="btn btn-primary" onclick="checkNE(${stepIdx})">Check</button>
       </div>`;
     if(im.expected_range) html += `<div style="font-size:11px;color:var(--muted);margin-bottom:4px">Expected range: ${im.expected_range[0]}–${im.expected_range[1]}</div>`;
-    const oor = (im.out_of_range_feedback||'').replace(/\\/g,'\\\\').replace(/`/g,'\\`');
-    const ov  = (im.on_valid_entry||'').replace(/\\/g,'\\\\').replace(/`/g,'\\`');
-    html += `<div id="im-feedback-${stepIdx}" style="display:none" class="feedback-box"></div>
-      <script>_imData[${stepIdx}]={min:${(im.expected_range||[0,1e9])[0]},max:${(im.expected_range||[0,1e9])[1]},oor:\`${oor}\`,valid:\`${ov}\`};<\/script>`;
+    html += `<div id="im-feedback-${stepIdx}" style="display:none" class="feedback-box"></div>`;
   }
 
   html += `</div>`;
   return html;
 }
-
-const _imData = {};
 
 function checkIM(stepIdx, chosen){
   const d = _imData[stepIdx];

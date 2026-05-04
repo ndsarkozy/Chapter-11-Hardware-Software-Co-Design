@@ -1,0 +1,310 @@
+[
+  {
+    "timestamp": "2026-05-04T23:06:06.201647",
+    "student_id": "Submit Test 2",
+    "class": "cecs460",
+    "lesson": "ch11Final",
+    "keyword_score": {
+      "total": 0,
+      "max": 100,
+      "breakdown": {
+        "q1_why_not_exact": {
+          "earned": 0,
+          "max": 10,
+          "matched": false
+        },
+        "q2_why_lag": {
+          "earned": 0,
+          "max": 10,
+          "matched": false
+        },
+        "q3_diagnose": {
+          "earned": 0,
+          "max": 10,
+          "matched": false
+        },
+        "q4_accelerator": {
+          "earned": 0,
+          "max": 10,
+          "matched": false
+        },
+        "q5_partition": {
+          "earned": 0,
+          "max": 10,
+          "matched": false
+        }
+      }
+    },
+    "responses": [
+      {
+        "question_id": "q1_why_not_exact",
+        "answer": "GPIO timing varies because the ESP32 software loop has interrupts and scheduler jitter, so the period is not exactly 1 second",
+        "rubric": "This is a low-stakes opening question designed to get students to commit to a mental model, not to test deep knowledge. Full credit should be achievable by any student who engages genuinely with the question, even if their explanation is informal. The point isn't to trip them up \u2014 it's to anchor them before Steps 2-3, where the same concepts will be expanded."
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-05-04T23:16:21.559786",
+    "student_id": "X",
+    "class": "cecs460",
+    "lesson": "ch11Final",
+    "keyword_score": {
+      "total": 0,
+      "max": 100,
+      "breakdown": {
+        "q1_why_not_exact": {
+          "earned": 0,
+          "max": 10,
+          "matched": false
+        },
+        "q2_why_lag": {
+          "earned": 0,
+          "max": 10,
+          "matched": false
+        },
+        "q3_diagnose": {
+          "earned": 0,
+          "max": 10,
+          "matched": false
+        },
+        "q4_accelerator": {
+          "earned": 0,
+          "max": 10,
+          "matched": false
+        },
+        "q5_partition": {
+          "earned": 0,
+          "max": 10,
+          "matched": false
+        }
+      }
+    },
+    "responses": [
+      {
+        "question_id": "q1_why_not_exact",
+        "answer": "GPIO timing varies",
+        "rubric": "This is a low-stakes opening question designed to get students to commit to a mental model, not to test deep knowledge. Full credit should be achievable by any student who engages genuinely with the question, even if their explanation is informal. The point isn't to trip them up \u2014 it's to anchor them before Steps 2-3, where the same concepts will be expanded."
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-05-04T23:19:10.825546",
+    "student_id": "Chris Vanegas",
+    "class": "cecs460",
+    "lesson": "ch11Final",
+    "keyword_score": {
+      "total": 0,
+      "max": 100,
+      "breakdown": {
+        "q1_why_not_exact": {
+          "earned": 0,
+          "max": 10,
+          "matched": false
+        },
+        "q2_why_lag": {
+          "earned": 0,
+          "max": 10,
+          "matched": false
+        },
+        "q3_diagnose": {
+          "earned": 0,
+          "max": 10,
+          "matched": false
+        },
+        "q4_accelerator": {
+          "earned": 0,
+          "max": 10,
+          "matched": false
+        },
+        "q5_partition": {
+          "earned": 0,
+          "max": 10,
+          "matched": false
+        }
+      }
+    },
+    "responses": [
+      {
+        "question_id": "q3_diagnose",
+        "answer": "nuh uh",
+        "rubric": "Accept any plausible sample rate the student measured (it will vary by hardware). The key insight is comparing the measured rate to a hypothetical requirement and recognizing the system would fail. Don't penalize for the specific number \u2014 penalize for not connecting rate to deadline."
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-05-04T23:20:03.054009",
+    "student_id": "Chris Vanegas",
+    "class": "cecs460",
+    "lesson": "ch11Final",
+    "keyword_score": {
+      "total": 0,
+      "max": 100,
+      "breakdown": {
+        "q1_why_not_exact": {
+          "earned": 0,
+          "max": 10,
+          "matched": false
+        },
+        "q2_why_lag": {
+          "earned": 0,
+          "max": 10,
+          "matched": false
+        },
+        "q3_diagnose": {
+          "earned": 0,
+          "max": 10,
+          "matched": false
+        },
+        "q4_accelerator": {
+          "earned": 0,
+          "max": 10,
+          "matched": false
+        },
+        "q5_partition": {
+          "earned": 0,
+          "max": 10,
+          "matched": false
+        }
+      }
+    },
+    "responses": [
+      {
+        "question_id": "q4_accelerator",
+        "answer": "offloading DMA reduces lag with same CPU load running",
+        "rubric": "Full credit requires three things: (1) DMA works autonomously, (2) CPU and DMA now run in parallel, (3) the measured rate improved. Partial credit for any two. The specific numbers will vary \u2014 accept any Step 4 rate that is clearly higher than Step 3."
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-05-04T23:21:46.668213",
+    "student_id": "Chris Vanegas",
+    "class": "cecs460",
+    "lesson": "ch11Final",
+    "keyword_score": {
+      "total": 0,
+      "max": 100,
+      "breakdown": {
+        "q1_why_not_exact": {
+          "earned": 0,
+          "max": 10,
+          "matched": false
+        },
+        "q2_why_lag": {
+          "earned": 0,
+          "max": 10,
+          "matched": false
+        },
+        "q3_diagnose": {
+          "earned": 0,
+          "max": 10,
+          "matched": false
+        },
+        "q4_accelerator": {
+          "earned": 0,
+          "max": 10,
+          "matched": false
+        },
+        "q5_partition": {
+          "earned": 0,
+          "max": 10,
+          "matched": false
+        }
+      }
+    },
+    "responses": [
+      {
+        "question_id": "q5_partition",
+        "answer": "should move to software if requirements keep changing frequently, or move to hardware when tasks require a large budget",
+        "rubric": "This is a synthesis question \u2014 the student is building their own rule from the experience. There's no single right answer. Award full credit for any answer that includes: measure first, trigger is missing a requirement (not just 'hardware is faster'), and some reference to their own data. Penalize answers that say 'always use hardware when possible' or 'use hardware when it's faster' \u2014 those miss the start-in-software principle."
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-05-04T23:28:54.419378",
+    "student_id": "Chris Vanegas",
+    "class": "cecs460",
+    "lesson": "ch11Final",
+    "keyword_score": {
+      "total": 0,
+      "max": 100,
+      "breakdown": {
+        "q1_why_not_exact": {
+          "earned": 0,
+          "max": 10,
+          "matched": false
+        },
+        "q2_why_lag": {
+          "earned": 0,
+          "max": 10,
+          "matched": false
+        },
+        "q3_diagnose": {
+          "earned": 0,
+          "max": 10,
+          "matched": false
+        },
+        "q4_accelerator": {
+          "earned": 0,
+          "max": 10,
+          "matched": false
+        },
+        "q5_partition": {
+          "earned": 0,
+          "max": 10,
+          "matched": false
+        }
+      }
+    },
+    "responses": [
+      {
+        "question_id": "q1_why_not_exact",
+        "answer": "lol",
+        "rubric": "This is a low-stakes opening question designed to get students to commit to a mental model, not to test deep knowledge. Full credit should be achievable by any student who engages genuinely with the question, even if their explanation is informal. The point isn't to trip them up \u2014 it's to anchor them before Steps 2-3, where the same concepts will be expanded."
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-05-04T23:29:13.477747",
+    "student_id": "Chris Vanegas",
+    "class": "cecs460",
+    "lesson": "ch11Final",
+    "keyword_score": {
+      "total": 0,
+      "max": 100,
+      "breakdown": {
+        "q1_why_not_exact": {
+          "earned": 0,
+          "max": 10,
+          "matched": false
+        },
+        "q2_why_lag": {
+          "earned": 0,
+          "max": 10,
+          "matched": false
+        },
+        "q3_diagnose": {
+          "earned": 0,
+          "max": 10,
+          "matched": false
+        },
+        "q4_accelerator": {
+          "earned": 0,
+          "max": 10,
+          "matched": false
+        },
+        "q5_partition": {
+          "earned": 0,
+          "max": 10,
+          "matched": false
+        }
+      }
+    },
+    "responses": [
+      {
+        "question_id": "q2_why_lag",
+        "answer": "bababooey",
+        "rubric": "The key insight is that the CPU is a shared, sequential resource. Students who say 'the CPU is busy' without explaining why that causes lag are partial credit. Full credit requires connecting load \u2192 CPU blocked \u2192 ADC read delayed \u2192 lag."
+      }
+    ]
+  }
+]
