@@ -36,6 +36,8 @@ def create_app() -> Flask:
 
     TOOLS_DIR = os.path.join(os.path.dirname(__file__), "..", "tools")
     FIRMWARE_BIN_DIR = os.path.join(os.path.dirname(__file__), "..", "firmware", "bin")
+    SKETCHES_DIR = os.path.abspath(os.path.join(
+        os.path.dirname(__file__), "..", "..", "hardware", "starter_code"))
 
     @app.route("/tools/<path:filename>")
     def serve_tool(filename):
@@ -54,6 +56,51 @@ def create_app() -> Flask:
         if not os.path.isfile(path):
             abort(404)
         return send_file(path, as_attachment=True, download_name=safe)
+
+    @app.route("/firmware/sketches/")
+    def list_firmware_sketches():
+        """Manifest of Arduino sketches in hardware/starter_code/."""
+        sketches = []
+        if os.path.isdir(SKETCHES_DIR):
+            for entry in sorted(os.listdir(SKETCHES_DIR)):
+                full = os.path.join(SKETCHES_DIR, entry)
+                if os.path.isdir(full):
+                    files = []
+                    for fname in sorted(os.listdir(full)):
+                        fpath = os.path.join(full, fname)
+                        if os.path.isfile(fpath):
+                            files.append({
+                                "name": fname,
+                                "size": os.path.getsize(fpath),
+                                "url": f"/firmware/sketches/{entry}/{fname}",
+                            })
+                    if files:
+                        sketches.append({"sketch": entry, "files": files})
+            for fname in sorted(os.listdir(SKETCHES_DIR)):
+                fpath = os.path.join(SKETCHES_DIR, fname)
+                if os.path.isfile(fpath):
+                    sketches.append({
+                        "sketch": "",
+                        "files": [{
+                            "name": fname,
+                            "size": os.path.getsize(fpath),
+                            "url": f"/firmware/sketches/_root/{fname}",
+                        }],
+                    })
+        return jfy({"sketches": sketches})
+
+    @app.route("/firmware/sketches/<sketch>/<path:filename>")
+    def serve_firmware_sketch(sketch, filename):
+        """Serve one file from a starter_code sketch folder."""
+        safe_file = os.path.basename(filename)
+        if sketch == "_root":
+            path = os.path.join(SKETCHES_DIR, safe_file)
+        else:
+            safe_sketch = os.path.basename(sketch)
+            path = os.path.join(SKETCHES_DIR, safe_sketch, safe_file)
+        if not os.path.isfile(path):
+            abort(404)
+        return send_file(path, as_attachment=True, download_name=safe_file)
 
     @app.route("/firmware/bin/")
     def list_firmware_bins():

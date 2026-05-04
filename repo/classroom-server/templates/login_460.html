@@ -45,12 +45,50 @@ button:hover{background:#79c0ff}
 .esp-hint{background:#1a1f2e;border:1px solid var(--border);border-radius:6px;
   padding:14px 16px;margin-top:14px;font-size:.78rem;color:var(--muted);line-height:1.6}
 .esp-hint strong{color:var(--amber)}
+.steps{width:100%;max-width:520px;margin:0 auto 22px}
+.step{display:flex;gap:14px;align-items:flex-start;background:var(--card);
+  border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin-bottom:10px}
+.step .num{flex:0 0 28px;height:28px;border-radius:14px;background:var(--accent);
+  color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;
+  font-size:.85rem}
+.step .body{flex:1;font-size:.86rem;line-height:1.5}
+.step .body b{color:var(--text)}
+.step .body .muted{color:var(--muted);font-size:.78rem;display:block;margin-top:3px}
+.dl-btn{display:inline-block;margin-top:8px;padding:9px 16px;background:var(--green);
+  color:#0d1117;font-weight:700;text-decoration:none;border-radius:6px;font-size:.85rem}
+.dl-btn:hover{background:#56d364}
 </style>
 </head>
 <body>
   <div class="brand">Interactive Classroom</div>
   <h1>{{ class_name }}</h1>
-  <p class="subtitle">Enter your name to join the session</p>
+  <p class="subtitle">Three steps to start the lab</p>
+
+  <div class="steps">
+    <div class="step">
+      <div class="num">1</div>
+      <div class="body">
+        <b>Download the firmware</b>
+        <span class="muted">Saves all 3 sketches to Documents/CECS460_Firmware/</span>
+        <a class="dl-btn" href="/tools/get_firmware.py" download>Download get_firmware.py</a>
+        <span class="muted">Then run it: <code>python get_firmware.py</code></span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="num">2</div>
+      <div class="body">
+        <b>Open in Arduino IDE and upload</b>
+        <span class="muted">Board: ESP32 Dev Module. Pick the sketch your step needs and click Upload.</span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="num">3</div>
+      <div class="body">
+        <b>Enter your name below to start the lab</b>
+        <span class="muted">Same name = same seat each time you reconnect.</span>
+      </div>
+    </div>
+  </div>
 
   <div class="card">
     <form method="POST" action="/cecs460/login">
@@ -60,23 +98,12 @@ button:hover{background:#79c0ff}
       {% if error %}
       <div class="error">{{ error }}</div>
       {% endif %}
-      <button type="submit">Join Session</button>
+      <button type="submit">Start Lab</button>
     </form>
-
-    <div class="or-divider">or if you have an ESP32</div>
-    <div class="esp-hint">
-      <strong>Recommended:</strong> Download and run the
-      <a href="/tools/student_client.py" style="color:var(--accent)">Student Connector</a>
-      (<a href="/tools/student_client.py" style="color:var(--accent)" download>student_client.py</a>).
-      It reads your seat assignment from the ESP32
-      and opens the lesson page automatically — no login needed.
-      Your browser and ESP32 will share the same seat.<br><br>
-      <code style="font-size:.72rem;color:var(--muted)">python student_client.py --server {{ request.host }}</code>
-    </div>
   </div>
 
   <div class="hint">
-    If you refresh or reconnect with the same name, you get the same seat.
+    Trouble downloading? Make sure you're on the classroom WiFi (DEEZ).
   </div>
 </body>
 </html>
