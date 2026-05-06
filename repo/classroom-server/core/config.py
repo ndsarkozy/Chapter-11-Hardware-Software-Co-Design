@@ -22,7 +22,8 @@ AI_EXPORT     = "exports/ai_grading.json"
 
 # Server address published to devices in the assign message
 # Override this with your classroom Wi-Fi IP
-SERVER_IP   = "192.168.8.10"
+
+SERVER_IP   = "192.168.8.228"
 SERVER_PORT = 5000
 
 # Device slot limit (can be overridden per class in class_config.json)

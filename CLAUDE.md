@@ -93,9 +93,9 @@ Full BOM: `repo/hardware/BOM.md`
 ## Network / server setup
 
 - **Mango GL.iNet router** — local classroom network
-- WiFi SSID: `DEEZ`, Password: `password`
+- WiFi SSID: `CECS`, Password: `CECS-Classroom`
 - Laptop connects via Ethernet to Mango → IP `192.168.8.228`
-- ESP32 connects to `DEEZ` WiFi → reaches MQTT broker at `192.168.8.228:1883`
+- ESP32 connects to `CECS` WiFi → reaches MQTT broker at `192.168.8.228:1883`
 - Server runs at `http://192.168.8.228:5000`
 - Instructor dashboard: `http://192.168.8.228:5000/cecs460/instructor` (PIN: 4600)
 - Student login: `http://192.168.8.228:5000/cecs460/login`
@@ -140,8 +140,8 @@ START_SERVER.bat
 
 **Network config `#define`s at top of sketch** (change if IP/SSID differs):
 ```cpp
-#define WIFI_SSID  "DEEZ"
-#define WIFI_PASS  "password"
+#define WIFI_SSID  "CECS"
+#define WIFI_PASS  "CECS-Classroom"
 #define MQTT_HOST  "192.168.8.228"
 #define MQTT_PORT  1883
 ```

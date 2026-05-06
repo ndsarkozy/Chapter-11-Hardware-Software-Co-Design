@@ -65,7 +65,7 @@ def main():
         print(f"ERROR: Cannot reach server at {args.server}")
         print(f"       {e}")
         print()
-        print("Check that you are connected to the classroom WiFi (DEEZ)")
+        print("Check that you are connected to the classroom WiFi (CECS)")
         print("and that the server is running.")
         input("Press Enter to exit...")
         sys.exit(1)
