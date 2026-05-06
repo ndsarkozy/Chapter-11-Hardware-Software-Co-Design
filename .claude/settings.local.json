@@ -35,7 +35,8 @@
       "Bash(Format-Table Name, PSIsContainer)",
       "PowerShell(Get-ChildItem -Path \"C:\\\\CSULB\\\\SystemOnChip_460\\\\ClassroomFusion-5-4-26-1\\\\complete-build\\\\classroom-server\\\\classes\\\\cecs460\" -Recurse | Where-Object {$_.Name -eq \"lesson.json\"} | Select-Object -First 10)",
       "PowerShell(head *)",
-      "PowerShell(Get-ChildItem \"C:\\\\CSULB\\\\SystemOnChip_460\\\\ClassroomFusion-5-4-26-1\\\\complete-build\\\\classroom-server\\\\classes\\\\cecs460\\\\lessons\\\\ch11\" -Recurse | ForEach-Object { $_.FullName.Replace\\(\"C:\\\\CSULB\\\\SystemOnChip_460\\\\ClassroomFusion-5-4-26-1\\\\complete-build\\\\classroom-server\\\\classes\\\\cecs460\\\\lessons\\\\ch11\\\\\", \"\"\\) })"
+      "PowerShell(Get-ChildItem \"C:\\\\CSULB\\\\SystemOnChip_460\\\\ClassroomFusion-5-4-26-1\\\\complete-build\\\\classroom-server\\\\classes\\\\cecs460\\\\lessons\\\\ch11\" -Recurse | ForEach-Object { $_.FullName.Replace\\(\"C:\\\\CSULB\\\\SystemOnChip_460\\\\ClassroomFusion-5-4-26-1\\\\complete-build\\\\classroom-server\\\\classes\\\\cecs460\\\\lessons\\\\ch11\\\\\", \"\"\\) })",
+      "Bash(git commit -m ' *)"
     ]
   }
 }
