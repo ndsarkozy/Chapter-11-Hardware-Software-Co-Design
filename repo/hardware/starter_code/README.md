@@ -1,4 +1,4 @@
-# Chapter 11 Starter Firmware — Build & Flash Guide
+﻿# Chapter 11 Starter Firmware â€” Build & Flash Guide
 
 ## Toolchain
 
@@ -6,9 +6,9 @@
 |---|---|
 | Arduino IDE | 2.x (2.3.0 or later recommended) |
 | arduino-esp32 board package | 3.x (install via Board Manager: `esp32` by Espressif) |
-| LiquidCrystal_I2C library | Any version — install via Library Manager |
-| PubSubClient library | 2.8.x — install via Library Manager (Step 4 only) |
-| ArduinoJson library | 6.x — install via Library Manager (Step 4 only) |
+| LiquidCrystal_I2C library | Any version â€” install via Library Manager |
+| PubSubClient library | 2.8.x â€” install via Library Manager (Step 4 only) |
+| ArduinoJson library | 6.x â€” install via Library Manager (Step 4 only) |
 
 > **Board Manager URL:** `https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json`
 
@@ -22,14 +22,14 @@
 | Partition Scheme | Default 4MB with spiffs |
 | Port | whichever COM port your ESP32 appears on |
 
-## Sketches — one per lab step
+## Sketches â€” one per lab step
 
 | Step | Folder | What it does |
 |---|---|---|
 | 1 | `step1_baseline/` | Blinks LED at ~1 Hz, prints measured period to Serial Monitor |
 | 2 | `step2_overload/` | Reads potentiometer + drives LCD while CPU load runs; demonstrates software bottleneck |
 | 3 | *(no new firmware)* | Use step2 still running; open Serial Monitor to read sample rate |
-| 4 | `step4_accelerator/` | Same hardware + same load as Step 2, but ADC via DMA — LCD stays smooth |
+| 4 | `step4_accelerator/` | Same hardware + same load as Step 2, but ADC via DMA â€” LCD stays smooth |
 
 ## Wiring
 
@@ -37,10 +37,10 @@
 
 | Component | ESP32 pin |
 |---|---|
-| LED anode (via 330 Ω resistor) | GPIO 18 |
+| LED anode (via 330 Î© resistor) | GPIO 18 |
 | LED cathode | GND |
 
-### Steps 2–4 (identical wiring for both)
+### Steps 2â€“4 (identical wiring for both)
 
 | Component | ESP32 pin |
 |---|---|
@@ -70,13 +70,13 @@ Step 4 firmware (`step4_accelerator.ino`) connects to the classroom server autom
 ```cpp
 #define WIFI_SSID  "CECS"
 #define WIFI_PASS  "CECS-Classroom"
-#define MQTT_HOST  "192.168.8.228"   // change if server IP changes
+#define MQTT_HOST  "192.168.8.10"   // change if server IP changes
 #define MQTT_PORT  1883
 ```
 
-To deploy on a different network, update `MQTT_HOST` and `WIFI_SSID`/`WIFI_PASS` and reflash. The server IP can change if DHCP reassigns it — run `ipconfig` on the server laptop to verify before class.
+To deploy on a different network, update `MQTT_HOST` and `WIFI_SSID`/`WIFI_PASS` and reflash. The server IP can change if DHCP reassigns it â€” run `ipconfig` on the server laptop to verify before class.
 
-Steps 1–3 are fully standalone (no server or WiFi required).
+Steps 1â€“3 are fully standalone (no server or WiFi required).
 
 ## Common problems
 
@@ -87,7 +87,7 @@ Steps 1–3 are fully standalone (no server or WiFi required).
 | LCD blank after flash | Check I2C address (try 0x3F). Check 5 V wiring to LCD VCC. |
 | LCD shows garbage | Wrong baud rate in Serial Monitor, or I2C address mismatch. |
 | `LiquidCrystal_I2C` not found | Install via Library Manager: search "LiquidCrystal I2C" by Frank de Brabander. |
-| `driver/i2s.h` not found | Wrong board package version — must use arduino-esp32 **3.x**. |
+| `driver/i2s.h` not found | Wrong board package version â€” must use arduino-esp32 **3.x**. |
 | `PubSubClient.h` not found | Install via Library Manager: search "PubSubClient" by Nick O'Leary. |
 | `ArduinoJson.h` not found | Install via Library Manager: search "ArduinoJson" by Benoit Blanchon (install v6.x). |
 | Step 4: no WiFi connect | Verify SSID/password at top of sketch match the classroom network. |

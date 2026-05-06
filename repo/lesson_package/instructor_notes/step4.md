@@ -1,7 +1,7 @@
-# Instructor Notes — Step 4: The Accelerator
+﻿# Instructor Notes â€” Step 4: The Accelerator
 
 ## What this step demonstrates
-Hardware offload: the ESP32's DMA controller samples the ADC at 10 kHz autonomously. The same CPU load from Step 2 still runs — but now it doesn't affect the sample rate because DMA and CPU operate in parallel on separate hardware.
+Hardware offload: the ESP32's DMA controller samples the ADC at 10 kHz autonomously. The same CPU load from Step 2 still runs â€” but now it doesn't affect the sample rate because DMA and CPU operate in parallel on separate hardware.
 
 ## Student modification task
 Students must change `#define USE_DMA 0` to `#define USE_DMA 1` near the top of `step4_accelerator.ino`, then reflash. This is the required firmware modification the spec demands. The change:
@@ -11,11 +11,11 @@ Students must change `#define USE_DMA 0` to `#define USE_DMA 1` near the top of 
 
 ## Expected observations after student change
 - LCD bottom row: `DMA      SMOOTH` (instead of LAGGING)
-- Serial Monitor: `[DMA] Sample rate: 400–500 Hz` (was 40–80 Hz)
-- LCD knob response: immediate — no visible lag
+- Serial Monitor: `[DMA] Sample rate: 400â€“500 Hz` (was 40â€“80 Hz)
+- LCD knob response: immediate â€” no visible lag
 
 ## Server pass
-The firmware connects to WiFi (`CECS`/`CECS-Classroom`) and MQTT (`192.168.8.228:1883`). When the DMA sample rate holds above 200 Hz for 5 seconds, it publishes a pass to `c460_ch11_codesign/{slot}/answer` targeting the `ch11Lab` grading chapter. The instructor dashboard will show the slot pass status.
+The firmware connects to WiFi (`CECS`/`CECS-Classroom`) and MQTT (`192.168.8.10:1883`). When the DMA sample rate holds above 200 Hz for 5 seconds, it publishes a pass to `c460_ch11_codesign/{slot}/answer` targeting the `ch11Lab` grading chapter. The instructor dashboard will show the slot pass status.
 
 **If students don't see `DMA PASS SENT!` on the LCD:**
 1. Confirm they are on `CECS` WiFi (ESP32 connects automatically)

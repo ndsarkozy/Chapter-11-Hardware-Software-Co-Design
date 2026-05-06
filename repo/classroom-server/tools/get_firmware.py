@@ -1,20 +1,20 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
-CECS 460 — Firmware Downloader
+CECS 460 â€” Firmware Downloader
 
 Pulls every Arduino sketch for Chapter 11 from the classroom server into
 ~/Documents/CECS460_Firmware/, then opens that folder.
 
 Usage:
     python get_firmware.py
-    python get_firmware.py --server 192.168.8.228:5000
+    python get_firmware.py --server 192.168.8.10:5000
 """
 
 import argparse, json, os, sys, webbrowser
 from urllib.request import urlopen, Request
 from urllib.error import URLError
 
-DEFAULT_SERVER = "192.168.8.228:5000"
+DEFAULT_SERVER = "192.168.8.10:5000"
 DEST_DIR = os.path.join(os.path.expanduser("~"), "Documents", "CECS460_Firmware")
 
 
@@ -53,7 +53,7 @@ def main():
     args = parser.parse_args()
 
     print("=" * 60)
-    print("  CECS 460 — Chapter 11 Firmware Downloader")
+    print("  CECS 460 â€” Chapter 11 Firmware Downloader")
     print("=" * 60)
     print(f"Server: http://{args.server}")
     print(f"Destination: {args.dest}")
@@ -96,7 +96,7 @@ def main():
 
     print()
     print("=" * 60)
-    print(f"Done — {total_files} files, {total_bytes//1024} KB")
+    print(f"Done â€” {total_files} files, {total_bytes//1024} KB")
     print("=" * 60)
     print()
     print("Next steps:")

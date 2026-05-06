@@ -1,26 +1,26 @@
-/*
+﻿/*
  * CECS460_Lab11_AES.ino
  * =====================
  * ESP32 classroom firmware for CECS 460
- * Chapter 11 — Hardware/Software Co-Design
+ * Chapter 11 â€” Hardware/Software Co-Design
  * Hardware: ESP32 DOIT DevKit V1 (30-pin)
  *
  * This sketch does TWO things simultaneously:
  *
  *  [1] THREE-LED TIMING DEMO (visual co-design demonstration)
- *      LED1 — GPIO 18 — 220Ω — GND  (software delayMicroseconds busy-wait)
- *      LED2 — GPIO 19 — 220Ω — GND  (hardware timer ISR)
- *      LED3 — GPIO 21 — 220Ω — GND  (LEDC peripheral, zero CPU after setup)
+ *      LED1 â€” GPIO 18 â€” 220Î© â€” GND  (software delayMicroseconds busy-wait)
+ *      LED2 â€” GPIO 19 â€” 220Î© â€” GND  (hardware timer ISR)
+ *      LED3 â€” GPIO 21 â€” 220Î© â€” GND  (LEDC peripheral, zero CPU after setup)
  *      Serial commands: l=cycle load, +=double freq, -=halve freq, r=reset
  *
  *  [2] SERVER CONNECTION + AES BENCHMARK
- *      WiFi + MQTT — connects to classroom server, gets seat assignment
- *      AES-128 SW vs HW benchmark — auto-submits results via MQTT
+ *      WiFi + MQTT â€” connects to classroom server, gets seat assignment
+ *      AES-128 SW vs HW benchmark â€” auto-submits results via MQTT
  *      Handles q_predict and q_measure free-response submissions
  *
  * The LED demo runs on Core 1 (Arduino loop).
  * WiFi/MQTT/benchmark runs on Core 0 via a FreeRTOS task.
- * Both run simultaneously — the network task never interferes with LED timing.
+ * Both run simultaneously â€” the network task never interferes with LED timing.
  *
  * Targets: Arduino-ESP32 core 3.x, DOIT DevKit V1
  * Serial:  115200 baud
@@ -41,26 +41,26 @@ typedef uint8_t AesRoundKey[176];
 #define FW_VERSION        "2.0.0"
 #define FW_DATE           "2026-04"
 
-// ── Network defaults ─────────────────────────────────────────────────────────
+// â”€â”€ Network defaults â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 #define DEFAULT_SSID      "CECS"
 #define DEFAULT_PASS      "CECS-Classroom"
-#define DEFAULT_MQTT_HOST "192.168.8.228"
+#define DEFAULT_MQTT_HOST "192.168.8.10"
 #define DEFAULT_MQTT_PORT 1883
 #define HEARTBEAT_MS      10000UL
 #define BENCH_PUBLISH_MS  10000UL
 #define BUILTIN_LED       2
 
-// ── MQTT topics ──────────────────────────────────────────────────────────────
+// â”€â”€ MQTT topics â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 #define COURSE  "C460"
 #define LESSON  "c460_ch11_codesign"
 #define NVS_NS  "cecs460"
 
-// ── LED demo pin assignments ─────────────────────────────────────────────────
+// â”€â”€ LED demo pin assignments â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 #define PIN_SW    18   // LED1: software busy-wait
 #define PIN_ISR   19   // LED2: hardware timer ISR
 #define PIN_LEDC  21   // LED3: LEDC peripheral
 
-// ── Benchmark config ─────────────────────────────────────────────────────────
+// â”€â”€ Benchmark config â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 #define BENCH_ITERATIONS  1000
 #define BENCH_WARMUP       10
 
@@ -73,9 +73,9 @@ static const uint8_t TEST_PLAIN[16] = {
   0x31,0x31,0x98,0xa2, 0xe0,0x37,0x07,0x34
 };
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// SECTION 1 — LED DEMO STATE (Core 1 / loop())
-// ═══════════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// SECTION 1 â€” LED DEMO STATE (Core 1 / loop())
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 enum LoadLevel { LOAD_NONE=0, LOAD_LIGHT, LOAD_HEAVY, LOAD_BRUTAL, LOAD_COUNT };
 static const char* LOAD_NAMES[] = { "NONE", "LIGHT", "HEAVY", "BRUTAL" };
@@ -137,9 +137,9 @@ static void runDemoLoad(LoadLevel level) {
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// SECTION 2 — NETWORK / BENCHMARK STATE (Core 0 FreeRTOS task)
-// ═══════════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// SECTION 2 â€” NETWORK / BENCHMARK STATE (Core 0 FreeRTOS task)
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 Preferences  prefs;
 WiFiClient   wifiClient;
@@ -171,7 +171,7 @@ bool    g_hwAnswerOk = false;
 // Mutex so Serial prints from Core 0 and Core 1 don't interleave
 static SemaphoreHandle_t serialMutex = NULL;
 
-// ── Serial helpers ────────────────────────────────────────────────────────────
+// â”€â”€ Serial helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 void serialLine(const String& s) {
   if (serialMutex) xSemaphoreTake(serialMutex, portMAX_DELAY);
   if (g_prevSameLine) { Serial.println(); g_dotCount=0; g_prevSameLine=false; }
@@ -187,7 +187,7 @@ void serialDot() {
 }
 void verboseLog(const String& s) { if (g_verbose) serialLine("[DBG] " + s); }
 
-// ── NVS ──────────────────────────────────────────────────────────────────────
+// â”€â”€ NVS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 void loadPrefs() {
   prefs.begin(NVS_NS, true);
   g_ssid      = prefs.getString("ssid",     DEFAULT_SSID);
@@ -207,7 +207,7 @@ void savePrefBool(const String& k, bool v)           { prefs.begin(NVS_NS,false)
 void clearAssignment() {
   prefs.begin(NVS_NS,false); prefs.remove("slot"); prefs.remove("token"); prefs.end();
   g_slot=-1; g_token=""; g_announced=false; g_labAnswered=false; g_hwAnswerOk=false;
-  serialLine("[NVS] Assignment cleared — will re-announce");
+  serialLine("[NVS] Assignment cleared â€” will re-announce");
 }
 
 String getMac() {
@@ -216,7 +216,7 @@ String getMac() {
   return mac;
 }
 
-// ── MQTT callback ─────────────────────────────────────────────────────────────
+// â”€â”€ MQTT callback â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 void mqttCallback(char* topic, byte* payload, unsigned int len) {
   String t(topic), p;
   for (unsigned int i=0;i<len;i++) p+=(char)payload[i];
@@ -231,26 +231,26 @@ void mqttCallback(char* topic, byte* payload, unsigned int len) {
       savePrefInt("slot",g_slot); savePref("token",g_token);
       serialLine("");
       serialLine("");
-      serialLine("╔══════════════════════════════════════════════════════╗");
-      serialLine("║           ✓  SEAT ASSIGNED — YOU'RE IN!             ║");
-      serialLine("╠══════════════════════════════════════════════════════╣");
-      serialLine("║  Seat : " + String(g_slot));
-      serialLine("╠══════════════════════════════════════════════════════╣");
-      serialLine("║  Open this link in your browser:                    ║");
-      serialLine("║                                                      ║");
-      serialLine("║  " + url);
-      serialLine("║                                                      ║");
-      serialLine("║  (Copy the URL above into Chrome / Firefox)         ║");
-      serialLine("╚══════════════════════════════════════════════════════╝");
+      serialLine("â•”â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•—");
+      serialLine("â•‘           âœ“  SEAT ASSIGNED â€” YOU'RE IN!             â•‘");
+      serialLine("â• â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•£");
+      serialLine("â•‘  Seat : " + String(g_slot));
+      serialLine("â• â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•£");
+      serialLine("â•‘  Open this link in your browser:                    â•‘");
+      serialLine("â•‘                                                      â•‘");
+      serialLine("â•‘  " + url);
+      serialLine("â•‘                                                      â•‘");
+      serialLine("â•‘  (Copy the URL above into Chrome / Firefox)         â•‘");
+      serialLine("â•šâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•");
       serialLine("");
       if (g_benchDone && !g_hwAnswerOk)
-        serialLine("[MQTT] Benchmark already done — resubmitting...");
+        serialLine("[MQTT] Benchmark already done â€” resubmitting...");
     }
   }
   if (t == String(LESSON)+"/control/step") {
     JsonDocument doc;
     if (deserializeJson(doc,p)==DeserializationError::Ok)
-      serialLine("[Lesson] Step → " + String(doc["step"].as<int>()));
+      serialLine("[Lesson] Step â†’ " + String(doc["step"].as<int>()));
   }
   if (t == String(LESSON)+"/control/broadcast") {
     JsonDocument doc;
@@ -259,7 +259,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int len) {
   }
 }
 
-// ── MQTT connect ──────────────────────────────────────────────────────────────
+// â”€â”€ MQTT connect â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 void checkWifi() {
   static bool prev=false;
   bool conn=(WiFi.status()==WL_CONNECTED);
@@ -306,7 +306,7 @@ void announce() {
   g_announced=true;
 }
 
-// ── MQTT publish helpers ──────────────────────────────────────────────────────
+// â”€â”€ MQTT publish helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 void publishBenchTelemetry() {
   if(!mqtt.connected()||g_slot<0||!g_benchDone) return;
   JsonDocument doc;
@@ -331,7 +331,7 @@ void publishHwAnswer() {
 }
 
 void publishFreeResponse(const String& qid, const String& text) {
-  if(!mqtt.connected()||g_slot<0){ serialLine("[MQTT] Not connected — answer not sent"); return; }
+  if(!mqtt.connected()||g_slot<0){ serialLine("[MQTT] Not connected â€” answer not sent"); return; }
   JsonDocument doc;
   doc["slot"]=g_slot; doc["token"]=g_token; doc["step"]=qid; doc["answer"]=text;
   String out; serializeJson(doc,out);
@@ -353,9 +353,9 @@ void publishStatus() {
   if(g_verbose) serialLine("[HB] "+out); else serialDot();
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // SOFTWARE AES-128
-// ═══════════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 static const uint8_t SW_SBOX[256] = {
   0x63,0x7c,0x77,0x7b,0xf2,0x6b,0x6f,0xc5,0x30,0x01,0x67,0x2b,0xfe,0xd7,0xab,0x76,
@@ -421,7 +421,7 @@ long runSwBenchmark(){
   int64_t t0=esp_timer_get_time();
   for(int i=0;i<BENCH_ITERATIONS;i++) swAesEncryptBlock(rk,TEST_PLAIN,out);
   long avg=(long)(esp_timer_get_time()-t0)/BENCH_ITERATIONS;
-  serialLine("[AES-SW]  avg: "+String(avg)+" µs/block");
+  serialLine("[AES-SW]  avg: "+String(avg)+" Âµs/block");
   return avg;
 }
 
@@ -433,31 +433,31 @@ long runHwBenchmark(){
   for(int i=0;i<BENCH_ITERATIONS;i++) esp_aes_crypt_ecb(&ctx,ESP_AES_ENCRYPT,TEST_PLAIN,out);
   long avg=(long)(esp_timer_get_time()-t0)/BENCH_ITERATIONS;
   esp_aes_free(&ctx);
-  serialLine("[AES-HW]  avg: "+String(avg)+" µs/block");
+  serialLine("[AES-HW]  avg: "+String(avg)+" Âµs/block");
   return avg;
 }
 
 void runBenchmarks(){
-  serialLine(""); serialLine("══ AES-128 Benchmark ══");
+  serialLine(""); serialLine("â•â• AES-128 Benchmark â•â•");
   g_sw_us=runSwBenchmark(); delay(50);
   g_hw_us=runHwBenchmark();
   g_speedup=(g_hw_us>0)?(float)g_sw_us/(float)g_hw_us:0.0f;
-  serialLine("  SW: "+String(g_sw_us)+" µs/block");
-  serialLine("  HW: "+String(g_hw_us)+" µs/block");
-  serialLine("  Speedup: "+String(g_speedup,1)+"×");
-  if(g_speedup<2.0f) serialLine("[WARN] Speedup<2× — check board selection & core version");
+  serialLine("  SW: "+String(g_sw_us)+" Âµs/block");
+  serialLine("  HW: "+String(g_hw_us)+" Âµs/block");
+  serialLine("  Speedup: "+String(g_speedup,1)+"Ã—");
+  if(g_speedup<2.0f) serialLine("[WARN] Speedup<2Ã— â€” check board selection & core version");
   g_benchDone=true;
   if(mqtt.connected()&&g_slot>0){ publishHwAnswer(); publishBenchTelemetry(); }
   else serialLine("[MQTT] Will auto-submit when slot is assigned");
   serialLine("");
-  serialLine("╔══════════════════════════════════════════╗");
-  serialLine("║  Type your q_predict answer then Enter   ║");
-  serialLine("║  (rank the 3 LEDs + explain why)         ║");
-  serialLine("╚══════════════════════════════════════════╝");
+  serialLine("â•”â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•—");
+  serialLine("â•‘  Type your q_predict answer then Enter   â•‘");
+  serialLine("â•‘  (rank the 3 LEDs + explain why)         â•‘");
+  serialLine("â•šâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•");
   serialLine("Or type 'q_measure <your answer>' to submit the observation question.");
 }
 
-// ── Status print ──────────────────────────────────────────────────────────────
+// â”€â”€ Status print â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 void printStatus(){
   serialLine("=== CECS 460 Lab 11 v"+String(FW_VERSION)+" ===");
   serialLine("MAC    : "+g_mac);
@@ -465,16 +465,16 @@ void printStatus(){
   serialLine("WiFi   : "+String(WiFi.status()==WL_CONNECTED?"Connected":"Disconnected"));
   serialLine("MQTT   : "+String(mqtt.connected()?"Connected":"Disconnected"));
   serialLine("Bench  : "+String(g_benchDone?"done":"pending"));
-  if(g_benchDone){ serialLine("SW AES : "+String(g_sw_us)+" µs"); serialLine("HW AES : "+String(g_hw_us)+" µs"); serialLine("Speedup: "+String(g_speedup,1)+"×"); }
+  if(g_benchDone){ serialLine("SW AES : "+String(g_sw_us)+" Âµs"); serialLine("HW AES : "+String(g_hw_us)+" Âµs"); serialLine("Speedup: "+String(g_speedup,1)+"Ã—"); }
   serialLine("LED demo: "+String(demo_targetHz,1)+" Hz  LOAD="+String(LOAD_NAMES[demo_load]));
   serialLine("Commands: l=cycle load, +=double freq, -=halve freq, r=reset demo");
   serialLine("          help, status, bench, verbose on/off");
   serialLine("          set ssid/pass/student <val>, clear assignment");
-  serialLine("          q_predict <answer>   — submit prediction question");
-  serialLine("          q_measure <answer>   — submit observation question");
+  serialLine("          q_predict <answer>   â€” submit prediction question");
+  serialLine("          q_measure <answer>   â€” submit observation question");
 }
 
-// ── Serial command handler ────────────────────────────────────────────────────
+// â”€â”€ Serial command handler â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Shared between both tasks via serialMutex. Called from loop() on Core 1.
 static String serialBuf;
 
@@ -519,10 +519,10 @@ void handleSerialCommand(const String& raw){
   else { serialLine("Unknown command. Type 'help'."); }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// CORE 0 TASK — WiFi / MQTT / Benchmark
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// CORE 0 TASK â€” WiFi / MQTT / Benchmark
 // Runs independently of loop() so network activity never blocks LED timing
-// ═══════════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 static bool g_benchTriggered = false;
 
@@ -571,9 +571,9 @@ void networkTask(void* pvParameters){
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // SETUP & LOOP (Core 1)
-// ═══════════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 void setup(){
   Serial.begin(115200); delay(200);
@@ -584,13 +584,13 @@ void setup(){
   pinMode(PIN_ISR, OUTPUT); digitalWrite(PIN_ISR, LOW);
 
   serialLine("");
-  serialLine("╔══════════════════════════════════════════╗");
-  serialLine("║  CECS 460 Lab 11 — Co-Design Firmware   ║");
-  serialLine("║  v"+String(FW_VERSION)+"  "+FW_DATE+"                     ║");
-  serialLine("╠══════════════════════════════════════════╣");
-  serialLine("║  LED1(GPIO18) SW   LED2(GPIO19) ISR     ║");
-  serialLine("║  LED3(GPIO21) LEDC  All at 5 Hz         ║");
-  serialLine("╚══════════════════════════════════════════╝");
+  serialLine("â•”â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•—");
+  serialLine("â•‘  CECS 460 Lab 11 â€” Co-Design Firmware   â•‘");
+  serialLine("â•‘  v"+String(FW_VERSION)+"  "+FW_DATE+"                     â•‘");
+  serialLine("â• â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•£");
+  serialLine("â•‘  LED1(GPIO18) SW   LED2(GPIO19) ISR     â•‘");
+  serialLine("â•‘  LED3(GPIO21) LEDC  All at 5 Hz         â•‘");
+  serialLine("â•šâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•");
 
   g_mac=getMac();
   loadPrefs();
@@ -610,14 +610,14 @@ void setup(){
 }
 
 void loop(){
-  // ── Serial input ──────────────────────────────────────────────────────────
+  // â”€â”€ Serial input â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   while(Serial.available()){
     char c=(char)Serial.read();
     if(c=='\n'||c=='\r'){ if(serialBuf.length()){ handleSerialCommand(serialBuf); serialBuf=""; } }
     else serialBuf+=c;
   }
 
-  // ── Software LED1: busy-wait toggle ──────────────────────────────────────
+  // â”€â”€ Software LED1: busy-wait toggle â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   uint32_t t0=micros();
   digitalWrite(PIN_SW, HIGH);
   sw_toggleCount++;
@@ -634,7 +634,7 @@ void loop(){
   rem=(elapsed<demo_halfPeriodUs)?(demo_halfPeriodUs-elapsed):0;
   if(rem>0) delayMicroseconds(rem);
 
-  // ── Measurement windows ───────────────────────────────────────────────────
+  // â”€â”€ Measurement windows â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   uint32_t nowUs=micros();
   uint32_t sw_dt=nowUs-sw_lastMeasureUs;
   if(sw_dt>=1000000UL){
@@ -647,7 +647,7 @@ void loop(){
     isr_measuredHz=(cnt/2.0f)/(isr_dt/1e6f);
   }
 
-  // ── 1-second Serial print ─────────────────────────────────────────────────
+  // â”€â”€ 1-second Serial print â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   static uint32_t lastPrintUs=0;
   if((nowUs-lastPrintUs)>=1000000UL){
     lastPrintUs=nowUs;

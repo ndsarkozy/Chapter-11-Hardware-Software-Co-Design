@@ -20,7 +20,22 @@
       "Bash(pip show *)",
       "Bash(cmd /c START_SERVER.bat)",
       "Bash(PYTHONIOENCODING=utf-8 PYTHONUTF8=1 timeout 8 python run.py)",
-      "Bash(PYTHONIOENCODING=utf-8 PYTHONUTF8=1 timeout 6 python run.py)"
+      "Bash(PYTHONIOENCODING=utf-8 PYTHONUTF8=1 timeout 6 python run.py)",
+      "PowerShell(Get-ChildItem *)",
+      "Bash(Get-Content \"C:\\\\CSULB\\\\SystemOnChip_460\\\\ClassroomFusion-5-4-26-1\\\\complete-build\\\\classroom-server\\\\classes\\\\cecs460\\\\lessons\\\\ch11\\\\lesson.json\")",
+      "Bash(Select-Object -First 30)",
+      "PowerShell(Get-ChildItem \"C:\\\\CSULB\\\\SystemOnChip_460\\\\ClassroomFusion-5-4-26-1\\\\complete-build\\\\classroom-server\\\\classes\\\\cecs460\\\\lessons\\\\ch11\" -Recurse | ForEach-Object { $_.FullName })",
+      "PowerShell(Get-ChildItem \"C:\\\\CSULB\\\\SystemOnChip_460\\\\ClassroomFusion-5-4-26-1\\\\complete-build\\\\classroom-server\\\\classes\\\\cecs460\\\\lessons\\\\ch04\" -Recurse | ForEach-Object { $_.FullName })",
+      "PowerShell(Get-ChildItem \"C:\\\\CSULB\\\\SystemOnChip_460\\\\CECS460_Final_Project\\\\cecs460-ch11-module\\\\repo\\\\lesson_package\" -Recurse | ForEach-Object { $_.FullName })",
+      "PowerShell(Get-ChildItem \"C:\\\\CSULB\\\\SystemOnChip_460\\\\CECS460_Final_Project\\\\cecs460-ch11-module\\\\repo\\\\hardware\\\\starter_code\" -Recurse | ForEach-Object { $_.FullName })",
+      "PowerShell(Get-ChildItem \"C:\\\\CSULB\\\\SystemOnChip_460\\\\CECS460_Final_Project\\\\cecs460-ch11-module\\\\repo\\\\lab\" -Recurse | ForEach-Object { $_.FullName })",
+      "PowerShell(Get-ChildItem \"C:\\\\CSULB\\\\SystemOnChip_460\\\\ClassroomFusion-5-4-26-1\\\\complete-build\\\\classroom-server\\\\classes\\\\cecs460\\\\lessons\\\\ch11\\\\lab11_package\" -Recurse | ForEach-Object { $_.FullName.Replace\\(\"C:\\\\CSULB\\\\SystemOnChip_460\\\\ClassroomFusion-5-4-26-1\\\\complete-build\\\\classroom-server\\\\classes\\\\cecs460\\\\lessons\\\\ch11\\\\lab11_package\\\\\", \"\"\\) })",
+      "Bash(Get-ChildItem -Path \"C:\\\\CSULB\\\\SystemOnChip_460\\\\ClassroomFusion-5-4-26-1\" -Force)",
+      "Bash(Select-Object -First 50)",
+      "Bash(Format-Table Name, PSIsContainer)",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\CSULB\\\\SystemOnChip_460\\\\ClassroomFusion-5-4-26-1\\\\complete-build\\\\classroom-server\\\\classes\\\\cecs460\" -Recurse | Where-Object {$_.Name -eq \"lesson.json\"} | Select-Object -First 10)",
+      "PowerShell(head *)",
+      "PowerShell(Get-ChildItem \"C:\\\\CSULB\\\\SystemOnChip_460\\\\ClassroomFusion-5-4-26-1\\\\complete-build\\\\classroom-server\\\\classes\\\\cecs460\\\\lessons\\\\ch11\" -Recurse | ForEach-Object { $_.FullName.Replace\\(\"C:\\\\CSULB\\\\SystemOnChip_460\\\\ClassroomFusion-5-4-26-1\\\\complete-build\\\\classroom-server\\\\classes\\\\cecs460\\\\lessons\\\\ch11\\\\\", \"\"\\) })"
     ]
   }
 }

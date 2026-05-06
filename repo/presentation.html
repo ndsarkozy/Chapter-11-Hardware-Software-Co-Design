@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>CECS 460 Ch.11 — Expo Presentation</title>
+<title>CECS 460 Ch.11 â€” Expo Presentation</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -19,7 +19,7 @@ body{
   -webkit-font-smoothing:antialiased
 }
 
-/* ── Slide stage ──────────────────────────────────────────────── */
+/* â”€â”€ Slide stage â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 #stage{flex:1;position:relative;overflow:hidden}
 .slide{
   position:absolute;inset:0;display:none;
@@ -32,7 +32,7 @@ body{
   to{opacity:1;transform:none}
 }
 
-/* ── Typography ───────────────────────────────────────────────── */
+/* â”€â”€ Typography â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .eyebrow{
   font-size:.85rem;font-weight:700;color:var(--accent);
   text-transform:uppercase;letter-spacing:.18em;margin-bottom:14px
@@ -48,7 +48,7 @@ h3{font-size:clamp(1.1rem,2vw,1.4rem);font-weight:700;margin-bottom:8px}
 .byline{font-size:1.05rem;color:var(--muted);margin-top:30px}
 .byline strong{color:var(--text)}
 
-/* ── Content blocks ───────────────────────────────────────────── */
+/* â”€â”€ Content blocks â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .card{
   background:var(--card);border:1px solid var(--border);border-radius:12px;
   padding:22px 26px;margin-top:18px
@@ -67,7 +67,7 @@ ul.bullets li{
   line-height:1.45;color:var(--text)
 }
 ul.bullets li::before{
-  content:"▸";position:absolute;left:0;top:8px;color:var(--accent);font-weight:700
+  content:"â–¸";position:absolute;left:0;top:8px;color:var(--accent);font-weight:700
 }
 ul.bullets.green li::before{color:var(--green)}
 ul.bullets.yellow li::before{color:var(--yellow)}
@@ -97,7 +97,7 @@ kbd{
 .code-block .number{color:var(--yellow)}
 .code-block .change{background:#0d2a1a;border-left:3px solid var(--green);padding-left:12px;margin-left:-15px}
 
-/* ── Title slide ──────────────────────────────────────────────── */
+/* â”€â”€ Title slide â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .title-slide{align-items:flex-start;justify-content:center;padding-left:10vw;padding-right:10vw}
 .brand-mark{
   display:inline-block;background:var(--accent);color:#000;
@@ -107,7 +107,7 @@ kbd{
 .title-slide h1{font-size:clamp(2.6rem,6.5vw,5rem)}
 .title-slide .lede{font-size:clamp(1.15rem,2vw,1.6rem);color:var(--accent);margin-top:14px}
 
-/* ── Demo slides ──────────────────────────────────────────────── */
+/* â”€â”€ Demo slides â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .demo-grid{
   display:grid;grid-template-columns:1.2fr 1fr;gap:24px;margin-top:24px;
   align-items:stretch
@@ -131,7 +131,7 @@ kbd{
   font-family:ui-monospace,monospace;font-size:.95rem;color:var(--green)
 }
 
-/* ── Bottom progress / hud ────────────────────────────────────── */
+/* â”€â”€ Bottom progress / hud â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 #hud{
   height:46px;background:var(--card);border-top:1px solid var(--border);
   display:flex;align-items:center;padding:0 18px;gap:14px;flex-shrink:0;
@@ -149,7 +149,7 @@ kbd{
 #counter{font-variant-numeric:tabular-nums;color:var(--text);font-weight:600}
 #hud kbd{font-size:.75rem;padding:1px 6px}
 
-/* ── Presenter notes drawer ───────────────────────────────────── */
+/* â”€â”€ Presenter notes drawer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 #notes{
   position:fixed;left:0;right:0;bottom:46px;
   background:#0a0d12;border-top:2px solid var(--accent);
@@ -163,7 +163,7 @@ kbd{
 #notes p{color:var(--text);margin-bottom:8px}
 #notes em{color:var(--yellow);font-style:normal;font-weight:600}
 
-/* ── Demo launcher overlay ────────────────────────────────────── */
+/* â”€â”€ Demo launcher overlay â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 #launcher{
   position:fixed;inset:0;background:rgba(13,17,23,.92);backdrop-filter:blur(6px);
   z-index:100;display:none;align-items:center;justify-content:center;padding:30px
@@ -189,7 +189,7 @@ kbd{
   margin-top:14px;font-size:.82rem;color:var(--muted);text-align:center
 }
 
-/* ── Responsive guard ─────────────────────────────────────────── */
+/* â”€â”€ Responsive guard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 @media (max-width:780px){
   .slide{padding:4vh 5vw 8vh}
   .demo-grid{grid-template-columns:1fr}
@@ -199,14 +199,14 @@ kbd{
 </head>
 <body>
 
-<!-- ═══════════════════════════════════════════════════════════════════════════
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
      SLIDE STAGE
-     ═══════════════════════════════════════════════════════════════════════════ -->
+     â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
 <div id="stage">
 
-  <!-- Slide 1 — Title -->
-  <section class="slide title-slide" data-notes="Open with the hook. Don't read it — say it conversationally. The judges have seen 11 other modules already; the question they're asking themselves is 'why should I care about this one?' Answer that in the first 30 seconds: the original Ch11 lab is a passive timing benchmark, ours makes the failure physically visible. Set up the punchline coming in slide 5: <em>one line of code</em> separates a broken system from a working one.">
-    <span class="brand-mark">CECS 460 · CHAPTER 11</span>
+  <!-- Slide 1 â€” Title -->
+  <section class="slide title-slide" data-notes="Open with the hook. Don't read it â€” say it conversationally. The judges have seen 11 other modules already; the question they're asking themselves is 'why should I care about this one?' Answer that in the first 30 seconds: the original Ch11 lab is a passive timing benchmark, ours makes the failure physically visible. Set up the punchline coming in slide 5: <em>one line of code</em> separates a broken system from a working one.">
+    <span class="brand-mark">CECS 460 Â· CHAPTER 11</span>
     <h1>Hardware/Software Co-Design</h1>
     <p class="lede">When does software stop being enough?</p>
     <p class="byline">
@@ -215,8 +215,8 @@ kbd{
     </p>
   </section>
 
-  <!-- Slide 2 — The Problem -->
-  <section class="slide" data-notes="Quick and direct. Don't trash the original lab — just say what it does and what it doesn't do. The pivot to 'physical, visible' is the whole project thesis. <em>Practice this transition out loud</em> — it's the most important 30 seconds of the talk.">
+  <!-- Slide 2 â€” The Problem -->
+  <section class="slide" data-notes="Quick and direct. Don't trash the original lab â€” just say what it does and what it doesn't do. The pivot to 'physical, visible' is the whole project thesis. <em>Practice this transition out loud</em> â€” it's the most important 30 seconds of the talk.">
     <span class="eyebrow yellow">The Problem We Solved</span>
     <h2>The original lab measured the right thing,<br>but you couldn't <em style="color:var(--yellow);font-style:normal">feel</em> it.</h2>
     <div class="row">
@@ -241,8 +241,8 @@ kbd{
     </div>
   </section>
 
-  <!-- Slide 3 — The Hardware -->
-  <section class="slide" data-notes="Pick up the actual hardware off the table. <em>Show, don't describe.</em> The whole point of this slide is the audience sees that the kit is dead simple — no oscilloscope, no SoC dev board, just parts they could buy at any maker store. That keeps it deployable next semester. Hand the breadboard to a judge if it feels right.">
+  <!-- Slide 3 â€” The Hardware -->
+  <section class="slide" data-notes="Pick up the actual hardware off the table. <em>Show, don't describe.</em> The whole point of this slide is the audience sees that the kit is dead simple â€” no oscilloscope, no SoC dev board, just parts they could buy at any maker store. That keeps it deployable next semester. Hand the breadboard to a judge if it feels right.">
     <span class="eyebrow green">The Hardware (~$10/team)</span>
     <h2>Everything fits in a sandwich bag.</h2>
     <div class="row">
@@ -251,9 +251,9 @@ kbd{
         <ul class="bullets green">
           <li>ESP32 DevKit (38-pin)</li>
           <li>Breadboard + jumpers</li>
-          <li>1x LED + 330&nbsp;Ω resistor</li>
-          <li>10&nbsp;kΩ potentiometer</li>
-          <li>16×2 LCD with I2C backpack</li>
+          <li>1x LED + 330&nbsp;Î© resistor</li>
+          <li>10&nbsp;kÎ© potentiometer</li>
+          <li>16Ã—2 LCD with I2C backpack</li>
           <li>USB data cable</li>
         </ul>
       </div>
@@ -273,9 +273,9 @@ kbd{
     </div>
   </section>
 
-  <!-- Slide 4 — Live Demo: Step 2 (Failure) -->
+  <!-- Slide 4 â€” Live Demo: Step 2 (Failure) -->
   <section class="slide" data-notes="<em>This is the live demo cue.</em> Press <kbd>D</kbd> to open the demo launcher. Make sure step2_overload.ino is already flashed on the bench ESP32. Turn the knob slowly back and forth so the lag is unmistakable from the back of the room. Read the Hz off the Serial Monitor live: '42 Hz. Required is 50 Hz. The system is failing its deadline by 25%.'">
-    <span class="eyebrow red">Live Demo — Step 2: The Failure</span>
+    <span class="eyebrow red">Live Demo â€” Step 2: The Failure</span>
     <h2>Same CPU. Two tasks. One winner.</h2>
     <div class="demo-grid">
       <div class="demo-step">
@@ -287,21 +287,21 @@ kbd{
       </div>
       <div class="demo-step">
         <h3>The diagnosis (Step 3)</h3>
-        <p>Students don't just notice the lag — they <em style="color:var(--yellow);font-style:normal">measure</em> it. Serial Monitor reports the live ADC sample rate.</p>
+        <p>Students don't just notice the lag â€” they <em style="color:var(--yellow);font-style:normal">measure</em> it. Serial Monitor reports the live ADC sample rate.</p>
         <p style="margin-top:10px;color:var(--text)"><strong>If the requirement were 50 Hz</strong>, this is a hard failure. A real motor controller or safety sensor would miss its deadline.</p>
-        <p style="margin-top:14px;color:var(--accent);font-weight:700">"It feels laggy" → "It's missing its deadline by 25×."</p>
+        <p style="margin-top:14px;color:var(--accent);font-weight:700">"It feels laggy" â†’ "It's missing its deadline by 25Ã—."</p>
       </div>
     </div>
   </section>
 
-  <!-- Slide 5 — Live Demo: Step 4 (The Fix) -->
-  <section class="slide" data-notes="The climax. Show the source file with USE_DMA=0, change it to 1, hit Upload, count down 30 seconds. While compiling, narrate what's about to happen: 'Same wiring, same CPU load, same code path on the CPU side — only the data movement is moving from software to hardware.' When the LCD becomes smooth, point at the Serial Monitor: '428 Hz. <em>10×</em>. With the same load still running.' Then point at the dashboard projection: PASS, automatically.">
-    <span class="eyebrow green">Live Demo — Step 4: The Fix</span>
+  <!-- Slide 5 â€” Live Demo: Step 4 (The Fix) -->
+  <section class="slide" data-notes="The climax. Show the source file with USE_DMA=0, change it to 1, hit Upload, count down 30 seconds. While compiling, narrate what's about to happen: 'Same wiring, same CPU load, same code path on the CPU side â€” only the data movement is moving from software to hardware.' When the LCD becomes smooth, point at the Serial Monitor: '428 Hz. <em>10Ã—</em>. With the same load still running.' Then point at the dashboard projection: PASS, automatically.">
+    <span class="eyebrow green">Live Demo â€” Step 4: The Fix</span>
     <h2>One line of code. Ten times the throughput.</h2>
     <div class="code-block" style="font-size:1.1rem">
-<span class="comment">// ── STUDENT TASK ───────────────────────────────────────────</span>
-<span class="change"><span class="keyword">#define</span> USE_DMA  <span class="number">1</span>   <span class="comment">// ← change 0 → 1, reflash</span></span>
-<span class="comment">// ───────────────────────────────────────────────────────────</span>
+<span class="comment">// â”€â”€ STUDENT TASK â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</span>
+<span class="change"><span class="keyword">#define</span> USE_DMA  <span class="number">1</span>   <span class="comment">// â† change 0 â†’ 1, reflash</span></span>
+<span class="comment">// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</span>
     </div>
     <div class="row">
       <div class="card">
@@ -320,29 +320,29 @@ kbd{
       </div>
     </div>
     <p style="margin-top:24px;color:var(--accent);font-size:1.15rem;font-weight:600">
-      The CPU load <em style="font-style:normal">never changed.</em> The DMA controller now feeds the ADC autonomously at 10 kHz on dedicated silicon — the CPU just reads the buffer.
+      The CPU load <em style="font-style:normal">never changed.</em> The DMA controller now feeds the ADC autonomously at 10 kHz on dedicated silicon â€” the CPU just reads the buffer.
     </p>
   </section>
 
-  <!-- Slide 6 — The Server Pass -->
-  <section class="slide" data-notes="<em>The mandatory rubric requirement: pass triggered by firmware, not the instructor.</em> Walk over to the laptop projection. Point at the dashboard. Show the slot lighting up green WITHOUT touching anything. 'Notice — I haven't touched a keyboard. The firmware measured its own performance, decided it crossed the threshold, connected to MQTT, and reported the pass. Students know they passed because the hardware says they did.'">
-    <span class="eyebrow purple">The Server Pass — Mandatory Per Spec §4</span>
+  <!-- Slide 6 â€” The Server Pass -->
+  <section class="slide" data-notes="<em>The mandatory rubric requirement: pass triggered by firmware, not the instructor.</em> Walk over to the laptop projection. Point at the dashboard. Show the slot lighting up green WITHOUT touching anything. 'Notice â€” I haven't touched a keyboard. The firmware measured its own performance, decided it crossed the threshold, connected to MQTT, and reported the pass. Students know they passed because the hardware says they did.'">
+    <span class="eyebrow purple">The Server Pass â€” Mandatory Per Spec Â§4</span>
     <h2>The firmware reports its own pass.<br>No instructor in the loop.</h2>
     <div class="row">
       <div class="card accent">
         <h3>Trigger logic (in <code>step4_accelerator.ino</code>)</h3>
         <ul class="bullets">
-          <li>DMA sample rate ≥ 200 Hz, sustained 5&nbsp;s</li>
-          <li>ESP32 connects to <code>DEEZ</code> WiFi → MQTT broker</li>
+          <li>DMA sample rate â‰¥ 200 Hz, sustained 5&nbsp;s</li>
+          <li>ESP32 connects to <code>DEEZ</code> WiFi â†’ MQTT broker</li>
           <li>Publishes <code>{q4_lab_pass: "PASS"}</code> on student's slot topic</li>
           <li>Server's <code>scoring_engine.py</code> grades it 10/10</li>
-          <li>Dashboard slot turns green — instructor sees the pass live</li>
+          <li>Dashboard slot turns green â€” instructor sees the pass live</li>
         </ul>
       </div>
       <div class="card green">
         <h3>Why this matters</h3>
         <p style="color:var(--text);line-height:1.55;margin-top:6px">
-          The student can't fake the pass — the firmware only sends it when DMA <em style="color:var(--green);font-style:normal">actually</em> hits the threshold. They had to flip <code>USE_DMA</code>, reflash, and prove the hardware is doing what they think it's doing.
+          The student can't fake the pass â€” the firmware only sends it when DMA <em style="color:var(--green);font-style:normal">actually</em> hits the threshold. They had to flip <code>USE_DMA</code>, reflash, and prove the hardware is doing what they think it's doing.
         </p>
         <p style="color:var(--accent);margin-top:14px;font-weight:600">
           False positives: not possible.<br>Manual entry: not required.
@@ -351,8 +351,8 @@ kbd{
     </div>
   </section>
 
-  <!-- Slide 7 — Design Decisions -->
-  <section class="slide" data-notes="Three slides condensed into one. Don't read the table — pick the most defensible one and elaborate. The 'LCD over oscilloscope' point is the strongest because it directly addresses deployability for next semester. Mention <em>'we tested with people who'd never touched an Arduino IDE — five minutes to first flash.'</em>">
+  <!-- Slide 7 â€” Design Decisions -->
+  <section class="slide" data-notes="Three slides condensed into one. Don't read the table â€” pick the most defensible one and elaborate. The 'LCD over oscilloscope' point is the strongest because it directly addresses deployability for next semester. Mention <em>'we tested with people who'd never touched an Arduino IDE â€” five minutes to first flash.'</em>">
     <span class="eyebrow">Three Decisions That Defined the Module</span>
     <h2>Every choice favored deployability.</h2>
     <table>
@@ -364,13 +364,13 @@ kbd{
           <td>Less precise visual of timing jitter</td>
         </tr>
         <tr>
-          <td><strong>One-line modification</strong> (<code>USE_DMA 0→1</code>)</td>
+          <td><strong>One-line modification</strong> (<code>USE_DMA 0â†’1</code>)</td>
           <td>Tests the partitioning concept, not Arduino-IDE proficiency</td>
           <td>Less code-volume to grade as "effort"</td>
         </tr>
         <tr>
           <td><strong>DMA, not AES</strong></td>
-          <td>DMA is universally applicable — students can transfer the concept to SPI, I2S, UART</td>
+          <td>DMA is universally applicable â€” students can transfer the concept to SPI, I2S, UART</td>
           <td>Less dramatic than crypto offload</td>
         </tr>
         <tr>
@@ -382,8 +382,8 @@ kbd{
     </table>
   </section>
 
-  <!-- Slide 8 — What Students Learn -->
-  <section class="slide" data-notes="Connect each concept back to the moment in the demo where students physically experience it. <em>This is the pedagogy slide</em> — the judges grading instructional alignment will care about this one. The 'measurement before optimization' bullet is the one to spend extra time on; it's the one transferable skill that lives beyond Ch.11.">
+  <!-- Slide 8 â€” What Students Learn -->
+  <section class="slide" data-notes="Connect each concept back to the moment in the demo where students physically experience it. <em>This is the pedagogy slide</em> â€” the judges grading instructional alignment will care about this one. The 'measurement before optimization' bullet is the one to spend extra time on; it's the one transferable skill that lives beyond Ch.11.">
     <span class="eyebrow green">What Students Take Away</span>
     <h2>Five concepts. All anchored in something they touched.</h2>
     <table>
@@ -392,25 +392,25 @@ kbd{
         <tr><td>The CPU is a <strong>shared resource</strong></td><td>Step 2: watch it lag in real time</td></tr>
         <tr><td><strong>Measure before you optimize</strong></td><td>Step 3: record the exact Hz before reaching for hardware</td></tr>
         <tr><td>HW/SW partitioning is <strong>requirement-driven</strong></td><td>Step 5: write your own rule, citing your own measurements</td></tr>
-        <tr><td><strong>Hardware acceleration ≠ speed</strong> (sometimes)</td><td>Step 5 callout: "moving to hardware doesn't always make it faster"</td></tr>
+        <tr><td><strong>Hardware acceleration â‰  speed</strong> (sometimes)</td><td>Step 5 callout: "moving to hardware doesn't always make it faster"</td></tr>
         <tr><td><strong>Server integration</strong> via MQTT</td><td>Step 4: firmware publishes the pass autonomously</td></tr>
       </tbody>
     </table>
   </section>
 
-  <!-- Slide 9 — Grading & Assessment -->
-  <section class="slide" data-notes="Brief slide. The 35-test number is the credibility play — keyword rubrics are easy to dismiss as fragile, the test suite proves we did the work to validate them. Mention that next-semester instructors can run the test suite themselves before any grading-rubric edit goes live.">
+  <!-- Slide 9 â€” Grading & Assessment -->
+  <section class="slide" data-notes="Brief slide. The 35-test number is the credibility play â€” keyword rubrics are easy to dismiss as fragile, the test suite proves we did the work to validate them. Mention that next-semester instructors can run the test suite themselves before any grading-rubric edit goes live.">
     <span class="eyebrow yellow">Grading & Assessment</span>
     <h2>Five questions, automated rubric, 35 test cases.</h2>
     <div class="row">
       <div class="card">
         <h3>Question arc</h3>
         <ul class="bullets">
-          <li><strong>Q1</strong> — observe (why isn't 1 Hz exact?)</li>
-          <li><strong>Q2</strong> — diagnose (why does the LCD lag?)</li>
-          <li><strong>Q3</strong> — quantify (what does ~40 Hz mean?)</li>
-          <li><strong>Q4</strong> — compare (what did DMA change?)</li>
-          <li><strong>Q5</strong> — synthesize (write your own rule)</li>
+          <li><strong>Q1</strong> â€” observe (why isn't 1 Hz exact?)</li>
+          <li><strong>Q2</strong> â€” diagnose (why does the LCD lag?)</li>
+          <li><strong>Q3</strong> â€” quantify (what does ~40 Hz mean?)</li>
+          <li><strong>Q4</strong> â€” compare (what did DMA change?)</li>
+          <li><strong>Q5</strong> â€” synthesize (write your own rule)</li>
         </ul>
       </div>
       <div class="card green">
@@ -424,7 +424,7 @@ kbd{
     </div>
   </section>
 
-  <!-- Slide 10 — Reusability / Next semester -->
+  <!-- Slide 10 â€” Reusability / Next semester -->
   <section class="slide" data-notes="Closing technical slide. The point is: this isn't a one-and-done project, it's actually deployable. Mention specifically that <code>class_config.json</code> already points at <code>ch11Final</code>, and that the instructor guide walks through next semester's setup. Hand off to Q&A.">
     <span class="eyebrow purple">Built for Next Semester</span>
     <h2>Drop in. Restart server. Done.</h2>
@@ -442,18 +442,18 @@ kbd{
       <div class="card accent">
         <h3>Already deployable</h3>
         <ul class="bullets">
-          <li>Drop-in to existing classroom server — no engine rewrites</li>
+          <li>Drop-in to existing classroom server â€” no engine rewrites</li>
           <li><code>class_config.json</code> set to <code>active_lesson: ch11Final</code></li>
           <li>No new Python deps; no cloud dependencies</li>
-          <li>Configuration via <code>#define</code>s — no hardcoded IPs</li>
+          <li>Configuration via <code>#define</code>s â€” no hardcoded IPs</li>
           <li>35 automated rubric tests for next-semester edits</li>
         </ul>
       </div>
     </div>
   </section>
 
-  <!-- Slide 11 — Closing / Q&A -->
-  <section class="slide title-slide" data-notes="Don't speed past this. Pause for actual questions. If asked 'why DMA over dual-core?' — answer that DMA is universally applicable across MCUs while dual-core is ESP32-specific. If asked 'what was hardest?' — the schema-mismatch crash in scoring_engine.py is the most honest answer (it's in the report). If asked about scaling — the per-team cost is ~$10 in consumables.">
+  <!-- Slide 11 â€” Closing / Q&A -->
+  <section class="slide title-slide" data-notes="Don't speed past this. Pause for actual questions. If asked 'why DMA over dual-core?' â€” answer that DMA is universally applicable across MCUs while dual-core is ESP32-specific. If asked 'what was hardest?' â€” the schema-mismatch crash in scoring_engine.py is the most honest answer (it's in the report). If asked about scaling â€” the per-team cost is ~$10 in consumables.">
     <span class="brand-mark">Q&amp;A</span>
     <h1>Questions?</h1>
     <p class="lede">
@@ -469,56 +469,56 @@ kbd{
     </div>
     <p class="byline">
       <strong>Nathan Sarkozy</strong> &middot; <strong>Christian Vanegas</strong><br>
-      CECS 460 · Spring 2026 · CSULB
+      CECS 460 Â· Spring 2026 Â· CSULB
     </p>
   </section>
 
 </div>
 
-<!-- ═══════════════════════════════════════════════════════════════════════════
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
      PRESENTER NOTES
-     ═══════════════════════════════════════════════════════════════════════════ -->
+     â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
 <div id="notes">
   <h4>Presenter Notes</h4>
   <div id="notes-body"></div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════════════════════════
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
      DEMO LAUNCHER
-     ═══════════════════════════════════════════════════════════════════════════ -->
+     â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
 <div id="launcher">
   <div class="launcher-card">
     <h3>Demo links</h3>
     <p>Open these in a second browser window so you can switch back to slides without losing the demo state.</p>
     <a class="launch-btn" id="launch-dashboard" target="_blank">
       <span class="label">Instructor dashboard</span>
-      <span class="sub">/cecs460/instructor — live slot grid + scoring</span>
+      <span class="sub">/cecs460/instructor â€” live slot grid + scoring</span>
     </a>
     <a class="launch-btn" id="launch-projector" target="_blank">
       <span class="label">Projector view</span>
-      <span class="sub">/cecs460/projector — full-screen seat panel for the back of the room</span>
+      <span class="sub">/cecs460/projector â€” full-screen seat panel for the back of the room</span>
     </a>
     <a class="launch-btn" id="launch-lesson" target="_blank">
       <span class="label">Student lesson view</span>
-      <span class="sub">/cecs460/login — what the students see</span>
+      <span class="sub">/cecs460/login â€” what the students see</span>
     </a>
     <button class="launch-btn" id="launch-config" type="button">
-      <span class="label">Set server IP…</span>
-      <span class="sub" id="current-ip">currently: 192.168.8.228</span>
+      <span class="label">Set server IPâ€¦</span>
+      <span class="sub" id="current-ip">currently: 192.168.8.10</span>
     </button>
     <p class="launcher-close">Press <kbd>Esc</kbd> or <kbd>D</kbd> to close.</p>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════════════════════════
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
      HUD
-     ═══════════════════════════════════════════════════════════════════════════ -->
+     â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
 <div id="hud">
-  <span class="brand">CECS 460 · CH.11</span>
+  <span class="brand">CECS 460 Â· CH.11</span>
   <span class="sep">|</span>
   <span>Hardware/Software Co-Design</span>
   <span class="sep">|</span>
-  <span><kbd>←</kbd>/<kbd>→</kbd> navigate</span>
+  <span><kbd>â†</kbd>/<kbd>â†’</kbd> navigate</span>
   <span class="sep">|</span>
   <span><kbd>S</kbd> notes</span>
   <span class="sep">|</span>
@@ -532,7 +532,7 @@ kbd{
 <script>
 'use strict';
 
-// ── State ─────────────────────────────────────────────────────────────────
+// â”€â”€ State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const slides = document.querySelectorAll('.slide');
 const dots   = document.getElementById('dots');
 const counter = document.getElementById('counter');
@@ -543,10 +543,10 @@ const launcher  = document.getElementById('launcher');
 let current = parseInt(location.hash.replace('#', '')) || 0;
 if (current < 0 || current >= slides.length) current = 0;
 
-// Stored server IP for demo links — persisted in localStorage
-let serverIp = localStorage.getItem('ch11_demo_ip') || '192.168.8.228';
+// Stored server IP for demo links â€” persisted in localStorage
+let serverIp = localStorage.getItem('ch11_demo_ip') || '192.168.8.10';
 
-// ── Build dot indicators ──────────────────────────────────────────────────
+// â”€â”€ Build dot indicators â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 slides.forEach((_, i) => {
   const d = document.createElement('span');
   d.className = 'dot';
@@ -556,7 +556,7 @@ slides.forEach((_, i) => {
 });
 const dotEls = dots.querySelectorAll('.dot');
 
-// ── Render ────────────────────────────────────────────────────────────────
+// â”€â”€ Render â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function render() {
   slides.forEach((s, i) => s.classList.toggle('active', i === current));
   dotEls.forEach((d, i) => d.classList.toggle('active', i === current));
@@ -572,7 +572,7 @@ function go(i) {
   render();
 }
 
-// ── Demo launcher ─────────────────────────────────────────────────────────
+// â”€â”€ Demo launcher â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function refreshLaunchLinks() {
   const base = `http://${serverIp}:5000/cecs460`;
   document.getElementById('launch-dashboard').href = `${base}/instructor`;
@@ -583,7 +583,7 @@ function refreshLaunchLinks() {
 refreshLaunchLinks();
 
 document.getElementById('launch-config').addEventListener('click', () => {
-  const next = prompt('Server IP (default 192.168.8.228):', serverIp);
+  const next = prompt('Server IP (default 192.168.8.10):', serverIp);
   if (next && next.trim()) {
     serverIp = next.trim();
     localStorage.setItem('ch11_demo_ip', serverIp);
@@ -596,7 +596,7 @@ launcher.addEventListener('click', (e) => {
   if (e.target === launcher) launcher.classList.remove('open');
 });
 
-// ── Keyboard ──────────────────────────────────────────────────────────────
+// â”€â”€ Keyboard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 document.addEventListener('keydown', (e) => {
   // Don't intercept keys while typing in an input
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
@@ -641,7 +641,7 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-// ── Touch / swipe (for tablets at the expo) ──────────────────────────────
+// â”€â”€ Touch / swipe (for tablets at the expo) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 let touchX = null;
 document.addEventListener('touchstart', (e) => { touchX = e.touches[0].clientX; });
 document.addEventListener('touchend', (e) => {

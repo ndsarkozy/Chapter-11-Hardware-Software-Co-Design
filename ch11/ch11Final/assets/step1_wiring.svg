@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 360" font-family="system-ui, sans-serif">
+  <rect width="600" height="360" fill="#fafafa"/>
+
+  <!-- Title -->
+  <text x="300" y="28" text-anchor="middle" font-size="16" font-weight="600" fill="#222">Step 1 Wiring: LED on GPIO 18</text>
+
+  <!-- ESP32 block -->
+  <rect x="60" y="90" width="150" height="180" rx="6" fill="#2b3a55" stroke="#1a2538" stroke-width="2"/>
+  <text x="135" y="115" text-anchor="middle" font-size="13" font-weight="600" fill="#fff">ESP32 DevKit</text>
+
+  <!-- Pins -->
+  <rect x="60" y="140" width="150" height="22" fill="#3a4a68"/>
+  <text x="70" y="156" font-size="11" fill="#fff">GPIO 18</text>
+  <circle cx="210" cy="151" r="4" fill="#f4c542"/>
+
+  <rect x="60" y="235" width="150" height="22" fill="#3a4a68"/>
+  <text x="70" y="251" font-size="11" fill="#fff">GND</text>
+  <circle cx="210" cy="246" r="4" fill="#f4c542"/>
+
+  <!-- Wire from GPIO 18 -->
+  <path d="M 214 151 L 290 151" stroke="#d84a3a" stroke-width="2.5" fill="none"/>
+
+  <!-- Resistor -->
+  <rect x="290" y="141" width="60" height="20" fill="#e8c890" stroke="#8a6d32" stroke-width="1.5"/>
+  <text x="320" y="135" text-anchor="middle" font-size="10" fill="#333">330 Ω</text>
+  <text x="320" y="156" text-anchor="middle" font-size="10" fill="#222">▬▬▬</text>
+
+  <!-- Wire from resistor to LED -->
+  <path d="M 350 151 L 420 151" stroke="#d84a3a" stroke-width="2.5" fill="none"/>
+
+  <!-- LED symbol -->
+  <polygon points="420,141 420,161 440,151" fill="#ff6b6b" stroke="#8a2a2a" stroke-width="1.5"/>
+  <line x1="440" y1="138" x2="440" y2="164" stroke="#8a2a2a" stroke-width="2"/>
+  <text x="430" y="130" text-anchor="middle" font-size="10" fill="#333">LED</text>
+  <text x="415" y="180" font-size="9" fill="#666">anode (+)</text>
+  <text x="445" y="180" font-size="9" fill="#666">cathode (−)</text>
+
+  <!-- Wire from LED cathode down and back to GND -->
+  <path d="M 440 151 L 480 151 L 480 246 L 214 246" stroke="#2a2a2a" stroke-width="2.5" fill="none"/>
+
+  <!-- Scope probe -->
+  <circle cx="252" cy="151" r="5" fill="none" stroke="#1f7a3a" stroke-width="2"/>
+  <line x1="252" y1="146" x2="252" y2="80" stroke="#1f7a3a" stroke-width="2"/>
+  <text x="258" y="78" font-size="11" fill="#1f7a3a" font-weight="600">scope probe (CH1)</text>
+
+  <!-- Scope GND clip -->
+  <line x1="260" y1="246" x2="260" y2="310" stroke="#1f7a3a" stroke-width="2" stroke-dasharray="3,2"/>
+  <text x="266" y="308" font-size="11" fill="#1f7a3a" font-weight="600">scope GND clip</text>
+
+  <!-- Legend -->
+  <text x="60" y="325" font-size="11" fill="#555" font-style="italic">Resistor limits current to ~10 mA. Any standard 5 mm LED works.</text>
+  <text x="60" y="342" font-size="11" fill="#555" font-style="italic">Use the scope's auto-measure to read frequency.</text>
+</svg>
