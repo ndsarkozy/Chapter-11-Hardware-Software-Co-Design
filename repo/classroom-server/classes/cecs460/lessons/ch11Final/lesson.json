@@ -31,7 +31,7 @@
         {
           "type": "task",
           "heading": "Build it",
-          "text": "Wire one LED to GPIO 18 through a 330 Ω current-limiting resistor to ground. Connect your oscilloscope probe to GPIO 18 with the ground clip on the ESP32's GND rail."
+          "text": "Wire one LED to GPIO 18 through a 330 Ω current-limiting resistor to ground. Connect your ESP32 to your laptop with a data-capable USB cable so Serial Monitor can receive the measurement output."
         },
         {
           "type": "reference",
@@ -62,7 +62,7 @@
 
       "short_answer_prompt": {
         "question_id": "q1_why_not_exact",
-        "prompt": "Your scope reading isn't exactly 1.0000 Hz. In 2–3 sentences, explain why. What is the ESP32 actually doing, and why can't the software produce a perfect 1 Hz signal?",
+        "prompt": "Your Serial Monitor reading isn't exactly 1.0000 Hz. In 2–3 sentences, explain why. What is the ESP32 actually doing, and why can't the software produce a perfect 1 Hz signal?",
         "word_limit": 80,
         "grading_ref": "grading.json#q1_why_not_exact"
       },

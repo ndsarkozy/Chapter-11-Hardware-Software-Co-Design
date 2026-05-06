@@ -38,16 +38,13 @@
   <!-- Wire from LED cathode down and back to GND -->
   <path d="M 440 151 L 480 151 L 480 246 L 214 246" stroke="#2a2a2a" stroke-width="2.5" fill="none"/>
 
-  <!-- Scope probe -->
-  <circle cx="252" cy="151" r="5" fill="none" stroke="#1f7a3a" stroke-width="2"/>
-  <line x1="252" y1="146" x2="252" y2="80" stroke="#1f7a3a" stroke-width="2"/>
-  <text x="258" y="78" font-size="11" fill="#1f7a3a" font-weight="600">scope probe (CH1)</text>
-
-  <!-- Scope GND clip -->
-  <line x1="260" y1="246" x2="260" y2="310" stroke="#1f7a3a" stroke-width="2" stroke-dasharray="3,2"/>
-  <text x="266" y="308" font-size="11" fill="#1f7a3a" font-weight="600">scope GND clip</text>
+  <!-- USB connection callout -->
+  <rect x="60" y="282" width="150" height="22" fill="#3a4a68"/>
+  <text x="70" y="298" font-size="11" fill="#fff">USB (data cable)</text>
+  <line x1="135" y1="304" x2="135" y2="332" stroke="#1f7a3a" stroke-width="2"/>
+  <text x="142" y="328" font-size="11" fill="#1f7a3a" font-weight="600">to laptop → Arduino IDE Serial Monitor @ 115200 baud</text>
 
   <!-- Legend -->
-  <text x="60" y="325" font-size="11" fill="#555" font-style="italic">Resistor limits current to ~10 mA. Any standard 5 mm LED works.</text>
-  <text x="60" y="342" font-size="11" fill="#555" font-style="italic">Use the scope's auto-measure to read frequency.</text>
+  <text x="300" y="325" font-size="11" fill="#555" font-style="italic">Resistor limits current to ~10 mA. Any standard 5 mm LED works.</text>
+  <text x="300" y="342" font-size="11" fill="#555" font-style="italic">Firmware prints the measured period and frequency every cycle.</text>
 </svg>

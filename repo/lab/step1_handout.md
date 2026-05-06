@@ -43,7 +43,7 @@ Watch it for about 10 cycles, then record a representative value.
 
 ### Think about it
 
-> **Q1 (short answer, graded):** Your scope reading isn't exactly 1.0000 Hz. In 2–3 sentences, explain why. What is the ESP32 actually doing, and why can't the software produce a perfect 1 Hz signal?
+> **Q1 (short answer, graded):** Your Serial Monitor reading isn't exactly 1.0000 Hz. In 2–3 sentences, explain why. What is the ESP32 actually doing, and why can't the software produce a perfect 1 Hz signal?
 
 Write your answer in the lesson system's Step 1 short-answer box. You'll get immediate scoring feedback.
 

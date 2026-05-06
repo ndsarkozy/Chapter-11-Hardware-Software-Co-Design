@@ -9,7 +9,13 @@ Usage: python3 test_grading.py
 """
 
 import json
+import sys
 from pathlib import Path
+
+# Force UTF-8 stdout so the Unicode box-drawing dividers below print on Windows
+# cmd shells (default cp1252 codec can't encode them otherwise).
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
 
 GRADING_FILE = Path(__file__).resolve().parent.parent / "lesson_package" / "grading.json"
 
