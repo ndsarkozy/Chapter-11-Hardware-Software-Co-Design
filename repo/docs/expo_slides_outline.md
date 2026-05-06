@@ -1,6 +1,6 @@
 # Expo Presentation Outline — CECS 460 Chapter 11 Module
 ## Hardware/Software Co-Design and Design Flow
-**Nathan Sarkozy — Spring 2026 Final Expo**
+**Nathan Sarkozy and Christian Vanegas — Spring 2026 Final Expo**
 
 ---
 

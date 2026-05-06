@@ -2,7 +2,7 @@
 
 ## What this is
 
-Final project for CECS 460 (System on Chip) at CSULB, Spring 2026, by Nathan Sarkozy. An interactive classroom module for Chapter 11: Hardware/Software Co-Design. Students learn hardware/software partitioning by watching software fail under CPU load on an ESP32, then fixing it with the DMA controller.
+Final project for CECS 460 (System on Chip) at CSULB, Spring 2026, by **Nathan Sarkozy and Christian Vanegas** (two-person team). An interactive classroom module for Chapter 11: Hardware/Software Co-Design. Students learn hardware/software partitioning by watching software fail under CPU load on an ESP32, then fixing it with the DMA controller.
 
 Plugs into the ClassroomFusion server system — the full server lives at `repo/classroom-server/`.
 
@@ -56,6 +56,8 @@ repo/
   START_SERVER.bat
   STOP_SERVER.bat
   CHANGE_IP.bat
+  DEMO_MODE.bat              # Expo demo launcher — starts server, opens presentation + dashboard + projector
+  presentation.html          # Standalone slide deck for the live expo (arrow keys + S/D/F shortcuts)
 ```
 
 ## 5-step lesson status
@@ -109,6 +111,19 @@ START_SERVER.bat        # Windows — double-click or run from terminal
 # OR
 cd repo/classroom-server && python run.py
 ```
+
+## Expo demo mode
+
+`repo/DEMO_MODE.bat` is the one-click launcher for the live expo. It:
+
+1. Detects the laptop's LAN IP via PowerShell (Get-NetIPAddress, prefers DHCP/Manual non-APIPA), prompts for confirmation
+2. Stops any prior `python.exe` so port 5000 is free
+3. Starts the classroom server in a separate cmd window
+4. Polls `http://localhost:5000/` until it responds (up to 25 s)
+5. POSTs to `/cecs460/session/clear` with PIN 4600 to wipe leftover state
+6. Opens `presentation.html`, the instructor dashboard, and the projector view
+
+`presentation.html` is a single-file slide deck (no build step). Keys: ← / → / Space navigate, **S** toggles presenter notes, **D** opens a demo-link launcher (configurable IP, persisted in localStorage), **F** fullscreen, **Esc** closes overlays. Touch swipe also works for tablets.
 
 ## Key commands
 
@@ -171,7 +186,7 @@ cp repo/lesson_package/grading.json  repo/classroom-server/classes/cecs460/lesso
 |------|-------|
 | **Testing evidence** | Flash each sketch, screenshot Serial Monitor output, screenshot instructor dashboard showing a pass. Save to `testing_evidence/`. Requires physical hardware. |
 | **Recorded demo video (5–10 min)** | Walk through from student + instructor perspective, show server pass. Requires server + ESP32. |
-| **Expo slides** | Outline written to `docs/expo_slides_outline.md` — convert to actual slides. |
+| **Final report PDF export** | `docs/final_report.md` is complete; needs export to PDF for submission per spec. |
 
 ### Done
 
@@ -183,8 +198,10 @@ cp repo/lesson_package/grading.json  repo/classroom-server/classes/cecs460/lesso
 | scoring_engine.py crash fix | ✅ |
 | step2_wiring.svg | ✅ `lesson_package/assets/step2_wiring.svg` |
 | Instructor notes steps 1–5 | ✅ `lesson_package/instructor_notes/` |
-| Contribution statement | ✅ `docs/contribution_statement.md` (Nathan Sarkozy) |
+| Contribution statement | ✅ `docs/contribution_statement.md` (Nathan Sarkozy + Christian Vanegas) |
 | Expo slides outline | ✅ `docs/expo_slides_outline.md` |
+| Expo presentation deck | ✅ `repo/presentation.html` (standalone, key-driven) |
+| Demo mode launcher | ✅ `repo/DEMO_MODE.bat` |
 
 ## Professor's reference firmware
 

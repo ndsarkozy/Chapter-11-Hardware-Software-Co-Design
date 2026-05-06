@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CECS 460 Ch.11 — Expo Presentation</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d1117;--card:#161b22;--card2:#1c2330;--border:#30363d;
+  --text:#e6edf3;--muted:#8b949e;
+  --accent:#58a6ff;--green:#3fb950;--yellow:#d29922;--red:#f85149;--purple:#a371f7;
+}
+html,body{height:100%;overflow:hidden}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:system-ui,-apple-system,'Segoe UI',sans-serif;
+  display:flex;flex-direction:column;
+  -webkit-font-smoothing:antialiased
+}
+
+/* ── Slide stage ──────────────────────────────────────────────── */
+#stage{flex:1;position:relative;overflow:hidden}
+.slide{
+  position:absolute;inset:0;display:none;
+  padding:6vh 8vw 9vh;flex-direction:column;justify-content:center;
+  animation:slideIn .35s ease-out
+}
+.slide.active{display:flex}
+@keyframes slideIn{
+  from{opacity:0;transform:translateY(12px)}
+  to{opacity:1;transform:none}
+}
+
+/* ── Typography ───────────────────────────────────────────────── */
+.eyebrow{
+  font-size:.85rem;font-weight:700;color:var(--accent);
+  text-transform:uppercase;letter-spacing:.18em;margin-bottom:14px
+}
+.eyebrow.green{color:var(--green)}
+.eyebrow.yellow{color:var(--yellow)}
+.eyebrow.purple{color:var(--purple)}
+.eyebrow.red{color:var(--red)}
+h1{font-size:clamp(2.2rem,5vw,3.6rem);font-weight:800;line-height:1.05;margin-bottom:14px}
+h2{font-size:clamp(1.7rem,3.8vw,2.5rem);font-weight:700;line-height:1.15;margin-bottom:18px}
+h3{font-size:clamp(1.1rem,2vw,1.4rem);font-weight:700;margin-bottom:8px}
+.lede{font-size:clamp(1.05rem,1.7vw,1.4rem);color:var(--muted);line-height:1.5;max-width:62ch}
+.byline{font-size:1.05rem;color:var(--muted);margin-top:30px}
+.byline strong{color:var(--text)}
+
+/* ── Content blocks ───────────────────────────────────────────── */
+.card{
+  background:var(--card);border:1px solid var(--border);border-radius:12px;
+  padding:22px 26px;margin-top:18px
+}
+.card.accent{border-color:#1f4d99;background:#0d2149}
+.card.green{border-color:#1a7f37;background:#0d2a1a}
+.card.yellow{border-color:#664400;background:#2d2000}
+.card.red{border-color:#7a1f1f;background:#3a0d0d}
+
+.row{display:flex;gap:18px;margin-top:22px;flex-wrap:wrap}
+.row > .card{flex:1;min-width:260px;margin:0}
+
+ul.bullets{list-style:none;padding:0;margin-top:18px}
+ul.bullets li{
+  position:relative;padding:8px 0 8px 28px;font-size:clamp(1rem,1.6vw,1.2rem);
+  line-height:1.45;color:var(--text)
+}
+ul.bullets li::before{
+  content:"▸";position:absolute;left:0;top:8px;color:var(--accent);font-weight:700
+}
+ul.bullets.green li::before{color:var(--green)}
+ul.bullets.yellow li::before{color:var(--yellow)}
+
+table{width:100%;border-collapse:collapse;margin-top:18px;font-size:clamp(.9rem,1.4vw,1.1rem)}
+th,td{padding:11px 14px;text-align:left;border-bottom:1px solid var(--border)}
+th{color:var(--accent);font-weight:700;background:var(--card2);font-size:.95rem}
+td{color:var(--text)}
+tr:hover td{background:var(--card)}
+
+code,kbd{
+  font-family:'Cascadia Code',ui-monospace,Menlo,Consolas,monospace;
+  font-size:.92em
+}
+kbd{
+  background:var(--card2);border:1px solid var(--border);
+  border-radius:5px;padding:2px 7px;
+  box-shadow:0 1px 0 rgba(0,0,0,.4)
+}
+.code-block{
+  background:var(--bg);border:1px solid var(--border);border-radius:8px;
+  padding:14px 18px;font-family:'Cascadia Code',ui-monospace,monospace;
+  font-size:.95rem;color:var(--green);margin-top:14px;overflow-x:auto;line-height:1.5
+}
+.code-block .comment{color:var(--muted)}
+.code-block .keyword{color:var(--purple)}
+.code-block .number{color:var(--yellow)}
+.code-block .change{background:#0d2a1a;border-left:3px solid var(--green);padding-left:12px;margin-left:-15px}
+
+/* ── Title slide ──────────────────────────────────────────────── */
+.title-slide{align-items:flex-start;justify-content:center;padding-left:10vw;padding-right:10vw}
+.brand-mark{
+  display:inline-block;background:var(--accent);color:#000;
+  padding:5px 13px;border-radius:6px;font-size:.78rem;font-weight:800;
+  letter-spacing:.15em;margin-bottom:22px
+}
+.title-slide h1{font-size:clamp(2.6rem,6.5vw,5rem)}
+.title-slide .lede{font-size:clamp(1.15rem,2vw,1.6rem);color:var(--accent);margin-top:14px}
+
+/* ── Demo slides ──────────────────────────────────────────────── */
+.demo-grid{
+  display:grid;grid-template-columns:1.2fr 1fr;gap:24px;margin-top:24px;
+  align-items:stretch
+}
+.demo-grid.single{grid-template-columns:1fr}
+.demo-step{
+  background:var(--card);border:1px solid var(--border);border-radius:14px;
+  padding:24px;display:flex;flex-direction:column
+}
+.demo-step .num{
+  display:inline-block;background:var(--accent);color:#000;
+  width:32px;height:32px;border-radius:50%;text-align:center;line-height:32px;
+  font-weight:800;font-size:1rem;margin-bottom:10px
+}
+.demo-step .num.green{background:var(--green)}
+.demo-step .num.red{background:var(--red);color:#fff}
+.demo-step h3{font-size:1.25rem;margin-bottom:6px}
+.demo-step p{color:var(--muted);line-height:1.5;font-size:1rem}
+.demo-step .observation{
+  margin-top:auto;padding-top:16px;border-top:1px solid var(--border);
+  font-family:ui-monospace,monospace;font-size:.95rem;color:var(--green)
+}
+
+/* ── Bottom progress / hud ────────────────────────────────────── */
+#hud{
+  height:46px;background:var(--card);border-top:1px solid var(--border);
+  display:flex;align-items:center;padding:0 18px;gap:14px;flex-shrink:0;
+  font-size:.78rem;color:var(--muted)
+}
+#hud .brand{color:var(--accent);font-weight:700;letter-spacing:.06em}
+#hud .sep{color:var(--border)}
+.dots{display:flex;gap:5px;margin-left:auto;margin-right:14px}
+.dot{
+  width:8px;height:8px;border-radius:50%;background:var(--border);
+  transition:all .25s;cursor:pointer
+}
+.dot:hover{background:var(--muted);transform:scale(1.2)}
+.dot.active{background:var(--accent);width:22px;border-radius:4px}
+#counter{font-variant-numeric:tabular-nums;color:var(--text);font-weight:600}
+#hud kbd{font-size:.75rem;padding:1px 6px}
+
+/* ── Presenter notes drawer ───────────────────────────────────── */
+#notes{
+  position:fixed;left:0;right:0;bottom:46px;
+  background:#0a0d12;border-top:2px solid var(--accent);
+  padding:18px 24px;max-height:38vh;overflow-y:auto;
+  transform:translateY(100%);transition:transform .25s ease-out;
+  z-index:50;font-size:.95rem;line-height:1.55
+}
+#notes.open{transform:translateY(0)}
+#notes h4{font-size:.78rem;color:var(--accent);text-transform:uppercase;
+  letter-spacing:.1em;margin-bottom:10px}
+#notes p{color:var(--text);margin-bottom:8px}
+#notes em{color:var(--yellow);font-style:normal;font-weight:600}
+
+/* ── Demo launcher overlay ────────────────────────────────────── */
+#launcher{
+  position:fixed;inset:0;background:rgba(13,17,23,.92);backdrop-filter:blur(6px);
+  z-index:100;display:none;align-items:center;justify-content:center;padding:30px
+}
+#launcher.open{display:flex}
+.launcher-card{
+  background:var(--card);border:2px solid var(--accent);border-radius:14px;
+  padding:32px 36px;max-width:540px;width:100%
+}
+.launcher-card h3{color:var(--accent);margin-bottom:6px;font-size:1.4rem}
+.launcher-card p{color:var(--muted);font-size:.95rem;margin-bottom:20px;line-height:1.5}
+.launch-btn{
+  display:block;width:100%;background:var(--card2);border:1px solid var(--border);
+  border-radius:8px;padding:14px 18px;color:var(--text);text-decoration:none;
+  margin-bottom:10px;font-size:1rem;transition:all .18s;font-family:inherit;cursor:pointer;
+  text-align:left
+}
+.launch-btn:hover{background:var(--accent);color:#000;border-color:var(--accent)}
+.launch-btn .label{font-weight:700;display:block;margin-bottom:2px}
+.launch-btn .sub{font-size:.82rem;color:var(--muted)}
+.launch-btn:hover .sub{color:#000}
+.launcher-close{
+  margin-top:14px;font-size:.82rem;color:var(--muted);text-align:center
+}
+
+/* ── Responsive guard ─────────────────────────────────────────── */
+@media (max-width:780px){
+  .slide{padding:4vh 5vw 8vh}
+  .demo-grid{grid-template-columns:1fr}
+  .row{flex-direction:column}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     SLIDE STAGE
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<div id="stage">
+
+  <!-- Slide 1 — Title -->
+  <section class="slide title-slide" data-notes="Open with the hook. Don't read it — say it conversationally. The judges have seen 11 other modules already; the question they're asking themselves is 'why should I care about this one?' Answer that in the first 30 seconds: the original Ch11 lab is a passive timing benchmark, ours makes the failure physically visible. Set up the punchline coming in slide 5: <em>one line of code</em> separates a broken system from a working one.">
+    <span class="brand-mark">CECS 460 · CHAPTER 11</span>
+    <h1>Hardware/Software Co-Design</h1>
+    <p class="lede">When does software stop being enough?</p>
+    <p class="byline">
+      <strong>Nathan Sarkozy</strong> &middot; <strong>Christian Vanegas</strong><br>
+      Spring 2026 Final Expo &middot; CSULB
+    </p>
+  </section>
+
+  <!-- Slide 2 — The Problem -->
+  <section class="slide" data-notes="Quick and direct. Don't trash the original lab — just say what it does and what it doesn't do. The pivot to 'physical, visible' is the whole project thesis. <em>Practice this transition out loud</em> — it's the most important 30 seconds of the talk.">
+    <span class="eyebrow yellow">The Problem We Solved</span>
+    <h2>The original lab measured the right thing,<br>but you couldn't <em style="color:var(--yellow);font-style:normal">feel</em> it.</h2>
+    <div class="row">
+      <div class="card">
+        <h3 style="color:var(--muted)">Original Ch.11 lab</h3>
+        <ul class="bullets">
+          <li>Run AES-128 in software, then in hardware</li>
+          <li>Compare two timing numbers from MQTT</li>
+          <li>Submit the speedup ratio</li>
+          <li>Student is a spectator</li>
+        </ul>
+      </div>
+      <div class="card accent">
+        <h3 style="color:var(--accent)">Our redesign</h3>
+        <ul class="bullets">
+          <li>Wire a potentiometer + LCD + run a CPU load</li>
+          <li>Watch the LCD <strong>visibly lag</strong> the knob</li>
+          <li>Flip one <code>#define</code>, watch lag vanish</li>
+          <li>Student is a participant</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Slide 3 — The Hardware -->
+  <section class="slide" data-notes="Pick up the actual hardware off the table. <em>Show, don't describe.</em> The whole point of this slide is the audience sees that the kit is dead simple — no oscilloscope, no SoC dev board, just parts they could buy at any maker store. That keeps it deployable next semester. Hand the breadboard to a judge if it feels right.">
+    <span class="eyebrow green">The Hardware (~$10/team)</span>
+    <h2>Everything fits in a sandwich bag.</h2>
+    <div class="row">
+      <div class="card">
+        <h3>Per-team kit</h3>
+        <ul class="bullets green">
+          <li>ESP32 DevKit (38-pin)</li>
+          <li>Breadboard + jumpers</li>
+          <li>1x LED + 330&nbsp;Ω resistor</li>
+          <li>10&nbsp;kΩ potentiometer</li>
+          <li>16×2 LCD with I2C backpack</li>
+          <li>USB data cable</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>What we deliberately don't need</h3>
+        <ul class="bullets yellow">
+          <li>No oscilloscope</li>
+          <li>No external power supply</li>
+          <li>No specialized SoC dev board</li>
+          <li>No internet (LAN-only MQTT)</li>
+        </ul>
+        <p style="margin-top:14px;color:var(--muted);font-size:.92rem;line-height:1.5">
+          All measurement is via Arduino IDE Serial Monitor.
+          Any classroom with USB ports can run this lab.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Slide 4 — Live Demo: Step 2 (Failure) -->
+  <section class="slide" data-notes="<em>This is the live demo cue.</em> Press <kbd>D</kbd> to open the demo launcher. Make sure step2_overload.ino is already flashed on the bench ESP32. Turn the knob slowly back and forth so the lag is unmistakable from the back of the room. Read the Hz off the Serial Monitor live: '42 Hz. Required is 50 Hz. The system is failing its deadline by 25%.'">
+    <span class="eyebrow red">Live Demo — Step 2: The Failure</span>
+    <h2>Same CPU. Two tasks. One winner.</h2>
+    <div class="demo-grid">
+      <div class="demo-step">
+        <span class="num red">!</span>
+        <h3>What you see</h3>
+        <p>The LCD shows the knob percentage but lags <strong>noticeably</strong> behind the potentiometer. Bottom row: <code>SW Poll&nbsp;&nbsp;LAGGING</code>.</p>
+        <p style="margin-top:10px">The CPU is running a 5,000-iteration floating-point loop on every <code>loop()</code> tick. The ADC read has to wait its turn.</p>
+        <div class="observation">[SW]&nbsp;&nbsp;Sample rate: 42.3 Hz&nbsp;&nbsp;|&nbsp;&nbsp;Knob: 67%</div>
+      </div>
+      <div class="demo-step">
+        <h3>The diagnosis (Step 3)</h3>
+        <p>Students don't just notice the lag — they <em style="color:var(--yellow);font-style:normal">measure</em> it. Serial Monitor reports the live ADC sample rate.</p>
+        <p style="margin-top:10px;color:var(--text)"><strong>If the requirement were 50 Hz</strong>, this is a hard failure. A real motor controller or safety sensor would miss its deadline.</p>
+        <p style="margin-top:14px;color:var(--accent);font-weight:700">"It feels laggy" → "It's missing its deadline by 25×."</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Slide 5 — Live Demo: Step 4 (The Fix) -->
+  <section class="slide" data-notes="The climax. Show the source file with USE_DMA=0, change it to 1, hit Upload, count down 30 seconds. While compiling, narrate what's about to happen: 'Same wiring, same CPU load, same code path on the CPU side — only the data movement is moving from software to hardware.' When the LCD becomes smooth, point at the Serial Monitor: '428 Hz. <em>10×</em>. With the same load still running.' Then point at the dashboard projection: PASS, automatically.">
+    <span class="eyebrow green">Live Demo — Step 4: The Fix</span>
+    <h2>One line of code. Ten times the throughput.</h2>
+    <div class="code-block" style="font-size:1.1rem">
+<span class="comment">// ── STUDENT TASK ───────────────────────────────────────────</span>
+<span class="change"><span class="keyword">#define</span> USE_DMA  <span class="number">1</span>   <span class="comment">// ← change 0 → 1, reflash</span></span>
+<span class="comment">// ───────────────────────────────────────────────────────────</span>
+    </div>
+    <div class="row">
+      <div class="card">
+        <h3 style="color:var(--red)">Before <span style="font-weight:400;color:var(--muted)">(USE_DMA = 0)</span></h3>
+        <p style="font-family:ui-monospace,monospace;font-size:1rem;color:var(--red);line-height:1.6">
+          [SW]&nbsp;&nbsp;Sample rate: <strong>42.3 Hz</strong><br>
+          LCD: <strong>SW Poll&nbsp;&nbsp;LAGGING</strong>
+        </p>
+      </div>
+      <div class="card green">
+        <h3 style="color:var(--green)">After <span style="font-weight:400;color:var(--muted)">(USE_DMA = 1)</span></h3>
+        <p style="font-family:ui-monospace,monospace;font-size:1rem;color:var(--green);line-height:1.6">
+          [DMA] Sample rate: <strong>428.6 Hz</strong><br>
+          LCD: <strong>DMA&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;SMOOTH</strong>
+        </p>
+      </div>
+    </div>
+    <p style="margin-top:24px;color:var(--accent);font-size:1.15rem;font-weight:600">
+      The CPU load <em style="font-style:normal">never changed.</em> The DMA controller now feeds the ADC autonomously at 10 kHz on dedicated silicon — the CPU just reads the buffer.
+    </p>
+  </section>
+
+  <!-- Slide 6 — The Server Pass -->
+  <section class="slide" data-notes="<em>The mandatory rubric requirement: pass triggered by firmware, not the instructor.</em> Walk over to the laptop projection. Point at the dashboard. Show the slot lighting up green WITHOUT touching anything. 'Notice — I haven't touched a keyboard. The firmware measured its own performance, decided it crossed the threshold, connected to MQTT, and reported the pass. Students know they passed because the hardware says they did.'">
+    <span class="eyebrow purple">The Server Pass — Mandatory Per Spec §4</span>
+    <h2>The firmware reports its own pass.<br>No instructor in the loop.</h2>
+    <div class="row">
+      <div class="card accent">
+        <h3>Trigger logic (in <code>step4_accelerator.ino</code>)</h3>
+        <ul class="bullets">
+          <li>DMA sample rate ≥ 200 Hz, sustained 5&nbsp;s</li>
+          <li>ESP32 connects to <code>DEEZ</code> WiFi → MQTT broker</li>
+          <li>Publishes <code>{q4_lab_pass: "PASS"}</code> on student's slot topic</li>
+          <li>Server's <code>scoring_engine.py</code> grades it 10/10</li>
+          <li>Dashboard slot turns green — instructor sees the pass live</li>
+        </ul>
+      </div>
+      <div class="card green">
+        <h3>Why this matters</h3>
+        <p style="color:var(--text);line-height:1.55;margin-top:6px">
+          The student can't fake the pass — the firmware only sends it when DMA <em style="color:var(--green);font-style:normal">actually</em> hits the threshold. They had to flip <code>USE_DMA</code>, reflash, and prove the hardware is doing what they think it's doing.
+        </p>
+        <p style="color:var(--accent);margin-top:14px;font-weight:600">
+          False positives: not possible.<br>Manual entry: not required.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Slide 7 — Design Decisions -->
+  <section class="slide" data-notes="Three slides condensed into one. Don't read the table — pick the most defensible one and elaborate. The 'LCD over oscilloscope' point is the strongest because it directly addresses deployability for next semester. Mention <em>'we tested with people who'd never touched an Arduino IDE — five minutes to first flash.'</em>">
+    <span class="eyebrow">Three Decisions That Defined the Module</span>
+    <h2>Every choice favored deployability.</h2>
+    <table>
+      <thead><tr><th>Decision</th><th>Why we chose it</th><th>Trade we accepted</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>LCD over oscilloscope</strong></td>
+          <td>Visible to the whole room; zero scope-setup time; works in any classroom</td>
+          <td>Less precise visual of timing jitter</td>
+        </tr>
+        <tr>
+          <td><strong>One-line modification</strong> (<code>USE_DMA 0→1</code>)</td>
+          <td>Tests the partitioning concept, not Arduino-IDE proficiency</td>
+          <td>Less code-volume to grade as "effort"</td>
+        </tr>
+        <tr>
+          <td><strong>DMA, not AES</strong></td>
+          <td>DMA is universally applicable — students can transfer the concept to SPI, I2S, UART</td>
+          <td>Less dramatic than crypto offload</td>
+        </tr>
+        <tr>
+          <td><strong>Serial Monitor over scope</strong></td>
+          <td>Tool that's already on every student laptop</td>
+          <td>No waveform, just a number</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Slide 8 — What Students Learn -->
+  <section class="slide" data-notes="Connect each concept back to the moment in the demo where students physically experience it. <em>This is the pedagogy slide</em> — the judges grading instructional alignment will care about this one. The 'measurement before optimization' bullet is the one to spend extra time on; it's the one transferable skill that lives beyond Ch.11.">
+    <span class="eyebrow green">What Students Take Away</span>
+    <h2>Five concepts. All anchored in something they touched.</h2>
+    <table>
+      <thead><tr><th>Concept</th><th>Where the lesson teaches it</th></tr></thead>
+      <tbody>
+        <tr><td>The CPU is a <strong>shared resource</strong></td><td>Step 2: watch it lag in real time</td></tr>
+        <tr><td><strong>Measure before you optimize</strong></td><td>Step 3: record the exact Hz before reaching for hardware</td></tr>
+        <tr><td>HW/SW partitioning is <strong>requirement-driven</strong></td><td>Step 5: write your own rule, citing your own measurements</td></tr>
+        <tr><td><strong>Hardware acceleration ≠ speed</strong> (sometimes)</td><td>Step 5 callout: "moving to hardware doesn't always make it faster"</td></tr>
+        <tr><td><strong>Server integration</strong> via MQTT</td><td>Step 4: firmware publishes the pass autonomously</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Slide 9 — Grading & Assessment -->
+  <section class="slide" data-notes="Brief slide. The 35-test number is the credibility play — keyword rubrics are easy to dismiss as fragile, the test suite proves we did the work to validate them. Mention that next-semester instructors can run the test suite themselves before any grading-rubric edit goes live.">
+    <span class="eyebrow yellow">Grading & Assessment</span>
+    <h2>Five questions, automated rubric, 35 test cases.</h2>
+    <div class="row">
+      <div class="card">
+        <h3>Question arc</h3>
+        <ul class="bullets">
+          <li><strong>Q1</strong> — observe (why isn't 1 Hz exact?)</li>
+          <li><strong>Q2</strong> — diagnose (why does the LCD lag?)</li>
+          <li><strong>Q3</strong> — quantify (what does ~40 Hz mean?)</li>
+          <li><strong>Q4</strong> — compare (what did DMA change?)</li>
+          <li><strong>Q5</strong> — synthesize (write your own rule)</li>
+        </ul>
+      </div>
+      <div class="card green">
+        <h3>Validation</h3>
+        <p style="color:var(--text);line-height:1.55;margin-top:6px">
+          Keyword-weighted scoring with disqualifier patterns and length penalties. Each rubric is exercised by full-credit, partial-credit, and disqualifying sample answers in <code>tests/test_grading.py</code>.
+        </p>
+        <div class="code-block" style="margin-top:14px">$ python3 tests/test_grading.py
+<span style="color:var(--green)">35 / 35 tests passing.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Slide 10 — Reusability / Next semester -->
+  <section class="slide" data-notes="Closing technical slide. The point is: this isn't a one-and-done project, it's actually deployable. Mention specifically that <code>class_config.json</code> already points at <code>ch11Final</code>, and that the instructor guide walks through next semester's setup. Hand off to Q&A.">
+    <span class="eyebrow purple">Built for Next Semester</span>
+    <h2>Drop in. Restart server. Done.</h2>
+    <div class="row">
+      <div class="card">
+        <h3>What ships</h3>
+        <ul class="bullets">
+          <li><code>lesson.json</code> + <code>grading.json</code></li>
+          <li>3 Arduino sketches + README with wiring tables</li>
+          <li>5 student handouts + 5 instructor notes</li>
+          <li>Instructor guide + final report + BOM</li>
+          <li>This presentation + a one-click demo launcher</li>
+        </ul>
+      </div>
+      <div class="card accent">
+        <h3>Already deployable</h3>
+        <ul class="bullets">
+          <li>Drop-in to existing classroom server — no engine rewrites</li>
+          <li><code>class_config.json</code> set to <code>active_lesson: ch11Final</code></li>
+          <li>No new Python deps; no cloud dependencies</li>
+          <li>Configuration via <code>#define</code>s — no hardcoded IPs</li>
+          <li>35 automated rubric tests for next-semester edits</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Slide 11 — Closing / Q&A -->
+  <section class="slide title-slide" data-notes="Don't speed past this. Pause for actual questions. If asked 'why DMA over dual-core?' — answer that DMA is universally applicable across MCUs while dual-core is ESP32-specific. If asked 'what was hardest?' — the schema-mismatch crash in scoring_engine.py is the most honest answer (it's in the report). If asked about scaling — the per-team cost is ~$10 in consumables.">
+    <span class="brand-mark">Q&amp;A</span>
+    <h1>Questions?</h1>
+    <p class="lede">
+      Try the hardware. Flip <code>USE_DMA</code>. Watch the lag disappear.
+    </p>
+    <div class="card accent" style="margin-top:36px;max-width:620px">
+      <h3 style="color:var(--accent);margin-bottom:8px">Live links</h3>
+      <p style="color:var(--text);font-family:ui-monospace,monospace;font-size:.95rem;line-height:1.7">
+        Dashboard:&nbsp;&nbsp;<span style="color:var(--accent)">http://&lt;server-ip&gt;:5000/cecs460/instructor</span><br>
+        Projector:&nbsp;&nbsp;&nbsp;<span style="color:var(--accent)">http://&lt;server-ip&gt;:5000/cecs460/projector</span><br>
+        Student:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--accent)">http://&lt;server-ip&gt;:5000/cecs460/login</span>
+      </p>
+    </div>
+    <p class="byline">
+      <strong>Nathan Sarkozy</strong> &middot; <strong>Christian Vanegas</strong><br>
+      CECS 460 · Spring 2026 · CSULB
+    </p>
+  </section>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     PRESENTER NOTES
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<div id="notes">
+  <h4>Presenter Notes</h4>
+  <div id="notes-body"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     DEMO LAUNCHER
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<div id="launcher">
+  <div class="launcher-card">
+    <h3>Demo links</h3>
+    <p>Open these in a second browser window so you can switch back to slides without losing the demo state.</p>
+    <a class="launch-btn" id="launch-dashboard" target="_blank">
+      <span class="label">Instructor dashboard</span>
+      <span class="sub">/cecs460/instructor — live slot grid + scoring</span>
+    </a>
+    <a class="launch-btn" id="launch-projector" target="_blank">
+      <span class="label">Projector view</span>
+      <span class="sub">/cecs460/projector — full-screen seat panel for the back of the room</span>
+    </a>
+    <a class="launch-btn" id="launch-lesson" target="_blank">
+      <span class="label">Student lesson view</span>
+      <span class="sub">/cecs460/login — what the students see</span>
+    </a>
+    <button class="launch-btn" id="launch-config" type="button">
+      <span class="label">Set server IP…</span>
+      <span class="sub" id="current-ip">currently: 192.168.8.228</span>
+    </button>
+    <p class="launcher-close">Press <kbd>Esc</kbd> or <kbd>D</kbd> to close.</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     HUD
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<div id="hud">
+  <span class="brand">CECS 460 · CH.11</span>
+  <span class="sep">|</span>
+  <span>Hardware/Software Co-Design</span>
+  <span class="sep">|</span>
+  <span><kbd>←</kbd>/<kbd>→</kbd> navigate</span>
+  <span class="sep">|</span>
+  <span><kbd>S</kbd> notes</span>
+  <span class="sep">|</span>
+  <span><kbd>D</kbd> demo links</span>
+  <span class="sep">|</span>
+  <span><kbd>F</kbd> fullscreen</span>
+  <div class="dots" id="dots"></div>
+  <span id="counter">1 / 11</span>
+</div>
+
+<script>
+'use strict';
+
+// ── State ─────────────────────────────────────────────────────────────────
+const slides = document.querySelectorAll('.slide');
+const dots   = document.getElementById('dots');
+const counter = document.getElementById('counter');
+const notes   = document.getElementById('notes');
+const notesBody = document.getElementById('notes-body');
+const launcher  = document.getElementById('launcher');
+
+let current = parseInt(location.hash.replace('#', '')) || 0;
+if (current < 0 || current >= slides.length) current = 0;
+
+// Stored server IP for demo links — persisted in localStorage
+let serverIp = localStorage.getItem('ch11_demo_ip') || '192.168.8.228';
+
+// ── Build dot indicators ──────────────────────────────────────────────────
+slides.forEach((_, i) => {
+  const d = document.createElement('span');
+  d.className = 'dot';
+  d.title = `Slide ${i + 1}`;
+  d.addEventListener('click', () => go(i));
+  dots.appendChild(d);
+});
+const dotEls = dots.querySelectorAll('.dot');
+
+// ── Render ────────────────────────────────────────────────────────────────
+function render() {
+  slides.forEach((s, i) => s.classList.toggle('active', i === current));
+  dotEls.forEach((d, i) => d.classList.toggle('active', i === current));
+  counter.textContent = `${current + 1} / ${slides.length}`;
+  notesBody.innerHTML = slides[current].dataset.notes || '<em style="color:var(--muted)">(no notes for this slide)</em>';
+  history.replaceState(null, '', `#${current}`);
+}
+
+function go(i) {
+  if (i < 0) i = 0;
+  if (i >= slides.length) i = slides.length - 1;
+  current = i;
+  render();
+}
+
+// ── Demo launcher ─────────────────────────────────────────────────────────
+function refreshLaunchLinks() {
+  const base = `http://${serverIp}:5000/cecs460`;
+  document.getElementById('launch-dashboard').href = `${base}/instructor`;
+  document.getElementById('launch-projector').href = `${base}/projector`;
+  document.getElementById('launch-lesson').href    = `${base}/login`;
+  document.getElementById('current-ip').textContent = `currently: ${serverIp}`;
+}
+refreshLaunchLinks();
+
+document.getElementById('launch-config').addEventListener('click', () => {
+  const next = prompt('Server IP (default 192.168.8.228):', serverIp);
+  if (next && next.trim()) {
+    serverIp = next.trim();
+    localStorage.setItem('ch11_demo_ip', serverIp);
+    refreshLaunchLinks();
+  }
+});
+
+// Click backdrop to close launcher
+launcher.addEventListener('click', (e) => {
+  if (e.target === launcher) launcher.classList.remove('open');
+});
+
+// ── Keyboard ──────────────────────────────────────────────────────────────
+document.addEventListener('keydown', (e) => {
+  // Don't intercept keys while typing in an input
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+  switch (e.key) {
+    case 'ArrowRight':
+    case ' ':
+    case 'PageDown':
+      e.preventDefault();
+      go(current + 1);
+      break;
+    case 'ArrowLeft':
+    case 'PageUp':
+      e.preventDefault();
+      go(current - 1);
+      break;
+    case 'Home':
+      e.preventDefault();
+      go(0);
+      break;
+    case 'End':
+      e.preventDefault();
+      go(slides.length - 1);
+      break;
+    case 's':
+    case 'S':
+      notes.classList.toggle('open');
+      break;
+    case 'd':
+    case 'D':
+      launcher.classList.toggle('open');
+      break;
+    case 'f':
+    case 'F':
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+      break;
+    case 'Escape':
+      launcher.classList.remove('open');
+      notes.classList.remove('open');
+      break;
+  }
+});
+
+// ── Touch / swipe (for tablets at the expo) ──────────────────────────────
+let touchX = null;
+document.addEventListener('touchstart', (e) => { touchX = e.touches[0].clientX; });
+document.addEventListener('touchend', (e) => {
+  if (touchX === null) return;
+  const dx = e.changedTouches[0].clientX - touchX;
+  if (Math.abs(dx) > 60) go(current + (dx < 0 ? 1 : -1));
+  touchX = null;
+});
+
+render();
+</script>
+</body>
+</html>

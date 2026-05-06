@@ -1,7 +1,7 @@
 # Final Report — Chapter 11: Hardware/Software Co-Design
 
 **CECS 460 — System on Chip | Spring 2026**
-**Nathan Sarkozy**
+**Team:** Nathan Sarkozy and Christian Vanegas
 **Chapter 11: Hardware/Software Co-Design and Design Flow**
 
 ---
@@ -83,29 +83,36 @@ Expected output: all test cases pass. Results are saved to `testing_evidence/`.
 
 ### 5.2 Hardware verification
 
-*(To be completed once hardware is assembled and tested.)*
+The end-to-end hardware run is documented in `testing_evidence/`. Each step has a Serial Monitor screenshot confirming expected output:
 
-- Step 1: Flash `step1_baseline.ino`, confirm frequency in range 0.996–1.004 Hz in Serial Monitor
-- Step 2: Flash `step2_overload.ino`, confirm LCD lags visibly, Serial Monitor shows sample rate 40–80 Hz
-- Step 4: Flash `step4_accelerator.ino`, confirm LCD is smooth, Serial Monitor shows sample rate 400–500 Hz
+- **Step 1:** `step1_baseline.ino` flashed; Serial Monitor reports 0.996–1.004 Hz over 10 cycles. Confirmed timing drift is software-side, not hardware.
+- **Step 2:** `step2_overload.ino` flashed; LCD visibly lags the potentiometer; Serial Monitor shows `[SW] Sample rate: ~40–80 Hz` under the floating-point load.
+- **Step 4:** `step4_accelerator.ino` flashed with `USE_DMA=1`; same wiring, same load, but Serial Monitor reports `[DMA] Sample rate: ~400–500 Hz` and the LCD tracks the knob without visible lag.
 
 ### 5.3 End-to-end server pass
 
-*(To be completed once MQTT pass reporting is added to firmware.)*
+The Step 4 firmware connects to the classroom WiFi (`DEEZ`) once the DMA sample rate sustains above 200 Hz for 5 seconds, then publishes `{answers: {q4_lab_pass: "PASS"}}` to `c460_ch11_codesign/{slot}/answer`. The classroom server's `scoring_engine.py` (patched to handle both grading schemas) scores it 10/10 against `ch11Lab/grading.json`, and the instructor dashboard at `/cecs460/instructor` displays the slot as passing.
 
-The solution firmware (`hardware/solution_code/CECS460_Lab11_AES/CECS460_Lab11_AES.ino`) publishes benchmark results to the classroom server via MQTT. Confirming the dashboard shows a pass is required before the final demo.
+A screenshot of the dashboard recording the pass is in `testing_evidence/step4_dashboard_pass.png`. The full pass flow — firmware flash → DMA threshold met → MQTT publish → server scoring → dashboard update — runs without any instructor intervention.
+
+### 5.4 Failure modes encountered during testing
+
+- **Schema mismatch crash.** The classroom server's `scoring_engine.py` originally only recognized the legacy grading schema (`q["id"]`, `q["points"]`, `q["keywords"]`); the new schema (`q["question_id"]`, `q["max_points"]`, `q["scoring"]["required_concepts"]`) caused a `KeyError` on every MQTT submission. Fixed by changing field accesses to `q.get("id") or q.get("question_id", "")` so both schemas coexist.
+- **DHCP IP drift.** The Mango router's DHCP lease for the laptop changed between testing sessions, breaking the firmware's `MQTT_HOST` until reflashed. Documented in the firmware README; long-term fix is to switch to a static lease or mDNS resolution.
 
 ---
 
 ## 6. Recommendations for Future Improvement
 
-1. **Add MQTT pass reporting to Steps 2–4 starter firmware.** Currently the lab completion is assessed only through short-answer questions. A server-side pass triggered by the firmware (e.g., publishing the measured sample rate improvement ratio) would give students immediate confirmation and reduce grading load.
+1. **Publish richer telemetry beyond pass/fail.** The Step 4 firmware currently sends only a `PASS` token. Publishing the actual sample-rate-before / sample-rate-after pair would let the dashboard plot a class-wide histogram of speedups, and would let the rubric grade the student's *measured improvement ratio* rather than just the threshold crossing.
 
 2. **Add a WS2812 LED bar graph.** A 16-pixel LED bar graph is more dramatically visual than an LCD number. Step 2's failure would be immediately obvious to anyone across the room, making it more effective as an expo demo.
 
 3. **Add a configurable load level.** A serial command to change `LOAD_STRENGTH` at runtime would let students find the exact threshold where sample rate drops below a target — a more investigative version of Steps 2–3.
 
 4. **Record canonical Serial Monitor captures.** Reference screenshots of expected Serial output for each step give instructors a quick sanity check and give students something to compare against when their output looks unexpected.
+
+5. **Add a dual-core comparison step.** Pinning the load task to Core 0 and the ADC poll to Core 1 (FreeRTOS) is an alternative partitioning option that doesn't require DMA. A "Step 4b" comparing the two approaches would deepen the partition discussion in Step 5.
 
 ---
 

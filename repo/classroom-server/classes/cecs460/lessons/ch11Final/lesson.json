@@ -2,7 +2,7 @@
   "chapter_id": "ch11_hw_sw_codesign",
   "chapter_title": "Hardware/Software Co-Design and Design Flow",
   "version": "0.1",
-  "author": "[your name]",
+  "author": "Nathan Sarkozy and Christian Vanegas",
   "summary": "Students experience hardware/software partitioning firsthand by watching software fail under load and then succeed when the same task is handed to a dedicated peripheral. The lesson teaches co-design by having students do it, not by lecturing about it.",
   "estimated_duration_minutes": 120,
   "required_hardware": [
@@ -36,7 +36,7 @@
         {
           "type": "reference",
           "heading": "Wiring diagram",
-          "asset": "assets/step1_wiring.png"
+          "asset": "assets/step1_wiring.svg"
         },
         {
           "type": "task",
@@ -96,7 +96,7 @@
         {
           "type": "reference",
           "heading": "Wiring diagram",
-          "asset": "assets/step2_wiring.png"
+          "asset": "assets/step2_wiring.svg"
         },
         {
           "type": "task",
@@ -322,8 +322,8 @@
   ],
 
   "assets": [
-    "assets/step1_wiring.png",
-    "assets/step2_wiring.png",
+    "assets/step1_wiring.svg",
+    "assets/step2_wiring.svg",
     "hardware/starter_code/step1_baseline/step1_baseline.ino",
     "hardware/starter_code/step2_overload/step2_overload.ino",
     "hardware/starter_code/step4_accelerator/step4_accelerator.ino"

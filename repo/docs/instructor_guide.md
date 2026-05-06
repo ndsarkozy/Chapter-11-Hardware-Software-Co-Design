@@ -169,5 +169,5 @@ python3 tests/test_grading.py
 
 1. **Add a step 3 firmware variant** that lets students adjust `LOAD_STRENGTH` via Serial command so they can find the exact threshold where the sample rate drops below 50 Hz.
 2. **Add a WS2812 LED strip** as a more dramatic visual — a 16-pixel bar graph lagging is more visually striking than an LCD number.
-3. **Add MQTT pass reporting** to the starter firmware so the server dashboard shows green when students complete Step 4 successfully.
-4. **Record canonical Serial Monitor captures** for each step so students have a reference when their output looks unexpected.
+3. **Record canonical Serial Monitor captures** for each step so students have a reference when their output looks unexpected.
+4. **Add a dual-core Step 4b** comparing FreeRTOS task pinning (Core 0 vs Core 1) against the DMA approach — gives students a second partitioning option to weigh.
