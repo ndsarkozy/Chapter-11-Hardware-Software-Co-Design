@@ -83,7 +83,7 @@ Once your DMA sample rate holds above 200 Hz for 5 seconds, the firmware automat
 The instructor dashboard will show your slot as passing this step. **You do not need to do anything manually — the firmware handles it.**
 
 If you don't see the pass message after 30 seconds with USE_DMA=1:
-- Check that you are connected to the `DEEZ` WiFi network
+- Check that you are connected to the `CECS` WiFi network
 - Check that the classroom server is running (ask your instructor)
 - Verify you actually changed `USE_DMA 0` to `USE_DMA 1` and reflashed
 

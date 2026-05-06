@@ -36,7 +36,7 @@ from tkinter import ttk, messagebox
 BAUD_RATE = 115200
 POLL_MS   = 150
 SCAN_MS   = 3000
-DEFAULT_SERVER = "192.168.8.10:5000"
+DEFAULT_SERVER = "192.168.8.228:5000"
 ESP_VIDS  = {0x10C4, 0x1A86, 0x303A, 0x0403}
 
 # ── Regex patterns ────────────────────────────────────────────────────────────

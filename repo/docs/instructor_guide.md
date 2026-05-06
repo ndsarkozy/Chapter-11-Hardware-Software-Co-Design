@@ -83,7 +83,7 @@ Full build/flash instructions: `hardware/starter_code/README.md`
 
 5. Test: log in as a student at `http://192.168.8.228:5000/cecs460/login`, navigate to Step 1, confirm it loads correctly.
 
-> **Note:** `192.168.8.228` is the laptop IP on the Mango GL.iNet router (SSID: `DEEZ`). If the IP changes, run `ipconfig` to find the new one and update it with `CHANGE_IP.bat`.
+> **Note:** `192.168.8.228` is the laptop IP on the Mango GL.iNet router (SSID: `CECS`). If the IP changes, run `ipconfig` to find the new one and update it with `CHANGE_IP.bat`.
 
 ---
 

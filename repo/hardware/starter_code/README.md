@@ -68,8 +68,8 @@
 Step 4 firmware (`step4_accelerator.ino`) connects to the classroom server automatically after the DMA pass condition is met. Configuration is at the top of the sketch:
 
 ```cpp
-#define WIFI_SSID  "DEEZ"
-#define WIFI_PASS  "password"
+#define WIFI_SSID  "CECS"
+#define WIFI_PASS  "CECS-Classroom"
 #define MQTT_HOST  "192.168.8.228"   // change if server IP changes
 #define MQTT_PORT  1883
 ```

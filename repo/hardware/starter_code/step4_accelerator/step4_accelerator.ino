@@ -29,8 +29,8 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 // ── Network / server configuration ───────────────────────────────────────────
-#define WIFI_SSID     "DEEZ"
-#define WIFI_PASS     "password"
+#define WIFI_SSID     "CECS"
+#define WIFI_PASS     "CECS-Classroom"
 #define MQTT_HOST     "192.168.8.228"
 #define MQTT_PORT     1883
 #define COURSE        "C460"

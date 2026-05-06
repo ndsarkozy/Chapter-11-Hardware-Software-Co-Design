@@ -42,8 +42,8 @@ typedef uint8_t AesRoundKey[176];
 #define FW_DATE           "2026-04"
 
 // ── Network defaults ─────────────────────────────────────────────────────────
-#define DEFAULT_SSID      "DEEZ"
-#define DEFAULT_PASS      "password"
+#define DEFAULT_SSID      "CECS"
+#define DEFAULT_PASS      "CECS-Classroom"
 #define DEFAULT_MQTT_HOST "192.168.8.228"
 #define DEFAULT_MQTT_PORT 1883
 #define HEARTBEAT_MS      10000UL
