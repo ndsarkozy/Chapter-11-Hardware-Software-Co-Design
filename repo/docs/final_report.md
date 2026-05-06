@@ -91,7 +91,7 @@ The end-to-end hardware run is documented in `testing_evidence/`. Each step has 
 
 ### 5.3 End-to-end server pass
 
-The Step 4 firmware connects to the classroom WiFi (`DEEZ`) once the DMA sample rate sustains above 200 Hz for 5 seconds, then publishes `{answers: {q4_lab_pass: "PASS"}}` to `c460_ch11_codesign/{slot}/answer`. The classroom server's `scoring_engine.py` (patched to handle both grading schemas) scores it 10/10 against `ch11Lab/grading.json`, and the instructor dashboard at `/cecs460/instructor` displays the slot as passing.
+The Step 4 firmware connects to the classroom WiFi (`CECS`) once the DMA sample rate sustains above 200 Hz for 5 seconds, then publishes `{answers: {q4_lab_pass: "PASS"}}` to `c460_ch11_codesign/{slot}/answer`. The classroom server's `scoring_engine.py` (patched to handle both grading schemas) scores it 10/10 against `ch11Lab/grading.json`, and the instructor dashboard at `/cecs460/instructor` displays the slot as passing.
 
 A screenshot of the dashboard recording the pass is in `testing_evidence/step4_dashboard_pass.png`. The full pass flow — firmware flash → DMA threshold met → MQTT publish → server scoring → dashboard update — runs without any instructor intervention.
 
@@ -118,4 +118,4 @@ A screenshot of the dashboard recording the pass is in `testing_evidence/step4_d
 
 ## 7. Acknowledgments
 
-AI tools (Claude) were used to assist with drafting lesson content, grading rubric structure, and code review. All pedagogical decisions, hardware choices, wiring design, and final content were made and verified by the author. All hardware testing was performed by the author on physical ESP32 hardware.
+AI tools (Claude) were used to assist with drafting lesson content, grading rubric structure, and code review. All pedagogical decisions, hardware choices, wiring design, and final content were made and verified by the team. All hardware testing was performed by the team on physical ESP32 hardware. Per-area ownership is documented in `docs/contribution_statement.md`.

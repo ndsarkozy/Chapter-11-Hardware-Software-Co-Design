@@ -86,7 +86,7 @@ echo   Bench setup checklist:
 echo     [ ] Step 4 firmware loaded with USE_DMA = 0
 echo     [ ] Pot wired GPIO 34, LCD on GPIO 21/22
 echo     [ ] Arduino IDE open with Serial Monitor at 115200
-echo     [ ] ESP32 connected to DEEZ WiFi (or your demo SSID)
+echo     [ ] ESP32 connected to CECS WiFi (or your demo SSID)
 echo     [ ] MQTT_HOST in step4_accelerator.ino = %DETECTED_IP%
 echo.
 echo   To stop the server:    STOP_SERVER.bat

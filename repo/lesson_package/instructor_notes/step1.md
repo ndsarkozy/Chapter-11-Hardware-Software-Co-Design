@@ -8,18 +8,21 @@ Do not front-load vocabulary. Words like "partitioning," "peripheral," "co-desig
 
 ## Expected student measurements
 
-Students will measure frequencies roughly in the range **0.996 to 1.004 Hz**. The dominant source of drift is the Arduino core's RTOS tick and the handful of microseconds `delay()` rounds against the tick period. The exact number varies per board — crystal tolerance, temperature, and WiFi/BT radio state all contribute. **This is a feature, not a bug.** Every student's scope reads a slightly different number, which makes copying meaningless and drives genuine engagement with the question.
+The `step1_baseline.ino` firmware prints the measured period and frequency to Serial Monitor (115200 baud) after every full blink cycle. Students will see lines like `Period: 1002 ms | Frequency: 0.9980 Hz`.
 
-If a student reports a frequency wildly outside this range (< 0.9 or > 1.1), something is wrong — most likely the scope trigger is picking up noise, or they're measuring the wrong channel.
+Frequencies will land in the range **0.996 to 1.004 Hz**. The dominant source of drift is the Arduino core's RTOS tick and the handful of microseconds `delay()` rounds against the tick period. The exact number varies per board — crystal tolerance, temperature, and WiFi/BT radio state all contribute. **This is a feature, not a bug.** Every student's reading is slightly different, which makes copying meaningless and drives genuine engagement with the question.
+
+If a student reports a frequency wildly outside this range (< 0.9 or > 1.1), something is wrong — most likely Serial Monitor is set to a different baud rate, or the wrong sketch is flashed.
 
 ## Common student mistakes
 
 | Mistake | What to do |
 |---|---|
 | LED doesn't light up | Check polarity (anode to GPIO side, cathode to GND). Check that the sketch actually compiled and uploaded — look for "Hard resetting via RTS pin..." in the upload log. |
-| LED lights but scope shows DC | Trigger not set up correctly. Students often forget to set trigger source to CH1. |
-| Scope reports 500 mHz or 2 Hz | They're measuring period-of-period or half-period. Use auto-measure "Frequency," not "Pulse Width." |
-| Student reports exactly 1.0000 Hz | Either (a) they rounded aggressively, (b) the scope's resolution is too coarse — have them zoom in on timebase to 100 ms/div and remeasure, or (c) the scope is averaging heavily and they need to disable it. |
+| No Serial output at all | Wrong baud rate in Serial Monitor. Set to 115200. |
+| Garbled Serial output | Either wrong baud or charge-only USB cable. A charge-only cable will sometimes appear as a COM port but pass nothing usable. |
+| No COM port appears | Charge-only USB cable; swap it for a data cable. |
+| Student reports exactly 1.0000 Hz | They rounded aggressively when transcribing — have them paste the raw `Frequency: 0.99xx Hz` line they actually saw. The firmware prints to four decimals; nobody will see 1.0000 exactly. |
 | Student's answer to Q1 blames the hardware | Gently redirect: "The chip is working correctly. The question is why *correct* software still doesn't produce a *perfect* output." |
 
 ## Grading guidance for Q1
@@ -34,12 +37,12 @@ Do not penalize informal or casual language. The rubric rewards accurate *unders
 
 ## Time budget
 
-Budget 12 minutes for this step. Students who finish in under 8 minutes probably rushed the measurement — check that their scope reading is plausible. Students who take more than 15 minutes are usually stuck on wiring or scope setup; walk around and spot-check.
+Budget 12 minutes for this step. Students who finish in under 8 minutes probably rushed the measurement — check that they actually watched 10 cycles and didn't just transcribe the first one. Students who take more than 15 minutes are usually stuck on wiring or USB driver setup; walk around and spot-check.
 
 ## Why this opening works
 
 - **Fast hands-on:** students touch hardware within 3 minutes.
-- **A surprise they see themselves:** the scope reading isn't 1.0000 Hz, and that's weird.
+- **A surprise they see themselves:** the Serial Monitor reading isn't 1.0000 Hz, and that's weird.
 - **A withheld answer:** the explanation exists in the "reveal" block, but only appears after they've committed to a guess.
 
 By the end of Step 1, students are hooked on a small, concrete observation and they've invested a short-answer response in explaining it. That investment is what powers Steps 2-5.
@@ -47,7 +50,7 @@ By the end of Step 1, students are hooked on a small, concrete observation and t
 ## What not to do
 
 - Do not introduce the word "peripheral" in this step.
-- Do not explain the RMT or LEDC peripherals yet.
+- Do not explain the DMA or LEDC peripherals yet — those land in Step 4.
 - Do not say "this is about hardware/software co-design." Students will figure that out on their own in Step 4.
 - Do not give students the answer before they've written their own. The reveal block is *after* their short-answer submission, not before.
 
@@ -56,13 +59,15 @@ By the end of Step 1, students are hooked on a small, concrete observation and t
 - 1 ESP32 DevKit per team
 - 1 breadboard per team
 - 1 standard LED per team (5 mm, any color)
-- 1x 330 Ω resistor per team
+- 1× 330 Ω resistor per team
 - 2 jumper wires per team
-- 1 oscilloscope (shared is fine; budget ~5 minutes of scope time per team)
+- 1 USB **data** cable per team (charge-only cables will not enumerate a COM port)
+
+No oscilloscope is needed. All measurement is via Arduino IDE Serial Monitor.
 
 ## Prep checklist for the instructor
 
 - [ ] Confirm `step1_baseline.ino` compiles cleanly with the current arduino-esp32 core before class
-- [ ] Confirm at least one working scope per 2-3 teams
-- [ ] Have the canonical scope capture (`testing_evidence/step1_canonical_scope.png`) available to show students if a scope is misbehaving and you need a reference
-- [ ] Pre-wire one demo board and have it measuring live on a demo scope when students walk in — it sets the tone immediately
+- [ ] Confirm at least one spare data-capable USB cable per row of teams (this is the most common day-of failure)
+- [ ] Have a canonical Serial Monitor screenshot from `testing_evidence/step1_serial_monitor.png` available to show students if their output looks unexpected
+- [ ] Pre-flash one demo ESP32 and have it printing live in Serial Monitor when students walk in — sets the tone immediately
