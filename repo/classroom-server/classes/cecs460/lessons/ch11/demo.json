@@ -1,0 +1,212 @@
+{
+  "_description": "Final Expo demo for Team 11 (Nathan Sarkozy and Christian Vanegas), Chapter 11 — Hardware/Software Co-Design and Design Flow. Three-phase: Presentation -> Live Lesson (ch11) -> Peer Review. Modeled on classes/cecs460/lessons/ch01/demo.json. Demo type: team_demo. strip_for_deployment: true.",
+  "_strip_for_deployment": true,
+
+  "lesson_id": "c460_ch11_codesign",
+  "chapter": "ch11",
+  "version": 1,
+  "demo_type": "team_demo",
+
+  "meta": {
+    "chapter": 11,
+    "team": "Team Chapter 11 — N. Sarkozy, C. Vanegas",
+    "members": ["Nathan Sarkozy", "Christian Vanegas"],
+    "chapter_title": "Hardware/Software Co-Design — Software Fails, the DMA Saves It (Live on the ESP32)",
+    "expo_date": "Final Expo — Spring 2026, Week 16",
+    "course": "CECS 460 — System on a Chip Design, CSULB"
+  },
+
+  "presentation": {
+    "_teaching_note": "This block replaces the slide deck. Renderer dispatches by step.type. Order: title_card, three gap_analysis (numbered 1/2/3), enhancement_summary, transition_card.",
+    "steps": [
+      {
+        "id": "title",
+        "type": "title_card",
+        "_note": "Auto-rendered from meta. No extra fields needed.",
+        "display_duration_seconds": 30,
+        "_instructor_say": "Let the title card sit for ~30 seconds while we plug in the ESP32 and bring the LCD onto the projector camera."
+      },
+      {
+        "id": "gap_1",
+        "type": "gap_analysis",
+        "gap_number": 1,
+        "gap_title": "Section 11.2.1 teaches the 'start in software' rule but never makes students experience software failing",
+        "gap_description": "The original Section 11.2.1 ('Start in Software, Then Move to Hardware (When It Hurts)') states the rule plainly: only move to hardware when measurement shows software dominates CPU time or energy. But the chapter never asks students to actually run a software implementation, watch it fail, and feel the failure. Students leave the chapter able to recite the rule on the exam without ever having earned the intuition behind it — which makes Lab Step 4 of the original lab (DMA discussion) read as a magic-trick demo instead of a real engineering decision.",
+        "poll": {
+          "id": "gap_1_poll",
+          "prompt": "How significant was this gap? (1 = minor, 3 = major)",
+          "type": "rating",
+          "scale": {"min": 1, "max": 3},
+          "anonymous": true,
+          "duration_seconds": 30
+        },
+        "fix_preview": "New Step 2 reproduces CPU starvation live: an ESP32 polling a potentiometer through analogRead() while a floating-point load task hammers the CPU — the LCD visibly lags the knob in front of the audience.",
+        "_instructor_say": "Read the gap aloud. Let the poll run 30 seconds. Note the eye-test phrasing — we want classmates to admit the original chapter is theoretical."
+      },
+      {
+        "id": "gap_2",
+        "type": "gap_analysis",
+        "gap_number": 2,
+        "gap_title": "No quantitative before/after measurement of a partitioning decision",
+        "gap_description": "Section 11.2.2 (the smart sensor example) and Section 11.2.3 (cost vs. time) both discuss DMA, AES engines, and ULP offload qualitatively — 'saves energy', 'shortens battery life', 'reduces CPU time per packet'. There is no exercise in which the student records a number with software, records the same number with hardware, and computes the delta. Without that, students can't defend a partition choice in a design review or on the final exam: they have rules, not measurements.",
+        "poll": {
+          "id": "gap_2_poll",
+          "prompt": "How significant was this gap? (1 = minor, 3 = major)",
+          "type": "rating",
+          "scale": {"min": 1, "max": 3},
+          "anonymous": true,
+          "duration_seconds": 30
+        },
+        "fix_preview": "Steps 3 and 4 require students to read the live sample rate from Serial Monitor under both the SW path (~40–80 Hz) and the DMA path (~400–500 Hz) and cite their own delta in their answer to grading question q4.",
+        "_instructor_say": "Tie this gap to grading.json q3 and q4 — both questions explicitly demand the student's measured numbers, not memorized facts."
+      },
+      {
+        "id": "gap_3",
+        "type": "gap_analysis",
+        "gap_number": 3,
+        "gap_title": "No firmware lab where the student flips a single hardware/software switch and observes the consequence",
+        "gap_description": "The chapter ends without a runnable lab in which the student changes one design decision (software polling vs. dedicated hardware path) on the same physical board, with the same workload, and sees the system go from failing to passing. Section 11.2.3 introduces the cost-of-respin asymmetry but the concept stays abstract — students never feel the asymmetry that makes co-design matter. This gap is what made the original Lab 11 difficult to grade objectively: no server-checkable pass condition tied to the partitioning decision.",
+        "poll": {
+          "id": "gap_3_poll",
+          "prompt": "How significant was this gap? (1 = minor, 3 = major)",
+          "type": "rating",
+          "scale": {"min": 1, "max": 3},
+          "anonymous": true,
+          "duration_seconds": 30
+        },
+        "fix_preview": "One-line firmware modification — `#define USE_DMA 0` -> `1` at the top of step4_accelerator.ino — re-runs the same hardware in DMA-accelerated mode; the LCD goes from lagging to smooth and the firmware automatically publishes a server pass over MQTT.",
+        "_teaching_note": "This is our most technically specific gap and it ties directly to the firmware task and grading.json q4 (DMA autonomous + parallel execution). Reference both when reading it aloud."
+      },
+      {
+        "id": "enhancement_summary",
+        "type": "enhancement_summary",
+        "lesson_steps_added": "Five new in-system lesson steps mapped to chapter sections 11.1–11.2.3 plus a new partitioning-decision capstone: Step 1 (step1_baseline) anchors software timing imprecision via a measured Serial Monitor frequency; Step 2 (step2_overload) reproduces CPU starvation under a floating-point load with potentiometer + 16x2 I2C LCD; Step 3 (step3_diagnose) quantifies the failure (Hz from Serial Monitor); Step 4 (step4_rescue) re-uses the same hardware with the ESP32 I2S-ADC DMA path at 10 kHz; Step 5 (step5_partition) makes students write their own partitioning rule citing their measured numbers.",
+        "firmware_task": "Three Arduino sketches under hardware/starter_code/: step1_baseline (LED + Serial), step2_overload (analogRead polling + LCD + CPU load), step4_accelerator (same wiring, ESP32 I2S in ADC-DMA mode). Student modification: change `#define USE_DMA 0` to `1` at the top of step4_accelerator.ino, recompile, reflash. Required libraries: LiquidCrystal_I2C (Frank de Brabander), PubSubClient v2.8 (Nick O'Leary), ArduinoJson v6 (Benoit Blanchon). Pin config: pot wiper -> GPIO34, LCD SDA -> GPIO21, SCL -> GPIO22, LED -> GPIO18 (Step 1 only). Firmware compiles unmodified before student edits and runs the SW path so students can see the failure before fixing it.",
+        "server_pass_mechanism": "When the running DMA sample rate sustains above 200 Hz for 5 consecutive seconds, the firmware connects to WiFi (SSID `CECS`) and publishes JSON `{answers: {q4_lab_pass: \"PASS\"}, chapter: \"ch11Lab\"}` to MQTT topic `c460_ch11_codesign/{slot}/answer` against broker 192.168.8.10:1883. The classroom server's scoring_engine.py (patched to handle both old- and new-schema grading) validates against ch11Lab/grading.json and scores 10/10. Random payloads, missing slot, or sample rate that drops below 200 Hz before the 5 s window completes are all rejected — false positives are not possible. The pass appears on the instructor dashboard at /cecs460/instructor without any manual entry.",
+        "questions_added": "Five short-answer prompts in grading.json, all keyword-weighted with required-concept lists, exemplar full and partial credit answers, length penalties, automatic disqualifiers, and grader notes: q1_why_not_exact (software timing imprecision); q2_why_lag (CPU as shared resource); q3_diagnose (sample rate vs. system requirement); q4_accelerator (DMA autonomous + parallel execution + measured improvement); q5_partition (synthesize a partitioning rule using own data). All 35 sample-answer cases in tests/test_grading.py pass.",
+        "push_question": {
+          "id": "enh_pq",
+          "prompt": "Before we run the lesson live: what is the one observation you would need to see on the LCD or in Serial Monitor to be convinced the DMA path is genuinely running on dedicated hardware and not just a faster software loop?",
+          "type": "short_answer",
+          "anonymous": true
+        },
+        "_teaching_note": "All four required fields (lesson_steps_added, firmware_task, server_pass_mechanism, questions_added) are quantitative — section numbers, library versions, pin assignments, MQTT topic, validation thresholds, test count. Per the spec's quality bar, vague filler in any of these loses 5 pts."
+      },
+      {
+        "id": "transition",
+        "type": "transition_card",
+        "message": "We will now run the Chapter 11 lesson live on real hardware. Watch for: (1) Step 2 — the LCD lagging visibly behind the potentiometer under CPU load; (2) Step 3 — the Hz number on Serial Monitor that quantifies the failure; (3) Step 4 — the same board with the same load running smoothly after one #define change, and the instructor dashboard flipping to PASS. After the demo, you will rate us on the four required peer-review criteria.",
+        "launch_lesson": true,
+        "lesson_chapter": "ch11",
+        "demo_driver_note": "Drive Steps 2 -> 3 -> 4 live with real hardware. Skip Step 1 for time (assume audience accepts ~1 Hz LED is visually unremarkable). Skip Step 5 unless time remains; the partitioning rule is the discussion in the post-demo debrief instead. Total live phase budget: 7 minutes."
+      }
+    ]
+  },
+
+  "lesson_integration": {
+    "mode": "instructor_driven",
+    "source_chapter": "ch11",
+    "estimated_duration_minutes": 7,
+    "suggested_steps_to_demo": [
+      "step2_overload — Software under pressure (LCD lag visible)",
+      "step3_diagnose — Why did it fail? (Serial Monitor sample rate)",
+      "step4_rescue — The accelerator (DMA path + server pass)"
+    ],
+    "_instructor_say": "Christian drives the laptop and Serial Monitor. Nathan handles the breadboard and points at the LCD. Pre-flash step2_overload before the live phase so the lag is visible immediately. Have step4_accelerator.ino already open in Arduino IDE with USE_DMA set to 0 — make the one-character edit live in front of the audience before reflashing."
+  },
+
+  "peer_review": {
+    "_teaching_note": "Required four criteria (pr_fun, pr_engagement, pr_creativity, pr_firmware_clarity) plus pr_improve. IDs and scoring values are the verbatim ones from the Expo Demo Spec section 9.",
+    "instructions": "You just watched Team 11 demonstrate Chapter 11 — Hardware/Software Co-Design. Rate the demo on the criteria below. All responses are anonymous. Your scores are averaged across all reviewers (your team's own submissions are excluded server-side).",
+    "questions": [
+      {
+        "id": "pr_fun",
+        "type": "rating",
+        "criterion": "Fun",
+        "prompt": "Would you recommend this module to a friend taking CECS 460 next semester?",
+        "scale": {"min": 1, "max": 4, "labels": {
+          "1": "Dry — hard to stay engaged",
+          "2": "Okay — passable",
+          "3": "Good — solid module",
+          "4": "Memorable — would tell friends"
+        }},
+        "anonymous": true,
+        "required": true
+      },
+      {
+        "id": "pr_engagement",
+        "type": "rating",
+        "criterion": "Engagement",
+        "prompt": "Did the team pull you into the chapter? Did you actually want to learn more about hardware/software partitioning?",
+        "scale": {"min": 1, "max": 3, "labels": {
+          "1": "Unprepared or hard to follow",
+          "2": "Clear — you understood the content",
+          "3": "Captivating — you want to learn more"
+        }},
+        "anonymous": true,
+        "required": true
+      },
+      {
+        "id": "pr_creativity",
+        "type": "rating",
+        "criterion": "Creativity",
+        "prompt": "Was the approach to this enhancement genuinely inventive — measuring failure on real hardware before naming the rule — or just a straightforward addition to the chapter?",
+        "scale": {"min": 1, "max": 3, "labels": {
+          "1": "Standard — expected addition",
+          "2": "Thoughtful — some original choices",
+          "3": "Inventive — you wouldn't have thought of this"
+        }},
+        "anonymous": true,
+        "required": true
+      },
+      {
+        "id": "pr_firmware_clarity",
+        "type": "rating",
+        "criterion": "Firmware Demo Clarity",
+        "prompt": "How clearly did you understand what the ESP32 firmware does, what changed between the SW and DMA paths, and why the server pass is real (not a manual override)?",
+        "scale": {"min": 1, "max": 3, "labels": {
+          "1": "Unclear — didn't follow the firmware task",
+          "2": "Mostly clear — got the general idea",
+          "3": "Very clear — could explain it to someone who wasn't here"
+        }},
+        "anonymous": true,
+        "required": true
+      },
+      {
+        "id": "pr_improve",
+        "type": "short_answer",
+        "prompt": "One thing you would improve about Chapter 11 or this demonstration:",
+        "anonymous": true,
+        "required": false,
+        "max_length": 200
+      }
+    ],
+    "scoring": {
+      "exclude_self": true,
+      "apply_to_grade": true,
+      "output_format": "averaged_per_criterion",
+      "share_averages_with_class": true,
+      "window": "session_based"
+    }
+  },
+
+  "post_demo_debrief": {
+    "_note": "Optional 5-minute discussion shown after peer review averages reveal. Useful as Plan B time if the live phase finishes ahead of budget.",
+    "duration_minutes": 5,
+    "discussion_prompts": [
+      "You watched the same hardware fail and then succeed. What number convinced you the failure was real, and what number convinced you the fix was real?",
+      "If you were on a real product team and the DMA fix didn't exist on this chip, what would the chapter's 'cost vs. time' section (11.2.3) say you should do instead — and how expensive would it be?",
+      "Step 4's pass condition requires the DMA rate to hold above 200 Hz for 5 seconds before publishing. Why a sustained window instead of a single sample? What kind of bug would a single-sample threshold mask?"
+    ]
+  },
+
+  "demo_flags": {
+    "mode": "team_demo",
+    "route": "/cecs460/demo/ch11",
+    "strip_for_deployment": true,
+    "include_in_next_semester_zip": true,
+    "peer_review_window_mode": "session_based",
+    "peer_review_window_hours": 0,
+    "apply_peer_review_to_grade": true
+  }
+}
