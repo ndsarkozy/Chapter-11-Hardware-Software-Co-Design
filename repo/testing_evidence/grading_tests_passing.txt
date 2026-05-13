@@ -1,0 +1,66 @@
+
+────────────────────────────────────────────────────────────────────────────────
+Question: q1_why_not_exact  (max 10 pts)
+────────────────────────────────────────────────────────────────────────────────
+Test case                                           Score     Expected   Pass?
+────────────────────────────────────────────────────────────────────────────────
+Full credit — shared CPU + load breaks it + scheduler  10/10         9-10   ok
+Partial — shared CPU only                          4/10          3-5   ok
+Partial — load breaks it only                      4/10          3-5   ok
+Strong answer, different vocabulary               10/10         8-10   ok
+Disqualified — blames hardware                     0/10          0-0   ok
+Too short — length penalty                         1/10          0-4   ok
+Blank                                              0/10          0-0   ok
+
+────────────────────────────────────────────────────────────────────────────────
+Question: q2_why_lag  (max 10 pts)
+────────────────────────────────────────────────────────────────────────────────
+Test case                                           Score     Expected   Pass?
+────────────────────────────────────────────────────────────────────────────────
+Full credit — shared resource + load blocks + lag  10/10         9-10   ok
+Partial — CPU busy, no mechanism                   4/10          4-6   ok
+Partial — mentions sharing but not lag             8/10          7-9   ok
+Full credit different wording                     10/10         8-10   ok
+Too short                                          1/10          0-4   ok
+Blank                                              0/10          0-0   ok
+
+────────────────────────────────────────────────────────────────────────────────
+Question: q3_diagnose  (max 10 pts)
+────────────────────────────────────────────────────────────────────────────────
+Test case                                           Score     Expected   Pass?
+────────────────────────────────────────────────────────────────────────────────
+Full credit — rate + misses requirement + consequence  10/10         9-10   ok
+Partial — rate meaning only                        4/10          3-5   ok
+Partial — misses requirement, no consequence       8/10          7-9   ok
+Full credit, concise                              10/10         8-10   ok
+Too short                                          1/10          0-4   ok
+Blank                                              0/10          0-0   ok
+
+────────────────────────────────────────────────────────────────────────────────
+Question: q4_accelerator  (max 10 pts)
+────────────────────────────────────────────────────────────────────────────────
+Test case                                           Score     Expected   Pass?
+────────────────────────────────────────────────────────────────────────────────
+Full credit — autonomous + parallel + rate improved  10/10         9-10   ok
+Partial — autonomous only                          5/10          4-6   ok
+Partial — parallel only, triggers two concepts     8/10          6-9   ok
+Full credit, different wording                    10/10         8-10   ok
+Too short                                          4/10          0-4   ok
+Blank                                              0/10          0-0   ok
+
+────────────────────────────────────────────────────────────────────────────────
+Question: q5_partition  (max 10 pts)
+────────────────────────────────────────────────────────────────────────────────
+Test case                                           Score     Expected   Pass?
+────────────────────────────────────────────────────────────────────────────────
+Full credit — measure + requirement + own data    10/10         9-10   ok
+Partial — no own data reference                    7/10          6-8   ok
+Partial — mentions data but no rule                7/10          6-8   ok
+Wrong rule — always use hardware                   0/10          0-3   ok
+Full credit, concise                              10/10         8-10   ok
+Too short                                          0/10          0-4   ok
+Blank                                              0/10          0-0   ok
+
+════════════════════════════════════════════════════════════════════════════════
+Overall: ALL CASES PASSED
+════════════════════════════════════════════════════════════════════════════════
