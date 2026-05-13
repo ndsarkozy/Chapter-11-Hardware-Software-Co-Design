@@ -8,7 +8,7 @@
 
 ### What you're doing
 
-Blinking an LED is the first thing anyone does with a microcontroller. You've done it many times. Today you're going to do it again — but this time, you're going to *measure* it, and you're going to find it isn't quite what you expected.
+Blinking an LED is the first thing anyone does with a microcontroller. You've done it many times. Today you're going to do it again — but this time, you're going to *measure* it carefully, and you're going to learn something surprising about how the ESP32 keeps time.
 
 ### Wire it up
 
@@ -28,8 +28,8 @@ Open **Serial Monitor** in Arduino IDE (Tools → Serial Monitor, baud **115200*
 After every full blink cycle, the firmware prints the measured period and frequency:
 
 ```
-Period: 1002 ms  |  Frequency: 0.9980 Hz
-Period: 1001 ms  |  Frequency: 0.9990 Hz
+Period: 1000.000 ms  |  Frequency: 1.0000 Hz
+Period: 1000.000 ms  |  Frequency: 1.0000 Hz
 ```
 
 Watch it for about 10 cycles, then record a representative value.
@@ -39,14 +39,14 @@ Watch it for about 10 cycles, then record a representative value.
 | Frequency (Hz) | __________ |
 | Is it exactly 1.0000 Hz? | [ ] Yes  [ ] No |
 
-*(Spoiler: nobody in this class will measure exactly 1.0000 Hz.)*
+*(Spoiler: most ESP32s on this clean baseline will measure exactly 1.0000 Hz. That's not a measurement error — the FreeRTOS scheduler aligns `delay(500) + delay(500)` to the hardware tick when nothing else is competing for the CPU.)*
 
 ### Think about it
 
-> **Q1 (short answer, graded):** Your Serial Monitor reading isn't exactly 1.0000 Hz. In 2–3 sentences, explain why. What is the ESP32 actually doing, and why can't the software produce a perfect 1 Hz signal?
+> **Q1 (short answer, graded):** Your Serial Monitor reads exactly 1.0000 Hz cycle after cycle. The ESP32's FreeRTOS scheduler keeps perfect tick alignment when the CPU has nothing else to do. In 2–3 sentences, explain why this perfect timing is fragile: what kind of workload would break it, and which CPU resource is the bottleneck?
 
 Write your answer in the lesson system's Step 1 short-answer box. You'll get immediate scoring feedback.
 
 ### What's next
 
-A ~0.3% frequency error is probably invisible to you right now. In Step 2, we're going to turn up the difficulty until the imperfection becomes impossible to miss.
+The baseline is perfect — until it isn't. In Step 2 you'll add a real CPU workload to the same hardware, and watch the same code lose its perfect timing. That's where the chapter's real point about hardware/software co-design begins.

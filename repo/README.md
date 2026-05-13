@@ -77,7 +77,7 @@ This boots the server, resets session state, and opens the presentation deck, pr
 
 Read [`docs/instructor_guide.md`](docs/instructor_guide.md) first. It covers what changed, why, required materials, classroom setup, and expected trouble spots.
 
-The short version: copy `lesson_package/lesson.json` and `lesson_package/grading.json` into `classroom-server/classes/cecs460/lessons/ch11Final/`, set `active_lesson` to `ch11Final` in `class_config.json`, and start the server.
+The short version: copy `lesson_package/lesson.json` and `lesson_package/grading.json` into `classroom-server/classes/cecs460/lessons/ch11/`, set `active_lesson` to `ch11` in `class_config.json`, and start the server.
 
 ## For students
 

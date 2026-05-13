@@ -39,8 +39,9 @@ See `hardware/BOM.md` for sourcing and cost.
 | Jumper wires | 1 kit | M-M, M-F |
 | Standard LED (5 mm) | 1 | Any color |
 | 330 Î© resistor | 1 | LED current limit |
-| Potentiometer (10 kÎ©) | 1 | |
-| 16Ã—2 LCD with I2C backpack | 1 | I2C address 0x27 |
+| Potentiometer (10 kÎ©) | 2 | One for signal on GPIO 34, one for LCD V0 contrast |
+| 16Ã—2 parallel LCD (TC1602A or HD44780-compatible) | 1 | 16-pin module, driven in 4-bit mode |
+| 220 Î© resistor | 1 | LCD backlight current limit (skip if module has built-in resistor) |
 | USB data cable | 1 | **Not charge-only** |
 
 No oscilloscope required. No external power supply required.
@@ -51,7 +52,8 @@ No oscilloscope required. No external power supply required.
 
 - Arduino IDE 2.x
 - arduino-esp32 board package v3.x (Espressif, via Board Manager)
-- LiquidCrystal_I2C library (Library Manager)
+- LiquidCrystal library (built into Arduino IDE -- no install needed)
+- PubSubClient and ArduinoJson v6.x (Library Manager, Step 4 only)
 
 Full build/flash instructions: `hardware/starter_code/README.md`
 
@@ -61,13 +63,13 @@ Full build/flash instructions: `hardware/starter_code/README.md`
 
 1. Copy `lesson_package/` contents into the classroom server's chapter directory:
    ```
-   repo/classroom-server/classes/cecs460/lessons/ch11Final/
+   repo/classroom-server/classes/cecs460/lessons/ch11/
    ```
    Overwrite `lesson.json` and `grading.json` with the versions from `lesson_package/`.
 
 2. Confirm `classroom-server/classes/cecs460/class_config.json` has:
    ```json
-   "active_lesson": "ch11Final"
+   "active_lesson": "ch11"
    ```
 
 3. Start the server:
@@ -107,12 +109,13 @@ Students wire LED to GPIO 18, flash `step1_baseline.ino`, open Serial Monitor, r
 
 ### Step 2 (~15 min)
 
-Students add potentiometer (GPIO 34) and LCD (I2C, GPIO 21/22), flash `step2_overload.ino`. Turn the knob â€” the LCD lags. Serial Monitor shows sample rate (~40â€“80 Hz typically). Answer Q2.
+Students wire signal pot (GPIO 34), contrast pot (LCD V0), and 16x2 parallel LCD (RS=GPIO19, EN=GPIO23, D4=GPIO18, D5=GPIO5, D6=GPIO17, D7=GPIO16). Flash `step2_overload.ino`. Turn the knob -- the LCD lags. Serial Monitor shows sample rate (~40-80 Hz typically). Answer Q2.
 
 **Common issues:**
-- LCD blank â†’ check I2C address (default 0x27; some modules use 0x3F)
-- LCD garbled text â†’ bad SDA/SCL wiring or wrong I2C address
-- No lag visible â†’ increase `LOAD_STRENGTH` in the sketch (default 5000; try 20000)
+- LCD backlight on, blank screen -> turn the contrast pot (V0)
+- LCD backlight off -> verify pin 15 (A) -> 5V (through 220 ohm if no built-in resistor), pin 16 (K) -> GND
+- Random characters / only top row of solid blocks -> D4-D7 wiring order swapped
+- No lag visible -> increase `LOAD_STRENGTH` in the sketch (default 5000; try 20000)
 
 ### Step 3 (~15 min)
 
@@ -138,7 +141,7 @@ Answers are scored by keyword-weighted matching in `lesson_package/grading.json`
 
 | Question | Max pts | Key concept |
 |---|---|---|
-| Q1 â€” Why not exact? | 10 | Software timing + CPU interrupts |
+| Q1 -- Why is the perfect baseline fragile? | 10 | CPU as shared resource + what would break it |
 | Q2 â€” Why lag? | 10 | CPU as shared resource |
 | Q3 â€” What does the rate mean? | 10 | Sample rate as a deadline metric |
 | Q4 â€” What did DMA do? | 10 | Autonomous hardware, parallel execution |
@@ -159,7 +162,8 @@ python3 tests/test_grading.py
 |---|---|---|
 | Charge-only USB cable | 1â€“4 | Replace â€” no COM port will appear |
 | ESP32 boot mode | 1â€“4 | Hold BOOT button during upload on some boards |
-| LCD address wrong | 2â€“4 | Change `0x27` to `0x3F` in sketch line 24 |
+| LCD blank but backlit | 2-4 | Adjust contrast pot wired to V0 |
+| LCD random chars / top row solid | 2-4 | D4-D7 wiring order swapped |
 | Measures Step 2 sample rate as Step 4 | 4 | Have them check Serial output for `[DMA]` prefix |
 | Q5 answer: "always use hardware" | 5 | Redirect: when does hardware actually help? What did your numbers show? |
 

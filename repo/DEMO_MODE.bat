@@ -80,7 +80,7 @@ echo                   F = fullscreen
 echo                   Esc = close overlays
 echo.
 echo   Dashboard PIN:  4600
-echo   Active lesson:  ch11Final
+echo   Active lesson:  ch11
 echo.
 echo   Bench setup checklist:
 echo     [ ] Step 4 firmware loaded with USE_DMA = 0

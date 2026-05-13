@@ -88,23 +88,23 @@ def main():
 
     questions = {q["question_id"]: q for q in rubric["questions"]}
 
-    # ── Q1: Why not exactly 1 Hz? ────────────────────────────────────────────
+    # ── Q1: Why is the perfect 1 Hz baseline fragile? ────────────────────────
     q1_cases = [
-        ("Full credit — all three concepts", (9, 10),
-         "The ESP32's delay function isn't perfectly precise; it relies on the RTOS tick. "
-         "The CPU also handles background interrupts like USB and WiFi while the blink loop runs. "
-         "Each interrupt steals a few microseconds, and over many cycles those errors accumulate into a measurable frequency offset."),
-        ("Partial — software imprecision only", (3, 5),
-         "The delay function just isn't perfectly precise so the timing drifts a little."),
-        ("Partial — CPU busy only", (3, 5),
-         "The CPU is doing other things like running WiFi in the background."),
-        ("Strong answer, different vocabulary", (7, 10),
-         "The loop isn't the only thing running. There's RTOS overhead and ISR work happening between each delay, "
-         "which throws off the timing by a tiny bit each pass."),
+        ("Full credit — shared CPU + load breaks it + scheduler", (9, 10),
+         "The 1.0000 Hz reading is correct because the FreeRTOS scheduler keeps delay() aligned to RTOS ticks "
+         "when the CPU has no other work. The CPU is a shared resource — only one task runs at a time. "
+         "Add another task or a heavy computation and delay() must wait its turn before resuming, breaking the timing."),
+        ("Partial — shared CPU only", (3, 5),
+         "The CPU is a single shared processor that can only run one task at a time."),
+        ("Partial — load breaks it only", (3, 5),
+         "If you add a heavy background task or computation that occupies the CPU, the timing won't be perfect."),
+        ("Strong answer, different vocabulary", (8, 10),
+         "Because there is only one core executing one task at a time, the precise tick alignment depends on nothing else "
+         "competing for it. A second concurrent computation or workload starves delay() and the perfect period collapses."),
         ("Disqualified — blames hardware", (0, 0),
-         "The hardware is broken or the crystal oscillator is bad."),
+         "The hardware is broken or the wiring is wrong."),
         ("Too short — length penalty", (0, 4),
-         "delay isn't exact"),
+         "shared CPU"),
         ("Blank", (0, 0), ""),
     ]
 

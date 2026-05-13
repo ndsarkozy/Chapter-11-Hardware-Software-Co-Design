@@ -6,9 +6,9 @@
 |---|---|
 | Arduino IDE | 2.x (2.3.0 or later recommended) |
 | arduino-esp32 board package | 3.x (install via Board Manager: `esp32` by Espressif) |
-| LiquidCrystal_I2C library | Any version â€” install via Library Manager |
-| PubSubClient library | 2.8.x â€” install via Library Manager (Step 4 only) |
-| ArduinoJson library | 6.x â€” install via Library Manager (Step 4 only) |
+| LiquidCrystal library | built into Arduino IDE (no install needed) |
+| PubSubClient library | 2.8.x -- install via Library Manager (Step 4 only) |
+| ArduinoJson library | 6.x -- install via Library Manager (Step 4 only) |
 
 > **Board Manager URL:** `https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json`
 
@@ -40,19 +40,32 @@
 | LED anode (via 330 Î© resistor) | GPIO 18 |
 | LED cathode | GND |
 
-### Steps 2â€“4 (identical wiring for both)
+### Steps 2-4 (identical wiring for both)
 
-| Component | ESP32 pin |
+LCD is a 16x2 parallel HD44780 module (TC1602A or equivalent), driven in 4-bit mode.
+
+| Component | ESP32 pin / connection |
 |---|---|
-| Potentiometer middle pin (wiper) | GPIO 34 |
-| Potentiometer left outer pin | GND |
-| Potentiometer right outer pin | 3.3 V |
-| LCD SDA | GPIO 21 |
-| LCD SCL | GPIO 22 |
-| LCD VCC | 5 V (VIN) |
-| LCD GND | GND |
+| Signal pot, middle pin (wiper) | GPIO 34 |
+| Signal pot, left outer pin | GND |
+| Signal pot, right outer pin | 3.3 V |
+| Contrast pot, wiper | LCD V0 (pin 3) |
+| Contrast pot, outer pins | 5 V and GND |
+| LCD VSS  (pin 1)  | GND |
+| LCD VDD  (pin 2)  | 5 V (VIN) |
+| LCD V0   (pin 3)  | contrast pot wiper (above) |
+| LCD RS   (pin 4)  | GPIO 19 |
+| LCD RW   (pin 5)  | GND |
+| LCD E    (pin 6)  | GPIO 23 |
+| LCD D0-D3 (pins 7-10) | unused (4-bit mode) |
+| LCD D4   (pin 11) | GPIO 18 |
+| LCD D5   (pin 12) | GPIO 5  |
+| LCD D6   (pin 13) | GPIO 17 |
+| LCD D7   (pin 14) | GPIO 16 |
+| LCD A    (pin 15) | 5 V (through 220 ohm if no built-in resistor) |
+| LCD K    (pin 16) | GND |
 
-> LCD I2C address assumed: **0x27**. If the LCD stays blank, try `0x3F` and update line 24 in the sketch.
+> If the backlight is on but no characters show, turn the contrast pot. If the backlight is off, check the A-pin wiring.
 
 ## Flash procedure
 
@@ -84,9 +97,10 @@ Steps 1â€“3 are fully standalone (no server or WiFi required).
 |---|---|
 | No COM port in Arduino IDE | Use a data cable, not a charge-only cable. Try a different USB port. |
 | Upload timeout | Hold BOOT button during upload. Some ESP32 boards need this. |
-| LCD blank after flash | Check I2C address (try 0x3F). Check 5 V wiring to LCD VCC. |
-| LCD shows garbage | Wrong baud rate in Serial Monitor, or I2C address mismatch. |
-| `LiquidCrystal_I2C` not found | Install via Library Manager: search "LiquidCrystal I2C" by Frank de Brabander. |
+| LCD backlight on, blank screen | Turn the contrast pot. Display is working, contrast just needs adjustment. |
+| LCD backlight off | Verify pin 15 (A) wired to 5 V, pin 16 (K) to GND. |
+| Random characters or only top row of solid blocks | D4-D7 wiring order swapped. Verify D4=GPIO18, D5=GPIO5, D6=GPIO17, D7=GPIO16. |
+| `LiquidCrystal.h` not found | Library is built into Arduino IDE -- if missing, your IDE install is corrupt. Reinstall Arduino IDE. |
 | `driver/i2s.h` not found | Wrong board package version â€” must use arduino-esp32 **3.x**. |
 | `PubSubClient.h` not found | Install via Library Manager: search "PubSubClient" by Nick O'Leary. |
 | `ArduinoJson.h` not found | Install via Library Manager: search "ArduinoJson" by Benoit Blanchon (install v6.x). |

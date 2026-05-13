@@ -1,129 +1,179 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 420" font-family="monospace" font-size="13">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 560" font-family="monospace" font-size="13">
 
   <!-- Background -->
-  <rect width="760" height="420" fill="#1e1e2e" rx="10"/>
-  <text x="380" y="30" text-anchor="middle" fill="#cdd6f4" font-size="16" font-weight="bold">Step 2–4 Wiring: ESP32 + LCD + Potentiometer</text>
+  <rect width="800" height="560" fill="#1e1e2e" rx="10"/>
+  <text x="400" y="30" text-anchor="middle" fill="#cdd6f4" font-size="16" font-weight="bold">Steps 2-4 Wiring: ESP32 + parallel LCD (TC1602A) + 2 pots</text>
+  <text x="400" y="50" text-anchor="middle" fill="#6c7086" font-size="11">4-bit HD44780 mode -- uses 6 GPIOs for the LCD plus a contrast pot on V0</text>
 
-  <!-- ── ESP32 board ── -->
-  <rect x="290" y="55" width="180" height="310" rx="8" fill="#313244" stroke="#89b4fa" stroke-width="2"/>
-  <text x="380" y="76" text-anchor="middle" fill="#89b4fa" font-weight="bold">ESP32 DevKit</text>
+  <!-- ===== ESP32 (center) ===== -->
+  <rect x="320" y="80" width="180" height="430" rx="8" fill="#313244" stroke="#89b4fa" stroke-width="2"/>
+  <text x="410" y="102" text-anchor="middle" fill="#89b4fa" font-weight="bold">ESP32 DevKit</text>
+  <text x="410" y="118" text-anchor="middle" fill="#6c7086" font-size="10">38-pin module</text>
 
-  <!-- Left pins -->
-  <text x="302" y="105" fill="#a6e3a1" font-size="11">3.3V</text>
-  <text x="302" y="130" fill="#f38ba8" font-size="11">GND</text>
-  <text x="302" y="155" fill="#cba6f7" font-size="11">GPIO 34</text>
-  <text x="302" y="180" fill="#cdd6f4" font-size="11">GPIO 21 (SDA)</text>
-  <text x="302" y="205" fill="#cdd6f4" font-size="11">GPIO 22 (SCL)</text>
-  <text x="302" y="230" fill="#a6e3a1" font-size="11">5V / VIN</text>
-  <text x="302" y="255" fill="#f38ba8" font-size="11">GND</text>
+  <!-- ESP32 left-column pins (signal pot + contrast pot bus) -->
+  <text x="332" y="148" fill="#a6e3a1" font-size="11">3.3 V</text>
+  <text x="332" y="173" fill="#f38ba8" font-size="11">GND</text>
+  <text x="332" y="198" fill="#cba6f7" font-size="11">GPIO 34 (ADC)</text>
+  <text x="332" y="223" fill="#a6e3a1" font-size="11">5 V (VIN)</text>
+  <text x="332" y="248" fill="#f38ba8" font-size="11">GND</text>
 
-  <!-- Pin dots -->
-  <circle cx="290" cy="102" r="5" fill="#a6e3a1"/>
-  <circle cx="290" cy="127" r="5" fill="#f38ba8"/>
-  <circle cx="290" cy="152" r="5" fill="#cba6f7"/>
-  <circle cx="290" cy="177" r="5" fill="#89dceb"/>
-  <circle cx="290" cy="202" r="5" fill="#f9e2af"/>
-  <circle cx="290" cy="227" r="5" fill="#a6e3a1"/>
-  <circle cx="290" cy="252" r="5" fill="#f38ba8"/>
+  <circle cx="320" cy="145" r="5" fill="#a6e3a1"/>
+  <circle cx="320" cy="170" r="5" fill="#f38ba8"/>
+  <circle cx="320" cy="195" r="5" fill="#cba6f7"/>
+  <circle cx="320" cy="220" r="5" fill="#a6e3a1"/>
+  <circle cx="320" cy="245" r="5" fill="#f38ba8"/>
 
-  <!-- ── Potentiometer ── -->
-  <rect x="60" y="120" width="140" height="110" rx="6" fill="#313244" stroke="#cba6f7" stroke-width="2"/>
-  <text x="130" y="143" text-anchor="middle" fill="#cba6f7" font-weight="bold">Potentiometer</text>
-  <text x="80" y="168" fill="#a6e3a1" font-size="11">Left  → 3.3V</text>
-  <text x="80" y="188" fill="#cba6f7" font-size="11">Wiper → GPIO 34</text>
-  <text x="80" y="208" fill="#f38ba8" font-size="11">Right → GND</text>
+  <!-- ESP32 right-column pins (LCD) -->
+  <text x="488" y="148" text-anchor="end" fill="#fab387" font-size="11">GPIO 19  (RS)</text>
+  <text x="488" y="173" text-anchor="end" fill="#fab387" font-size="11">GPIO 23  (E)</text>
+  <text x="488" y="198" text-anchor="end" fill="#89dceb" font-size="11">GPIO 18  (D4)</text>
+  <text x="488" y="223" text-anchor="end" fill="#89dceb" font-size="11">GPIO 5   (D5)</text>
+  <text x="488" y="248" text-anchor="end" fill="#89dceb" font-size="11">GPIO 17  (D6)</text>
+  <text x="488" y="273" text-anchor="end" fill="#89dceb" font-size="11">GPIO 16  (D7)</text>
 
-  <!-- Pot terminal dots -->
-  <circle cx="200" cy="165" r="5" fill="#a6e3a1"/>
-  <circle cx="200" cy="185" r="5" fill="#cba6f7"/>
-  <circle cx="200" cy="205" r="5" fill="#f38ba8"/>
+  <circle cx="500" cy="145" r="5" fill="#fab387"/>
+  <circle cx="500" cy="170" r="5" fill="#fab387"/>
+  <circle cx="500" cy="195" r="5" fill="#89dceb"/>
+  <circle cx="500" cy="220" r="5" fill="#89dceb"/>
+  <circle cx="500" cy="245" r="5" fill="#89dceb"/>
+  <circle cx="500" cy="270" r="5" fill="#89dceb"/>
 
-  <!-- Wires: Pot → ESP32 -->
-  <!-- 3.3V: green -->
-  <line x1="200" y1="165" x2="245" y2="165" stroke="#a6e3a1" stroke-width="2"/>
-  <line x1="245" y1="165" x2="245" y2="102" stroke="#a6e3a1" stroke-width="2"/>
-  <line x1="245" y1="102" x2="290" y2="102" stroke="#a6e3a1" stroke-width="2"/>
+  <!-- ===== Signal pot (left, top) ===== -->
+  <rect x="40" y="120" width="200" height="110" rx="6" fill="#313244" stroke="#cba6f7" stroke-width="2"/>
+  <text x="140" y="142" text-anchor="middle" fill="#cba6f7" font-weight="bold">Signal pot (10k)</text>
+  <text x="140" y="158" text-anchor="middle" fill="#6c7086" font-size="10">the knob the firmware reads</text>
+  <text x="60" y="183" fill="#a6e3a1" font-size="11">Left  -&gt; 3.3 V</text>
+  <text x="60" y="203" fill="#cba6f7" font-size="11">Wiper -&gt; GPIO 34</text>
+  <text x="60" y="223" fill="#f38ba8" font-size="11">Right -&gt; GND</text>
 
-  <!-- Wiper → GPIO 34: purple -->
-  <line x1="200" y1="185" x2="260" y2="185" stroke="#cba6f7" stroke-width="2"/>
-  <line x1="260" y1="185" x2="260" y2="152" stroke="#cba6f7" stroke-width="2"/>
-  <line x1="260" y1="152" x2="290" y2="152" stroke="#cba6f7" stroke-width="2"/>
+  <circle cx="240" cy="180" r="5" fill="#a6e3a1"/>
+  <circle cx="240" cy="200" r="5" fill="#cba6f7"/>
+  <circle cx="240" cy="220" r="5" fill="#f38ba8"/>
 
-  <!-- GND: red -->
-  <line x1="200" y1="205" x2="250" y2="205" stroke="#f38ba8" stroke-width="2"/>
-  <line x1="250" y1="205" x2="250" y2="127" stroke="#f38ba8" stroke-width="2"/>
-  <line x1="250" y1="127" x2="290" y2="127" stroke="#f38ba8" stroke-width="2"/>
+  <!-- Wires: signal pot -> ESP32 -->
+  <line x1="240" y1="180" x2="280" y2="180" stroke="#a6e3a1" stroke-width="2"/>
+  <line x1="280" y1="180" x2="280" y2="145" stroke="#a6e3a1" stroke-width="2"/>
+  <line x1="280" y1="145" x2="320" y2="145" stroke="#a6e3a1" stroke-width="2"/>
 
-  <!-- ── LCD I2C ── -->
-  <rect x="510" y="120" width="180" height="150" rx="6" fill="#313244" stroke="#89dceb" stroke-width="2"/>
-  <text x="600" y="143" text-anchor="middle" fill="#89dceb" font-weight="bold">LCD 16×2 I2C</text>
-  <text x="530" y="168" fill="#f38ba8" font-size="11">GND  → GND</text>
-  <text x="530" y="188" fill="#a6e3a1" font-size="11">VCC  → 5V</text>
-  <text x="530" y="208" fill="#89dceb" font-size="11">SDA  → GPIO 21</text>
-  <text x="530" y="228" fill="#f9e2af" font-size="11">SCL  → GPIO 22</text>
-  <text x="530" y="252" fill="#6c7086" font-size="11">Addr: 0x27</text>
+  <line x1="240" y1="200" x2="290" y2="200" stroke="#cba6f7" stroke-width="2"/>
+  <line x1="290" y1="200" x2="290" y2="195" stroke="#cba6f7" stroke-width="2"/>
+  <line x1="290" y1="195" x2="320" y2="195" stroke="#cba6f7" stroke-width="2"/>
 
-  <!-- LCD terminal dots -->
-  <circle cx="510" cy="165" r="5" fill="#f38ba8"/>
-  <circle cx="510" cy="185" r="5" fill="#a6e3a1"/>
-  <circle cx="510" cy="205" r="5" fill="#89dceb"/>
-  <circle cx="510" cy="225" r="5" fill="#f9e2af"/>
+  <line x1="240" y1="220" x2="285" y2="220" stroke="#f38ba8" stroke-width="2"/>
+  <line x1="285" y1="220" x2="285" y2="170" stroke="#f38ba8" stroke-width="2"/>
+  <line x1="285" y1="170" x2="320" y2="170" stroke="#f38ba8" stroke-width="2"/>
 
-  <!-- Wires: ESP32 → LCD -->
-  <!-- GND: red -->
-  <line x1="470" y1="252" x2="470" y2="165" stroke="#f38ba8" stroke-width="2"/>
-  <line x1="470" y1="252" x2="470" y2="252" stroke="#f38ba8" stroke-width="2"/>
-  <!-- route: ESP32 GND (right side) right then down/up to LCD GND -->
-  <line x1="470" y1="252" x2="510" y2="252" stroke="#f38ba8" stroke-width="2"/>
-  <!-- Actually let me redo the wires for clarity -->
+  <!-- ===== Contrast pot (left, bottom) ===== -->
+  <rect x="40" y="280" width="200" height="110" rx="6" fill="#313244" stroke="#f9e2af" stroke-width="2"/>
+  <text x="140" y="302" text-anchor="middle" fill="#f9e2af" font-weight="bold">Contrast pot (10k)</text>
+  <text x="140" y="318" text-anchor="middle" fill="#6c7086" font-size="10">turn once to make text readable</text>
+  <text x="60" y="343" fill="#a6e3a1" font-size="11">Left  -&gt; 5 V</text>
+  <text x="60" y="363" fill="#f9e2af" font-size="11">Wiper -&gt; LCD V0</text>
+  <text x="60" y="383" fill="#f38ba8" font-size="11">Right -&gt; GND</text>
 
-  <!-- GND → LCD GND -->
-  <line x1="470" y1="252" x2="510" y2="252" stroke="none"/>
-  <!-- ESP32 right-side pins -->
-  <circle cx="470" cy="177" r="5" fill="#89dceb"/>
-  <circle cx="470" cy="202" r="5" fill="#f9e2af"/>
-  <circle cx="470" cy="227" r="5" fill="#a6e3a1"/>
-  <circle cx="470" cy="252" r="5" fill="#f38ba8"/>
+  <circle cx="240" cy="340" r="5" fill="#a6e3a1"/>
+  <circle cx="240" cy="360" r="5" fill="#f9e2af"/>
+  <circle cx="240" cy="380" r="5" fill="#f38ba8"/>
 
-  <!-- SDA: cyan -->
-  <line x1="470" y1="177" x2="505" y2="177" stroke="#89dceb" stroke-width="2"/>
-  <line x1="505" y1="177" x2="505" y2="205" stroke="#89dceb" stroke-width="2"/>
-  <line x1="505" y1="205" x2="510" y2="205" stroke="#89dceb" stroke-width="2"/>
+  <!-- Wires: contrast pot rails -> ESP32 5V/GND -->
+  <line x1="240" y1="340" x2="295" y2="340" stroke="#a6e3a1" stroke-width="2"/>
+  <line x1="295" y1="340" x2="295" y2="220" stroke="#a6e3a1" stroke-width="2"/>
+  <line x1="295" y1="220" x2="320" y2="220" stroke="#a6e3a1" stroke-width="2"/>
 
-  <!-- SCL: yellow -->
-  <line x1="470" y1="202" x2="500" y2="202" stroke="#f9e2af" stroke-width="2"/>
-  <line x1="500" y1="202" x2="500" y2="225" stroke="#f9e2af" stroke-width="2"/>
-  <line x1="500" y1="225" x2="510" y2="225" stroke="#f9e2af" stroke-width="2"/>
+  <line x1="240" y1="380" x2="300" y2="380" stroke="#f38ba8" stroke-width="2"/>
+  <line x1="300" y1="380" x2="300" y2="245" stroke="#f38ba8" stroke-width="2"/>
+  <line x1="300" y1="245" x2="320" y2="245" stroke="#f38ba8" stroke-width="2"/>
 
-  <!-- 5V: green -->
-  <line x1="470" y1="227" x2="495" y2="227" stroke="#a6e3a1" stroke-width="2"/>
-  <line x1="495" y1="227" x2="495" y2="185" stroke="#a6e3a1" stroke-width="2"/>
-  <line x1="495" y1="185" x2="510" y2="185" stroke="#a6e3a1" stroke-width="2"/>
+  <!-- Contrast pot wiper goes to LCD V0 (long wire across) -->
+  <line x1="240" y1="360" x2="640" y2="360" stroke="#f9e2af" stroke-width="2"/>
+  <line x1="640" y1="360" x2="640" y2="180" stroke="#f9e2af" stroke-width="2"/>
+  <line x1="640" y1="180" x2="660" y2="180" stroke="#f9e2af" stroke-width="2"/>
 
-  <!-- GND: red -->
-  <line x1="470" y1="252" x2="490" y2="252" stroke="#f38ba8" stroke-width="2"/>
-  <line x1="490" y1="252" x2="490" y2="165" stroke="#f38ba8" stroke-width="2"/>
-  <line x1="490" y1="165" x2="510" y2="165" stroke="#f38ba8" stroke-width="2"/>
+  <!-- ===== LCD (right) ===== -->
+  <rect x="660" y="120" width="125" height="320" rx="6" fill="#313244" stroke="#89b4fa" stroke-width="2"/>
+  <text x="722" y="142" text-anchor="middle" fill="#89b4fa" font-weight="bold">16x2 LCD</text>
+  <text x="722" y="158" text-anchor="middle" fill="#6c7086" font-size="10">TC1602A (HD44780)</text>
 
-  <!-- Right pin labels (ESP32) -->
-  <text x="460" y="180" text-anchor="end" fill="#89dceb" font-size="11">GPIO 21</text>
-  <text x="460" y="205" text-anchor="end" fill="#f9e2af" font-size="11">GPIO 22</text>
-  <text x="460" y="230" text-anchor="end" fill="#a6e3a1" font-size="11">5V</text>
-  <text x="460" y="255" text-anchor="end" fill="#f38ba8" font-size="11">GND</text>
+  <text x="675" y="183" fill="#f38ba8" font-size="11">1  VSS  -&gt; GND</text>
+  <text x="675" y="203" fill="#a6e3a1" font-size="11">2  VDD  -&gt; 5 V</text>
+  <text x="675" y="223" fill="#f9e2af" font-size="11">3  V0   -&gt; pot</text>
+  <text x="675" y="243" fill="#fab387" font-size="11">4  RS   -&gt; G19</text>
+  <text x="675" y="263" fill="#f38ba8" font-size="11">5  RW   -&gt; GND</text>
+  <text x="675" y="283" fill="#fab387" font-size="11">6  E    -&gt; G23</text>
+  <text x="675" y="303" fill="#6c7086" font-size="11">7-10 D0-D3 NC</text>
+  <text x="675" y="323" fill="#89dceb" font-size="11">11 D4   -&gt; G18</text>
+  <text x="675" y="343" fill="#89dceb" font-size="11">12 D5   -&gt; G5</text>
+  <text x="675" y="363" fill="#89dceb" font-size="11">13 D6   -&gt; G17</text>
+  <text x="675" y="383" fill="#89dceb" font-size="11">14 D7   -&gt; G16</text>
+  <text x="675" y="403" fill="#a6e3a1" font-size="11">15 A    -&gt; 5 V*</text>
+  <text x="675" y="423" fill="#f38ba8" font-size="11">16 K    -&gt; GND</text>
 
-  <!-- ── Legend ── -->
-  <rect x="60" y="300" width="640" height="90" rx="6" fill="#181825" stroke="#45475a" stroke-width="1"/>
-  <text x="80" y="320" fill="#cdd6f4" font-weight="bold">Connections</text>
-  <line x1="80" y1="335" x2="100" y2="335" stroke="#cba6f7" stroke-width="2"/>
-  <text x="108" y="339" fill="#cba6f7">Pot wiper → GPIO 34 (ADC1 CH6)</text>
-  <line x1="80" y1="355" x2="100" y2="355" stroke="#a6e3a1" stroke-width="2"/>
-  <text x="108" y="359" fill="#a6e3a1">Pot left → 3.3V    |    LCD VCC → 5V/VIN</text>
-  <line x1="80" y1="375" x2="100" y2="375" stroke="#f38ba8" stroke-width="2"/>
-  <text x="108" y="379" fill="#f38ba8">Pot right → GND    |    LCD GND → GND</text>
-  <line x1="380" y1="335" x2="400" y2="335" stroke="#89dceb" stroke-width="2"/>
-  <text x="408" y="339" fill="#89dceb">LCD SDA → GPIO 21</text>
-  <line x1="380" y1="355" x2="400" y2="355" stroke="#f9e2af" stroke-width="2"/>
-  <text x="408" y="359" fill="#f9e2af">LCD SCL → GPIO 22</text>
-  <text x="408" y="379" fill="#6c7086">LCD I2C address: 0x27  (try 0x3F if display is blank)</text>
+  <!-- LCD pin dots -->
+  <circle cx="660" cy="180" r="4" fill="#f38ba8"/>
+  <circle cx="660" cy="200" r="4" fill="#a6e3a1"/>
+  <circle cx="660" cy="220" r="4" fill="#f9e2af"/>
+  <circle cx="660" cy="240" r="4" fill="#fab387"/>
+  <circle cx="660" cy="260" r="4" fill="#f38ba8"/>
+  <circle cx="660" cy="280" r="4" fill="#fab387"/>
+  <circle cx="660" cy="320" r="4" fill="#89dceb"/>
+  <circle cx="660" cy="340" r="4" fill="#89dceb"/>
+  <circle cx="660" cy="360" r="4" fill="#89dceb"/>
+  <circle cx="660" cy="380" r="4" fill="#89dceb"/>
+  <circle cx="660" cy="400" r="4" fill="#a6e3a1"/>
+  <circle cx="660" cy="420" r="4" fill="#f38ba8"/>
+
+  <!-- Wires: ESP32 right pins -> LCD signal pins -->
+  <!-- RS (G19 -> LCD pin 4) -->
+  <line x1="500" y1="145" x2="540" y2="145" stroke="#fab387" stroke-width="2"/>
+  <line x1="540" y1="145" x2="540" y2="240" stroke="#fab387" stroke-width="2"/>
+  <line x1="540" y1="240" x2="660" y2="240" stroke="#fab387" stroke-width="2"/>
+
+  <!-- E (G23 -> LCD pin 6) -->
+  <line x1="500" y1="170" x2="550" y2="170" stroke="#fab387" stroke-width="2"/>
+  <line x1="550" y1="170" x2="550" y2="280" stroke="#fab387" stroke-width="2"/>
+  <line x1="550" y1="280" x2="660" y2="280" stroke="#fab387" stroke-width="2"/>
+
+  <!-- D4 (G18 -> LCD pin 11) -->
+  <line x1="500" y1="195" x2="560" y2="195" stroke="#89dceb" stroke-width="2"/>
+  <line x1="560" y1="195" x2="560" y2="320" stroke="#89dceb" stroke-width="2"/>
+  <line x1="560" y1="320" x2="660" y2="320" stroke="#89dceb" stroke-width="2"/>
+
+  <!-- D5 (G5 -> LCD pin 12) -->
+  <line x1="500" y1="220" x2="570" y2="220" stroke="#89dceb" stroke-width="2"/>
+  <line x1="570" y1="220" x2="570" y2="340" stroke="#89dceb" stroke-width="2"/>
+  <line x1="570" y1="340" x2="660" y2="340" stroke="#89dceb" stroke-width="2"/>
+
+  <!-- D6 (G17 -> LCD pin 13) -->
+  <line x1="500" y1="245" x2="580" y2="245" stroke="#89dceb" stroke-width="2"/>
+  <line x1="580" y1="245" x2="580" y2="360" stroke="#89dceb" stroke-width="2"/>
+  <line x1="580" y1="360" x2="660" y2="360" stroke="#89dceb" stroke-width="2"/>
+
+  <!-- D7 (G16 -> LCD pin 14) -->
+  <line x1="500" y1="270" x2="590" y2="270" stroke="#89dceb" stroke-width="2"/>
+  <line x1="590" y1="270" x2="590" y2="380" stroke="#89dceb" stroke-width="2"/>
+  <line x1="590" y1="380" x2="660" y2="380" stroke="#89dceb" stroke-width="2"/>
+
+  <!-- LCD VSS, RW, K to GND (red, branched off pot rails) -->
+  <line x1="600" y1="180" x2="660" y2="180" stroke="#f38ba8" stroke-width="2"/>
+  <line x1="600" y1="180" x2="600" y2="245" stroke="#f38ba8" stroke-width="2"/>
+  <line x1="600" y1="245" x2="660" y2="245" stroke="none"/>
+
+  <line x1="610" y1="260" x2="660" y2="260" stroke="#f38ba8" stroke-width="2"/>
+  <line x1="610" y1="260" x2="610" y2="420" stroke="#f38ba8" stroke-width="2"/>
+  <line x1="610" y1="420" x2="660" y2="420" stroke="#f38ba8" stroke-width="2"/>
+
+  <!-- LCD VDD + A to 5V (green) -->
+  <line x1="620" y1="200" x2="660" y2="200" stroke="#a6e3a1" stroke-width="2"/>
+  <line x1="620" y1="200" x2="620" y2="400" stroke="#a6e3a1" stroke-width="2"/>
+  <line x1="620" y1="400" x2="660" y2="400" stroke="#a6e3a1" stroke-width="2"/>
+
+  <!-- ===== Legend ===== -->
+  <rect x="40" y="450" width="745" height="100" rx="6" fill="#181825" stroke="#45475a" stroke-width="1"/>
+  <text x="60" y="470" fill="#cdd6f4" font-weight="bold">Notes</text>
+
+  <text x="60" y="490" fill="#cdd6f4" font-size="11">* LCD pin 15 (A) backlight: connect to 5 V through a 220 ohm resistor if your module has no built-in resistor.</text>
+  <text x="60" y="508" fill="#cdd6f4" font-size="11">  LCD pins 7-10 (D0-D3) are unused in 4-bit mode -- leave them disconnected.</text>
+  <text x="60" y="526" fill="#cdd6f4" font-size="11">  Two separate 10k pots: one for the signal (wiper -&gt; GPIO 34), one for contrast (wiper -&gt; LCD V0).</text>
+  <text x="60" y="544" fill="#cdd6f4" font-size="11">  Library: built-in `LiquidCrystal` (no Library Manager install needed).</text>
 
 </svg>

@@ -1,34 +1,46 @@
-﻿/*
- * Step 4 â€” The Accelerator
+/*
+ * Step 4 -- The Accelerator
  * CECS 460 Chapter 11: Hardware/Software Co-Design
  *
- * â•”â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•—
- * â•‘  YOUR TASK: Change USE_DMA from 0 to 1 on line below.  â•‘
- * â•‘  Compile, flash, and observe the difference.            â•‘
- * â•šâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+ * +-----------------------------------------------------------+
+ * |  YOUR TASK: Change USE_DMA from 0 to 1 on the line below. |
+ * |  Compile, flash, and observe the difference.              |
+ * +-----------------------------------------------------------+
  *
- * USE_DMA = 0 â†’ software analogRead() loop (same as Step 2 â€” slow)
- * USE_DMA = 1 â†’ DMA controller fills ADC buffer at 10 kHz (fast)
+ * USE_DMA = 0 -> software analogRead() loop (same as Step 2 -- slow)
+ * USE_DMA = 1 -> DMA controller fills ADC buffer at 10 kHz (fast)
  *
  * When USE_DMA=1 and your DMA sample rate holds above 200 Hz
  * for 5 seconds, the ESP32 connects to the classroom server
  * and reports your lab pass automatically.
  *
- * Hardware (identical to Steps 2â€“3):
- *   LCD I2C:       SDA â†’ GPIO 21, SCL â†’ GPIO 22, VCC â†’ 5V, GND â†’ GND
- *   Potentiometer: middle pin â†’ GPIO 34, outer pins â†’ 3.3V and GND
+ * Hardware (identical to Steps 2-3 -- TC1602A parallel LCD, 4-bit mode):
+ *   LCD VSS  -> GND
+ *   LCD VDD  -> 5V
+ *   LCD V0   -> wiper of contrast pot (10k); pot outer pins to 5V and GND
+ *   LCD RS   -> GPIO 19
+ *   LCD RW   -> GND
+ *   LCD E    -> GPIO 23
+ *   LCD D4   -> GPIO 18
+ *   LCD D5   -> GPIO 5
+ *   LCD D6   -> GPIO 17
+ *   LCD D7   -> GPIO 16
+ *   LCD A    -> 5V (through 220 ohm if no built-in resistor)
+ *   LCD K    -> GND
  *
- * Required libraries (Arduino IDE Library Manager):
- *   LiquidCrystal I2C  â€” by Frank de Brabander
- *   PubSubClient        â€” by Nick O'Leary
- *   ArduinoJson         â€” by Benoit Blanchon (v6.x)
+ *   Signal pot: middle pin -> GPIO 34, outer pins -> 3.3V and GND
+ *
+ * Required libraries:
+ *   LiquidCrystal      -- built into Arduino IDE (no install needed)
+ *   PubSubClient       -- by Nick O'Leary (Library Manager, v2.8.x)
+ *   ArduinoJson        -- by Benoit Blanchon (Library Manager, v6.x)
  */
 
-// â”€â”€ STUDENT TASK â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-#define USE_DMA  0   // â† CHANGE THIS TO 1 TO ENABLE DMA ACCELERATION
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// -- STUDENT TASK ------------------------------------------------------------
+#define USE_DMA  0   // <-- CHANGE THIS TO 1 TO ENABLE DMA ACCELERATION
+// ---------------------------------------------------------------------------
 
-// â”€â”€ Network / server configuration â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// -- Network / server configuration -----------------------------------------
 #define WIFI_SSID     "CECS"
 #define WIFI_PASS     "CECS-Classroom"
 #define MQTT_HOST     "192.168.8.10"
@@ -38,20 +50,19 @@
 #define LAB_CHAPTER   "ch11Lab"
 #define PASS_Q_ID     "q4_lab_pass"
 
-// â”€â”€ Hardware / timing config â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// -- Hardware / timing config -----------------------------------------------
 #define POT_PIN         34
 #define LOAD_STRENGTH   5000    // identical CPU load to Step 2
 #define DMA_BUF_COUNT   4
 #define DMA_BUF_LEN     256
-#define DMA_SAMPLE_RATE 10000   // Hz â€” 10 kHz ADC via DMA
+#define DMA_SAMPLE_RATE 10000   // Hz -- 10 kHz ADC via DMA
 #define SAMPLE_PRINT_MS 500     // how often to print Hz to Serial
 #define PASS_RATE_HZ    200.0f  // sustained rate above this triggers pass
 #define PASS_SUSTAIN_MS 5000    // must hold above threshold for this long
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ---------------------------------------------------------------------------
 
-#include <Wire.h>
-#include <LiquidCrystal_I2C.h>
+#include <LiquidCrystal.h>
 #include <WiFi.h>
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
@@ -62,24 +73,32 @@
 #include <driver/adc.h>
 #endif
 
-LiquidCrystal_I2C lcd(0x27, 16, 2);
+// LCD pin assignments (4-bit parallel HD44780)
+#define LCD_RS  19
+#define LCD_EN  23
+#define LCD_D4  18
+#define LCD_D5  5
+#define LCD_D6  17
+#define LCD_D7  16
+
+LiquidCrystal lcd(LCD_RS, LCD_EN, LCD_D4, LCD_D5, LCD_D6, LCD_D7);
 
 WiFiClient   wifiClient;
 PubSubClient mqtt(wifiClient);
 
-// â”€â”€ State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// -- State ------------------------------------------------------------------
 static int            g_slot        = -1;
 static String         g_token       = "";
 static String         g_mac         = "";
 static bool           g_passSent    = false;
 static unsigned long  g_passStartMs = 0;  // when rate first crossed threshold
 
-// â”€â”€ Sampling rate tracker â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// -- Sampling rate tracker --------------------------------------------------
 static unsigned long  g_sampleCount = 0;
 static unsigned long  g_lastPrintMs = 0;
 static float          g_lastRate    = 0;
 
-// â”€â”€ CPU load (identical to Step 2) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// -- CPU load (identical to Step 2) -----------------------------------------
 volatile float g_load_result = 0;
 void runCpuLoad() {
   float x = 1.0;
@@ -89,7 +108,7 @@ void runCpuLoad() {
   g_load_result = x;
 }
 
-// â”€â”€ DMA ADC (only compiled when USE_DMA=1) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// -- DMA ADC (only compiled when USE_DMA=1) ---------------------------------
 #if USE_DMA
 void setupDmaAdc() {
   i2s_config_t cfg = {
@@ -122,17 +141,17 @@ int readDmaAdc() {
 }
 #endif
 
-// â”€â”€ MAC address helper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// -- MAC address helper -----------------------------------------------------
 String getMac() {
   uint8_t m[6];
-  esp_read_mac(m, ESP_MAC_WIFI_STA);
+  esp_wifi_get_mac(WIFI_IF_STA, m);
   char buf[13];
   snprintf(buf, sizeof(buf), "%02X%02X%02X%02X%02X%02X",
            m[0], m[1], m[2], m[3], m[4], m[5]);
   return String(buf);
 }
 
-// â”€â”€ MQTT callback (receives slot + token assignment) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// -- MQTT callback (receives slot + token assignment) -----------------------
 void mqttCallback(char* topic, byte* payload, unsigned int len) {
   String t(topic);
   StaticJsonDocument<256> doc;
@@ -147,7 +166,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int len) {
   }
 }
 
-// â”€â”€ WiFi + MQTT maintenance (call from loop) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// -- WiFi + MQTT maintenance (call from loop) -------------------------------
 static unsigned long g_wifiRetry = 0;
 static unsigned long g_mqttRetry = 0;
 static bool          g_announced = false;
@@ -190,11 +209,11 @@ void maintainNetwork() {
     String out;
     serializeJson(doc, out);
     mqtt.publish((String(COURSE) + "/device/announce").c_str(), out.c_str());
-    Serial.println("[MQTT] Announced â€” waiting for slot assignment");
+    Serial.println("[MQTT] Announced -- waiting for slot assignment");
   }
 }
 
-// â”€â”€ Publish lab pass â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// -- Publish lab pass -------------------------------------------------------
 void publishPass(float rate) {
   if (!mqtt.connected() || g_slot < 0 || g_passSent) return;
 
@@ -218,14 +237,12 @@ void publishPass(float rate) {
   lcd.print("DMA PASS SENT!  ");
 }
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ---------------------------------------------------------------------------
 
 void setup() {
   Serial.begin(115200);
 
-  Wire.begin(21, 22);
-  lcd.init();
-  lcd.backlight();
+  lcd.begin(16, 2);
 
 #if USE_DMA
   lcd.setCursor(0, 0); lcd.print("Step4: DMA Mode ");
@@ -239,7 +256,7 @@ void setup() {
   lcd.setCursor(0, 1); lcd.print("USE_DMA is 0!   ");
   delay(500);
   Serial.println("=== Step 4: Software Mode (USE_DMA=0) ===");
-  Serial.println("Still using analogRead() â€” same lag as Step 2.");
+  Serial.println("Still using analogRead() -- same lag as Step 2.");
   Serial.println("Change USE_DMA to 1 and reflash to enable DMA.");
 #endif
 
@@ -254,13 +271,13 @@ void setup() {
 }
 
 void loop() {
-  // â”€â”€ Network maintenance â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // -- Network maintenance --------------------------------------------------
   maintainNetwork();
 
-  // â”€â”€ CPU load (same as Step 2) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // -- CPU load (same as Step 2) -------------------------------------------
   runCpuLoad();
 
-  // â”€â”€ ADC read â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // -- ADC read ------------------------------------------------------------
   int raw = -1;
 #if USE_DMA
   raw = readDmaAdc();
@@ -272,7 +289,7 @@ void loop() {
   int percent = map(raw, 0, 4095, 0, 100);
   g_sampleCount++;
 
-  // â”€â”€ LCD update â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // -- LCD update ----------------------------------------------------------
   if (!g_passSent) {
     lcd.setCursor(0, 0);
     lcd.print("Knob:           ");
@@ -288,7 +305,7 @@ void loop() {
 #endif
   }
 
-  // â”€â”€ Sample rate print + pass check â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // -- Sample rate print + pass check --------------------------------------
   unsigned long now = millis();
   if (now - g_lastPrintMs >= SAMPLE_PRINT_MS) {
     unsigned long elapsed = now - g_lastPrintMs;
@@ -324,7 +341,7 @@ void loop() {
     }
 #else
     if (!g_passSent) {
-      Serial.print("  [USE_DMA=0 â€” change to 1 to enable pass]");
+      Serial.print("  [USE_DMA=0 -- change to 1 to enable pass]");
     }
 #endif
     Serial.println();

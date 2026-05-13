@@ -1,11 +1,15 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 """
-CECS Classroom â€” Student Device Connector v2
+CECS Classroom — Student Device Connector v3
 
-â€¢ Auto-detects ESP32 serial port
-â€¢ Reads seat assignment from serial output
-â€¢ Opens lesson page in browser automatically
-â€¢ Can flash firmware from the classroom server (no Arduino IDE needed)
+• Auto-detects ESP32 serial port
+• Reads seat assignment from serial output
+• Opens lesson page in browser automatically
+• Flashes firmware from the classroom server (no Arduino IDE needed)
+   - Picks <class>_<chapter>.bin for the active chapter
+   - Falls back to <class>_starter.bin (seat-lock starter) if no chapter
+     binary has been compiled yet — keeps the student on their seat
+   - Falls back to starter.bin as a global last resort
 
 Requirements: Python 3.8+, pyserial (auto-installed)
 Optional:     esptool (auto-installed when flashing)
@@ -19,40 +23,48 @@ from collections import deque
 from urllib.request import urlopen, Request
 from urllib.error import URLError
 
-# â”€â”€ Auto-install pyserial â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ── Auto-install pyserial ─────────────────────────────────────────────────────
 try:
     import serial
     import serial.tools.list_ports
 except ImportError:
     print("Installing pyserial...")
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "pyserial", "--quiet"])
+    try:
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "pyserial"])
+    except subprocess.CalledProcessError:
+        # Fallback for sandboxed Python installs (e.g., Microsoft Store)
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "--user", "pyserial"])
     import serial
     import serial.tools.list_ports
 
 import tkinter as tk
 from tkinter import ttk, messagebox
 
-# â”€â”€ Configuration â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ── Configuration ─────────────────────────────────────────────────────────────
 BAUD_RATE = 115200
 POLL_MS   = 150
 SCAN_MS   = 3000
 DEFAULT_SERVER = "192.168.8.10:5000"
+DEFAULT_CLASS  = "cecs460"
+KNOWN_CLASSES  = ["cecs460", "cecs346", "cecs301"]   # used as initial dropdown
 ESP_VIDS  = {0x10C4, 0x1A86, 0x303A, 0x0403}
 
-# â”€â”€ Regex patterns â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-RE_SEAT   = re.compile(r"Seat\s*:\s*(\d+)",            re.I)
-RE_SLOT   = re.compile(r"Slot\s*:\s*(\d+)",            re.I)
-RE_TOKEN  = re.compile(r"Token\s*:\s*([0-9a-fA-F]+)",  re.I)
-RE_URL    = re.compile(r"URL\s*:\s*(https?://\S+)",    re.I)
-RE_MAC    = re.compile(r"MAC:\s*([0-9A-Fa-f]{12})",    re.I)
-RE_WIFI   = re.compile(r"\[WiFi\]\s*(Connected|Disconnected)", re.I)
-RE_MQTT   = re.compile(r"\[MQTT\]\s*(Connected|Failed|Disconnected)", re.I)
+# ── Regex patterns ────────────────────────────────────────────────────────────
+RE_SEAT          = re.compile(r"Seat\s*:\s*(\d+)",            re.I)
+RE_SLOT          = re.compile(r"Slot\s*:\s*(\d+)",            re.I)
+RE_TOKEN         = re.compile(r"Token\s*:\s*([0-9a-fA-F]+)",  re.I)
+RE_URL           = re.compile(r"URL\s*:\s*(https?://\S+)",    re.I)
+RE_MAC           = re.compile(r"MAC:\s*([0-9A-Fa-f]{12})",    re.I)
+RE_WIFI          = re.compile(r"\[WiFi\]\s*(Connected|Disconnected)", re.I)
+RE_MQTT          = re.compile(r"\[MQTT\]\s*(Connected|Failed|Disconnected)", re.I)
+# Pulls /cecs460/lesson/ch13 out of the seat-assignment URL printed by firmware.
+RE_LESSON_PATH   = re.compile(r"/(cecs\d+)/lesson/(ch\w+)", re.I)
 
 
 class StudentClient:
     def __init__(self, root, server_addr=None):
         self.root = root
-        self.root.title("CECS â€” Student Device Connector")
+        self.root.title("CECS — Student Device Connector")
         self.root.configure(bg="#0d1117")
         self.root.minsize(680, 620)
 
@@ -71,6 +83,13 @@ class StudentClient:
         self.mqtt_ok = False
         self.url_opened = False
         self.flashing = False
+        # Class + chapter for chapter-aware firmware flashing.
+        # Class is set from the dropdown; chapter is auto-discovered from
+        # either the firmware's printed lesson URL or the server's
+        # /<class>/ endpoint when no firmware has booted yet.
+        self.class_id     = DEFAULT_CLASS
+        self.active_chapter = None     # e.g. "ch13"
+        self.last_fw_kind = None       # "chapter" | "starter" | None
 
         # Colors
         self.bg, self.card, self.border = "#0d1117", "#161b22", "#30363d"
@@ -82,7 +101,7 @@ class StudentClient:
         self.root.after(SCAN_MS, self._periodic_scan)
         self.root.protocol("WM_DELETE_WINDOW", self._on_close)
 
-    # â”€â”€ UI Construction â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # ── UI Construction ───────────────────────────────────────────────────────
 
     def _build_ui(self):
         # Header
@@ -97,9 +116,9 @@ class StudentClient:
         cards = tk.Frame(self.root, bg=self.bg)
         cards.pack(fill="x", padx=12, pady=(10,0))
         self.card_seat = self._status_card(cards, "SEAT", "--", self.accent)
-        self.card_wifi = self._status_card(cards, "WiFi", "Â·Â·Â·", self.muted)
-        self.card_mqtt = self._status_card(cards, "MQTT", "Â·Â·Â·", self.muted)
-        self.card_mac  = self._status_card(cards, "MAC",  "Â·Â·Â·", self.muted)
+        self.card_wifi = self._status_card(cards, "WiFi", "···", self.muted)
+        self.card_mqtt = self._status_card(cards, "MQTT", "···", self.muted)
+        self.card_mac  = self._status_card(cards, "MAC",  "···", self.muted)
 
         # Port selector + buttons
         pf = tk.Frame(self.root, bg=self.bg)
@@ -130,6 +149,30 @@ class StudentClient:
             cursor="hand2", command=self._flash_firmware)
         self.btn_flash.pack(side="left", padx=(8,0))
 
+        # Class + active-chapter row — drives chapter-aware flashing.
+        cf = tk.Frame(self.root, bg=self.bg)
+        cf.pack(fill="x", padx=12, pady=(8,0))
+        tk.Label(cf, text="Class:", font=("Segoe UI", 9),
+                 fg=self.muted, bg=self.bg).pack(side="left")
+        self.class_var = tk.StringVar(value=self.class_id)
+        self.class_combo = ttk.Combobox(cf, textvariable=self.class_var,
+                                         width=10, state="readonly",
+                                         values=KNOWN_CLASSES)
+        self.class_combo.pack(side="left", padx=(6,12))
+        self.class_combo.bind("<<ComboboxSelected>>", self._on_class_changed)
+
+        tk.Label(cf, text="Active chapter:", font=("Segoe UI", 9),
+                 fg=self.muted, bg=self.bg).pack(side="left")
+        self.chapter_label = tk.Label(cf, text="(querying server…)",
+                                       font=("Consolas", 9, "bold"),
+                                       fg=self.yellow, bg=self.bg)
+        self.chapter_label.pack(side="left", padx=(6,12))
+
+        self.fw_kind_label = tk.Label(cf, text="",
+                                       font=("Segoe UI", 9, "bold"),
+                                       fg=self.muted, bg=self.bg)
+        self.fw_kind_label.pack(side="left")
+
         # URL display
         uf = tk.Frame(self.root, bg=self.bg)
         uf.pack(fill="x", padx=12, pady=(8,0))
@@ -138,6 +181,10 @@ class StudentClient:
         self.url_label = tk.Label(uf, text="Waiting for seat assignment...",
                                    font=("Consolas", 9), fg=self.yellow, bg=self.bg)
         self.url_label.pack(side="left", padx=(6,0), fill="x", expand=True)
+
+        # Kick off an initial active-chapter query in the background so the
+        # label shows "ch13" / "ch01" / etc. before the user clicks Flash.
+        threading.Thread(target=self._refresh_active_chapter, daemon=True).start()
 
         # Serial log
         lf = tk.Frame(self.root, bg=self.bg)
@@ -178,7 +225,7 @@ class StudentClient:
         lbl.pack(anchor="w", padx=10, pady=(0,6))
         return lbl
 
-    # â”€â”€ Port scanning â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # ── Port scanning ─────────────────────────────────────────────────────────
 
     def _scan_ports(self):
         ports = serial.tools.list_ports.comports()
@@ -197,7 +244,7 @@ class StudentClient:
             self._scan_ports()
         self.root.after(SCAN_MS, self._periodic_scan)
 
-    # â”€â”€ Connect / Disconnect â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # ── Connect / Disconnect ──────────────────────────────────────────────────
 
     def _toggle_connect(self):
         if self.running:
@@ -227,7 +274,7 @@ class StudentClient:
         self.btn_connect.configure(text="Connect", bg=self.accent)
         self._log("Disconnected", "yellow")
 
-    # â”€â”€ Serial reading â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # ── Serial reading ────────────────────────────────────────────────────────
 
     def _read_serial(self):
         if not self.running or not self.ser: return
@@ -268,6 +315,19 @@ class StudentClient:
                 self.url_opened = True
                 self.root.after(500, self._open_url)
 
+            # Pull /<class>/lesson/<chapter> out of the URL the firmware
+            # printed. This is more reliable than asking the server,
+            # because what the firmware booted with is the source of truth
+            # for the seat the student is actually on.
+            lm = RE_LESSON_PATH.search(self.url)
+            if lm:
+                cls, chap = lm.group(1).lower(), lm.group(2).lower()
+                if cls in KNOWN_CLASSES:
+                    self.class_id = cls
+                    self.class_var.set(cls)
+                self.active_chapter = chap
+                self.chapter_label.configure(text=chap, fg=self.green)
+
         m = RE_MAC.search(line)
         if m:
             self.mac = m.group(1)
@@ -295,12 +355,12 @@ class StudentClient:
         if "[WiFi] Connected" in line or "[MQTT] Connected" in line: return "green"
         if "Disconnected" in line or "Failed" in line: return "red"
         if "SCORE:" in line: return "green"
-        if any(c in line for c in "â•”â• â•šâ•‘"): return "blue"
+        if any(c in line for c in "╔╠╚║"): return "blue"
         if "[Boot]" in line: return "muted"
         if "[Broadcast]" in line: return "yellow"
         return None
 
-    # â”€â”€ Logging â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # ── Logging ───────────────────────────────────────────────────────────────
 
     def _log(self, text, tag=None):
         self.log_text.configure(state="normal")
@@ -313,7 +373,7 @@ class StudentClient:
             self.log_text.delete("1.0", f"{lines-400}.0")
             self.log_text.configure(state="disabled")
 
-    # â”€â”€ Actions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # ── Actions ───────────────────────────────────────────────────────────────
 
     def _open_url(self):
         if self.url:
@@ -330,7 +390,7 @@ class StudentClient:
         except Exception as e:
             self._log(f"Send error: {e}", "red")
 
-    # â”€â”€ Firmware Flashing â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # ── Firmware Flashing ─────────────────────────────────────────────────────
 
     def _flash_firmware(self):
         """Download firmware from server and flash via esptool."""
@@ -351,20 +411,47 @@ class StudentClient:
 
     def _flash_thread(self, port):
         try:
-            # 1. Query server for available firmware binaries
-            self._log_safe("Checking server for firmware...", "blue")
-            bins = self._fetch_firmware_list()
-            if not bins:
-                self._log_safe("No firmware binaries on server.", "red")
-                self._log_safe("Ask your instructor to export compiled", "yellow")
-                self._log_safe("binaries to firmware/bin/ on the server.", "yellow")
+            # 1. Resolve which chapter to flash. Prefer what we parsed from
+            #    the firmware's lesson URL; fall back to asking the server.
+            if not self.active_chapter:
+                self._refresh_active_chapter()
+
+            cls  = self.class_id
+            chap = self.active_chapter or ""
+            self._log_safe(f"Selecting firmware for {cls} / {chap or '(unknown chapter)'}...", "blue")
+
+            # 2. Ask the server for the best match. Server resolution order:
+            #       <class>_<chapter>.bin → <class>_starter.bin → starter.bin
+            sel = self._select_firmware(cls, chap)
+            if not sel or not sel.get("found"):
+                msg = (sel or {}).get("message") or \
+                      "Server did not find a firmware binary."
+                tried = ", ".join((sel or {}).get("tried", []))
+                self._log_safe("No firmware available.", "red")
+                self._log_safe(msg, "yellow")
+                if tried:
+                    self._log_safe(f"Tried: {tried}", "muted")
                 return
 
-            # Pick the first available (or let user choose if multiple)
-            fw = bins[0]
-            self._log_safe(f"Found: {fw['name']} ({fw['size']//1024} KB)", "green")
+            fw         = sel["chosen"]
+            is_starter = fw.get("is_starter", False)
+            kind_label = "Starter (seat-lock fallback)" if is_starter else \
+                         f"Chapter firmware: {chap}"
+            kind_color = self.yellow if is_starter else self.green
+            self.last_fw_kind = "starter" if is_starter else "chapter"
+            self.root.after(0, lambda: self.fw_kind_label.configure(
+                text=kind_label, fg=kind_color))
+            self._log_safe(f"Selected: {fw['name']} ({fw['size']//1024} KB) — {kind_label}",
+                           "yellow" if is_starter else "green")
+            if is_starter:
+                self._log_safe(
+                    "No chapter binary on the server — flashing the seat-lock starter "
+                    "so this device keeps its slot. Ask your instructor to export the "
+                    f"compiled chapter binary as {cls}_{chap or '<chapter>'}.bin.",
+                    "yellow",
+                )
 
-            # 2. Download the binary
+            # 3. Download the binary
             self._log_safe(f"Downloading {fw['name']}...", "blue")
             bin_path = self._download_firmware(fw)
             if not bin_path:
@@ -378,8 +465,11 @@ class StudentClient:
                 import esptool
             except ImportError:
                 self._log_safe("Installing esptool (one-time)...", "yellow")
-                subprocess.check_call([sys.executable, "-m", "pip", "install",
-                                       "esptool", "--quiet"])
+                try:
+                    subprocess.check_call([sys.executable, "-m", "pip", "install", "esptool"])
+                except subprocess.CalledProcessError:
+                    # Fallback for sandboxed Python installs (e.g., Microsoft Store)
+                    subprocess.check_call([sys.executable, "-m", "pip", "install", "--user", "esptool"])
                 import esptool
 
             # 4. Flash using esptool
@@ -403,9 +493,9 @@ class StudentClient:
             try:
                 esptool.main(flash_args)
                 self._log_safe("", None)
-                self._log_safe("â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•", "green")
-                self._log_safe("  FLASH COMPLETE â€” Rebooting ESP32", "green")
-                self._log_safe("â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•", "green")
+                self._log_safe("═══════════════════════════════════", "green")
+                self._log_safe("  FLASH COMPLETE — Rebooting ESP32", "green")
+                self._log_safe("═══════════════════════════════════", "green")
                 self._log_safe("", None)
 
                 # Wait for reboot then auto-reconnect
@@ -435,7 +525,7 @@ class StudentClient:
         self._connect()
 
     def _fetch_firmware_list(self):
-        """Query the classroom server for available .bin files."""
+        """Query the classroom server for available .bin files (legacy listing)."""
         try:
             url = f"{self.server}/firmware/bin/"
             req = Request(url, headers={"Accept": "application/json"})
@@ -445,6 +535,57 @@ class StudentClient:
         except Exception as e:
             self._log_safe(f"Server unreachable: {e}", "red")
             return []
+
+    def _select_firmware(self, class_id, chapter):
+        """Ask the server which .bin to flash for this class+chapter.
+
+        Resolves to the chapter binary if present, else the per-class
+        starter, else a global starter. Returns the parsed JSON dict or
+        None on transport error.
+        """
+        try:
+            from urllib.parse import urlencode
+            qs  = urlencode({"class": class_id or "", "chapter": chapter or ""})
+            url = f"{self.server}/firmware/bin/select?{qs}"
+            req = Request(url, headers={"Accept": "application/json"})
+            with urlopen(req, timeout=5) as resp:
+                return json.loads(resp.read().decode("utf-8"))
+        except Exception as e:
+            self._log_safe(f"Server unreachable: {e}", "red")
+            return None
+
+    def _refresh_active_chapter(self):
+        """Pull the current active chapter for self.class_id from the server.
+
+        The /<class>/ endpoint returns {"class": ..., "active": "ch01", ...}.
+        Run on a thread so UI startup is not blocked by a slow server.
+        """
+        try:
+            url = f"{self.server}/{self.class_id}/"
+            req = Request(url, headers={"Accept": "application/json"})
+            with urlopen(req, timeout=4) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+                ch = (data.get("active") or "").strip()
+                if ch:
+                    self.active_chapter = ch
+                    self.root.after(0, lambda: self.chapter_label.configure(
+                        text=ch, fg=self.green))
+                    return
+        except Exception:
+            pass
+        self.root.after(0, lambda: self.chapter_label.configure(
+            text="(unknown — flash will use starter)", fg=self.yellow))
+
+    def _on_class_changed(self, event=None):
+        """User picked a different class from the dropdown — refresh chapter."""
+        new = (self.class_var.get() or "").strip().lower()
+        if not new or new == self.class_id:
+            return
+        self.class_id = new
+        self.active_chapter = None
+        self.chapter_label.configure(text="(querying server…)", fg=self.yellow)
+        self.fw_kind_label.configure(text="", fg=self.muted)
+        threading.Thread(target=self._refresh_active_chapter, daemon=True).start()
 
     def _download_firmware(self, fw_info):
         """Download a firmware binary to a temp location."""
@@ -474,7 +615,7 @@ class StudentClient:
         self.root.destroy()
 
 
-# â”€â”€ Main â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ── Main ──────────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description="CECS Student Device Connector")

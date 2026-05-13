@@ -12,7 +12,21 @@ You're going to modify one line of the firmware to switch from software ADC poll
 
 ### Do not change any wiring
 
-The circuit is identical to Steps 2 and 3. Potentiometer still on GPIO 34, LCD still on GPIO 21/22.
+The circuit is identical to Steps 2 and 3. Signal pot on GPIO 34, contrast pot on V0, LCD on GPIO 19/23/18/5/17/16 (RS/E/D4/D5/D6/D7).
+
+---
+
+### Install two libraries (one-time setup)
+
+Step 4 firmware reports your lab pass to the classroom server over WiFi/MQTT, which needs two libraries. (`LiquidCrystal` is built into Arduino IDE — no install needed.)
+
+1. **Tools → Manage Libraries…** (or `Ctrl+Shift+I`)
+2. Search and install each:
+   - **`PubSubClient`** by **Nick O'Leary** — version 2.8.x
+   - **`ArduinoJson`** by **Benoit Blanchon** — **version 6.x** (do **not** install 7.x; the firmware uses the v6 API)
+3. Wait for both to show "INSTALLED", close Library Manager.
+
+> **No internet on the classroom Wi-Fi?** Library Manager needs internet. Switch to a network with internet, install, then rejoin `CECS`. The libraries persist after install.
 
 ---
 

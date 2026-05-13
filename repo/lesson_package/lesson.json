@@ -9,8 +9,9 @@
     "ESP32 DevKit (any variant with accessible GPIOs)",
     "Breadboard and jumper wires",
     "1x standard LED + 330 Ω resistor (step 1)",
-    "16×2 LCD with I2C backpack (I2C address 0x27) (steps 2–4)",
-    "Potentiometer (10 kΩ) (steps 2–4)",
+    "16×2 parallel LCD — TC1602A or any HD44780-compatible module (steps 2–4)",
+    "2x potentiometer, 10 kΩ — one for the signal on GPIO 34, one for LCD contrast on V0 (steps 2–4)",
+    "1x 220 Ω resistor for LCD backlight current limit if your module has no built-in resistor (steps 2–4)",
     "USB cable (data cable, not charge-only — required for Serial Monitor)"
   ],
   "steps": [
@@ -54,25 +55,25 @@
         "type": "numeric_entry",
         "prompt": "What frequency did Serial Monitor report?",
         "field_label": "Measured frequency (Hz)",
-        "placeholder": "e.g. 0.9987",
+        "placeholder": "e.g. 1.0000",
         "expected_range": [0.95, 1.05],
         "out_of_range_feedback": "That's outside the range we'd expect for this code. Make sure Serial Monitor is at 115200 baud and the step1_baseline firmware is running.",
-        "on_valid_entry": "Your measurement is logged. Nobody in this class will report exactly 1.0000 Hz — and that's the point."
+        "on_valid_entry": "Logged. Most ESP32s on this clean baseline will report exactly 1.0000 Hz — that's not a measurement error, it's the FreeRTOS tick aligning perfectly when the CPU has no other work. Hold onto this number. It's your 'before' value when Step 2 introduces a competing workload."
       },
 
       "short_answer_prompt": {
         "question_id": "q1_why_not_exact",
-        "prompt": "Your Serial Monitor reading isn't exactly 1.0000 Hz. In 2–3 sentences, explain why. What is the ESP32 actually doing, and why can't the software produce a perfect 1 Hz signal?",
+        "prompt": "Your Serial Monitor reads exactly 1.0000 Hz cycle after cycle. The ESP32's FreeRTOS scheduler keeps perfect tick alignment when the CPU has nothing else to do. In 2–3 sentences, explain why this perfect timing is fragile: what kind of workload would break it, and which CPU resource is the bottleneck?",
         "word_limit": 80,
         "grading_ref": "grading.json#q1_why_not_exact"
       },
 
       "reveal": {
-        "heading": "The short answer",
-        "text": "Your ESP32 is running a loop: turn LED on, wait 500 ms, turn LED off, wait 500 ms. But 'wait 500 ms' in software isn't perfectly precise. The CPU also services background interrupts — the RTOS tick, the USB peripheral, the WiFi radio if it's powered on. Each one steals a handful of microseconds. Serial Monitor showed you the real period: slightly more than 1000 ms, never exactly. Over many cycles, those microseconds accumulate and your frequency drifts off by a fraction of a percent. The CPU isn't broken. It's just doing exactly what it's designed to do: running code, one instruction at a time, while interruptions happen. Hold onto that idea — it's about to matter a lot more."
+        "heading": "Why this baseline is precise — and why that's about to change",
+        "text": "Surprised? On a clean baseline with nothing else running, the ESP32's FreeRTOS scheduler keeps delay(500) + delay(500) aligned to exactly 1,000,000 microseconds — the hardware timer drives the RTOS tick, the tick drives delay(), and with the CPU otherwise idle, every cycle hits the next tick perfectly. Software CAN be precise. But notice the precondition: 'with the CPU otherwise idle.' The moment another task competes for that single processor, delay() can no longer guarantee when it returns. The chapter isn't really about software being inherently bad at timing — it's about software being a shared resource that fails the moment contention enters. Hold onto your 1.0000 Hz reading. In Step 2 you'll add a real workload and watch this collapse."
       },
 
-      "transition_to_next_step": "Right now, a ~0.3% frequency error is probably invisible to you. In the next step, we'll turn up the difficulty until software's imperfection becomes impossible to miss."
+      "transition_to_next_step": "You've got perfect 1.0000 Hz with the CPU otherwise idle. In the next step, you'll add real work — and watch that perfection collapse."
     },
 
     {
@@ -91,7 +92,7 @@
         {
           "type": "task",
           "heading": "Build the circuit",
-          "text": "Keep your step 1 LED in place. Add: (1) Potentiometer — middle pin to GPIO 34, outer pins to 3.3 V and GND. (2) LCD 16×2 with I2C backpack — SDA to GPIO 21, SCL to GPIO 22, VCC to 5 V, GND to GND."
+          "text": "Add to your breadboard: (1) Signal pot — middle pin to GPIO 34, outer pins to 3.3 V and GND. (2) Contrast pot — wiper to LCD V0 (pin 3), outer pins to 5 V and GND. (3) LCD 16×2 parallel (TC1602A) in 4-bit mode — VSS→GND, VDD→5V, RS→GPIO 19, RW→GND, E→GPIO 23, D4→GPIO 18, D5→GPIO 5, D6→GPIO 17, D7→GPIO 16, A→5V (through 220 Ω if no built-in resistor), K→GND. The Step 1 LED is no longer used and can be removed or left disconnected."
         },
         {
           "type": "reference",
@@ -323,9 +324,24 @@
 
   "assets": [
     "assets/step1_wiring.svg",
-    "assets/step2_wiring.svg",
-    "hardware/starter_code/step1_baseline/step1_baseline.ino",
-    "hardware/starter_code/step2_overload/step2_overload.ino",
-    "hardware/starter_code/step4_accelerator/step4_accelerator.ino"
+    "assets/step2_wiring.svg"
+  ],
+
+  "reference_code": [
+    {
+      "filename": "step1_baseline.ino",
+      "label": "Step 1 — Baseline Blink",
+      "description": "LED blink firmware. Prints period and frequency to Serial Monitor so students can measure the timing."
+    },
+    {
+      "filename": "step2_overload.ino",
+      "label": "Step 2 — Software Under Pressure",
+      "description": "Pot + LCD + CPU load task. Software ADC polling lags visibly under load (~40–80 Hz sample rate)."
+    },
+    {
+      "filename": "step4_accelerator.ino",
+      "label": "Step 4 — DMA Accelerator",
+      "description": "Same hardware as Step 2. ADC via I2S DMA at 10 kHz — LCD tracks knob smoothly even under full CPU load (~400–500 Hz). Change USE_DMA 0→1 to enable."
+    }
   ]
 }

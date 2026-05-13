@@ -24,11 +24,9 @@ The firmware connects to WiFi (`CECS`/`CECS-Classroom`) and MQTT (`192.168.8.10:
 4. If MQTT host is wrong: update `#define MQTT_HOST` and reflash
 
 ## Required libraries
-- `LiquidCrystal I2C` (Frank de Brabander)
-- `PubSubClient` (Nick O'Leary)
-- `ArduinoJson` v6.x (Benoit Blanchon)
-
-All installable from Arduino IDE Library Manager.
+- `LiquidCrystal` -- built into Arduino IDE (no install needed)
+- `PubSubClient` (Nick O'Leary) -- Library Manager, v2.8.x
+- `ArduinoJson` (Benoit Blanchon) -- Library Manager, v6.x (NOT v7)
 
 ## Graded question
 Q4 (`q4_accelerator`): compare Step 3 and Step 4 sample rates, explain what DMA did differently. Full credit requires: (1) DMA autonomous/no CPU, (2) DMA and CPU run in parallel, (3) rate improved. The most common partial-credit answer covers (1) but not (2): "DMA handles ADC so CPU doesn't have to." Correct but misses the parallel execution insight.

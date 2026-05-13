@@ -11,8 +11,9 @@ CPU contention: the software polling loop and the CPU load task share one core. 
 ## Common issues
 | Symptom | Likely cause | Fix |
 |---|---|---|
-| LCD blank | Wrong I2C address | Change `LiquidCrystal_I2C lcd(0x27, ...)` to `0x3F` and reflash |
-| LCD backlight on, no text | I2C wiring swapped | Verify SDA→GPIO21, SCL→GPIO22 |
+| LCD backlight on, blank screen | Contrast not adjusted | Turn the contrast pot (V0) until characters appear |
+| LCD backlight off | A-pin wiring | Verify pin 15 (A) → 5 V (through 220 Ω if no built-in resistor), pin 16 (K) → GND |
+| Random characters or only top row of solid blocks | D4–D7 swapped | Verify D4=GPIO 18, D5=GPIO 5, D6=GPIO 17, D7=GPIO 16 |
 | No Serial output | Wrong baud rate in Serial Monitor | Set to 115200 |
 | Sample rate looks high (~1000 Hz) | `LOAD_STRENGTH` too low | Increase to 10000–50000 to make the lag more pronounced |
 | Sample rate looks too low (<10 Hz) | `LOAD_STRENGTH` too high | Reduce to 1000–2000 |

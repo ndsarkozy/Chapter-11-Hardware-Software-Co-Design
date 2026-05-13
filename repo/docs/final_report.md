@@ -43,7 +43,7 @@ Step 1 is pedagogically important. Students commit to an answer (why isn't it ex
 | Component | Choice | Rationale |
 |---|---|---|
 | ADC input | Potentiometer on GPIO 34 | Analog input that any user can vary manually; makes the lag interactive |
-| Display | 16×2 LCD with I2C backpack | Cheap, widely available, shows a visible number that lags; no SPI or parallel wiring complexity |
+| Display | 16×2 parallel LCD (TC1602A, HD44780-compatible) driven in 4-bit mode | Available in most teaching kits; uses the standard `LiquidCrystal` library built into Arduino IDE (no third-party install for students); shows a visible number that lags |
 | DMA method | ESP32 I2S peripheral in ADC-DMA mode | Built into ESP32; no external hardware required; well-documented in arduino-esp32 3.x |
 | CPU load | Floating-point loop (5,000 iterations) | Produces reliable, adjustable load; easy to understand; compiler-resistant with volatile result |
 

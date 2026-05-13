@@ -11,8 +11,9 @@ Quantities are **per team of 2 students**. Assume 12 teams per class → multipl
 | Jumper wire kit (M-M, M-F) | 1 | 20 of each flavor is plenty | $4–6 |
 | Standard 5 mm LED, any color | 2 | Step 1 + 1 spare | $0.10 |
 | 330 Ω resistor, 1/4 W | 2 | Step 1 LED current limit + 1 spare | $0.05 |
-| Potentiometer, 10 kΩ linear | 1 | Steps 2–4 ADC input on GPIO 34 | $0.50 |
-| 16×2 LCD with I2C backpack (PCF8574) | 1 | I2C address 0x27 (some modules ship as 0x3F — set in firmware line 24) | $3–5 |
+| Potentiometer, 10 kΩ linear | 2 | One for ADC input on GPIO 34 (signal), one for LCD V0 (contrast) | $1 |
+| 16×2 parallel LCD — TC1602A or any HD44780-compatible | 1 | 16-pin parallel module, driven in 4-bit mode | $3–5 |
+| 220 Ω resistor, 1/4 W | 1 | LCD backlight current-limit (skip if your module has built-in resistor) | $0.05 |
 | USB cable matching the DevKit | 1 | **Data-capable** — charge-only cables will not enumerate a COM port | $2–4 |
 
 **Per-team subtotal:** ~$18–35.
@@ -41,6 +42,6 @@ Many parts survive multiple semesters — only LEDs and the occasional resistor 
 
 ## What students keep vs. return
 
-**Return** at end of semester: ESP32 DevKit, breadboard, potentiometer, LCD module, jumper wire kit.
+**Return** at end of semester: ESP32 DevKit, breadboard, both potentiometers, LCD module, jumper wire kit.
 
 **Keep** (consumables): resistors, LEDs, USB cable.
